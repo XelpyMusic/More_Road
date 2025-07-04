@@ -21,24 +21,23 @@ public class MoreRoad {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public MoreRoad(IEventBus modEventBus, ModContainer modContainer) {
-        MoreRoadBlocks.BLOCKS.register(modEventBus);
-        MoreRoadItems.ITEMS.register(modEventBus);
-
-        modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::commonSetup);
 
         NeoForge.EVENT_BUS.register(this);
 
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        MoreRoadBlocks.register(modEventBus);
+        MoreRoadItems.register(modEventBus);
+
     }
 
-    private void commonSetup(FMLCommonSetupEvent event) {
+    private void commonSetup(final FMLCommonSetupEvent event) {
+
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(MoreRoadItems.TEST);
-
         }
 
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
