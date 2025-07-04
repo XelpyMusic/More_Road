@@ -1,7 +1,7 @@
 {
   "itemGroup.examplemod": "Example Mod Tab",
-  "block.examplemod.example_block": "Example Block",
-  "item.moreroad.a1a": "A1a",
+  "block.moreroad.a1a": "A1a",
+  "item.moreroad.test": "Test",
 
   "examplemod.configuration.title": "Example Mod Configs",
   "examplemod.configuration.section.examplemod.common.toml": "Example Mod Configs",
