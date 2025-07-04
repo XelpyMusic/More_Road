@@ -21,13 +21,15 @@ public class MoreRoad {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public MoreRoad(IEventBus modEventBus, ModContainer modContainer) {
-        modEventBus.addListener(this::addCreative);
+
         modEventBus.addListener(this::commonSetup);
 
         NeoForge.EVENT_BUS.register(this);
 
-        MoreRoadBlocks.register(modEventBus);
         MoreRoadItems.register(modEventBus);
+        MoreRoadBlocks.register(modEventBus);
+
+        modEventBus.addListener(this::addCreative);
 
     }
 

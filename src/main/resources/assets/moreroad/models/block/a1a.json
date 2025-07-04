@@ -3,8 +3,7 @@
 	"credit": "Made with Blockbench",
 	"textures": {
 		"1": "moreroad:block/poteau_block",
-		"2": "moreroad:block/a1a",
-		"particle": "moreroad:block/a1a"
+		"2": "moreroad:block/a1a"
 	},
 	"elements": [
 		{

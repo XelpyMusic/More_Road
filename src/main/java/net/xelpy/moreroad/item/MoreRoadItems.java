@@ -7,7 +7,6 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.xelpy.moreroad.MoreRoad;
-import net.xelpy.moreroad.item.*;
 
 public class MoreRoadItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MoreRoad.MODID);

@@ -9,7 +9,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.xelpy.moreroad.MoreRoad;
-import net.xelpy.moreroad.block.*;
+import net.xelpy.moreroad.block.custom.*;
 import net.xelpy.moreroad.item.MoreRoadItems;
 
 import java.util.function.Function;
@@ -19,8 +19,8 @@ public class MoreRoadBlocks {
             DeferredRegister.createBlocks(MoreRoad.MODID);
 
     public static final DeferredBlock<Block> A1A = registerBlock("a1a",
-            (properties) -> new Block(properties
-                    .strength(4f).requiresCorrectToolForDrops().sound(SoundType.IRON)));
+            (properties) -> new A1aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {

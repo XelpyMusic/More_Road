@@ -1,13 +1,4 @@
 {
-  "itemGroup.examplemod": "Example Mod Tab",
   "block.moreroad.a1a": "A1a",
-  "item.moreroad.test": "Test",
-
-  "examplemod.configuration.title": "Example Mod Configs",
-  "examplemod.configuration.section.examplemod.common.toml": "Example Mod Configs",
-  "examplemod.configuration.section.examplemod.common.toml.title": "Example Mod Configs",
-  "examplemod.configuration.items": "Item List",
-  "examplemod.configuration.logDirtBlock": "Log Dirt Block",
-  "examplemod.configuration.magicNumberIntroduction": "Magic Number Text",
-  "examplemod.configuration.magicNumber": "Magic Number"
+  "item.moreroad.test": "Test"
 }
