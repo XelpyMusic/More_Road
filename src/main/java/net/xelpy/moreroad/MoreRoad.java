@@ -12,6 +12,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.xelpy.moreroad.block.MoreRoadBlocks;
+import net.xelpy.moreroad.item.MoreRoadCreativeModeTabs;
 import net.xelpy.moreroad.item.MoreRoadItems;
 import org.slf4j.Logger;
 
@@ -26,25 +27,15 @@ public class MoreRoad {
 
         NeoForge.EVENT_BUS.register(this);
 
+        MoreRoadCreativeModeTabs.register(modEventBus);
+
         MoreRoadItems.register(modEventBus);
         MoreRoadBlocks.register(modEventBus);
-
-        modEventBus.addListener(this::addCreative);
 
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
 
-    }
-
-    private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
-            event.accept(MoreRoadItems.TEST);
-        }
-
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(MoreRoadBlocks.A1A);
-        }
     }
 
     @SubscribeEvent
