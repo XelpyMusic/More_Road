@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/ab3b"
+    },
+    "facing=east": {
+      "model": "moreroad:block/ab3b",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/ab3b",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/ab3b",
+      "y": 270
+    }
+  }
+}
