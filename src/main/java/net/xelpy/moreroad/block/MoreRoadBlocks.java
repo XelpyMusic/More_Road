@@ -482,6 +482,46 @@ public class MoreRoadBlocks {
             (properties) -> new B39Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> B40 = registerBlock("b40",
+            (properties) -> new B40Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B41 = registerBlock("b41",
+            (properties) -> new B41Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B42 = registerBlock("b42",
+            (properties) -> new B42Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B43 = registerBlock("b43",
+            (properties) -> new B43Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B44 = registerBlock("b44",
+            (properties) -> new B44Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B45A = registerBlock("b45a",
+            (properties) -> new B45aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B49 = registerBlock("b49",
+            (properties) -> new B49Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C1A = registerBlock("c1a",
+            (properties) -> new C1aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C1B = registerBlock("c1b",
+            (properties) -> new C1bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C1C = registerBlock("c1c",
+            (properties) -> new C1cBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
