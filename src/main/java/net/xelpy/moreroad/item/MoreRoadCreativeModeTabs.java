@@ -126,6 +126,16 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.B29);
                         output.accept(MoreRoadBlocks.B31);
                         output.accept(MoreRoadBlocks.B33_15);
+                        output.accept(MoreRoadBlocks.B33_30);
+                        output.accept(MoreRoadBlocks.B33_50);
+                        output.accept(MoreRoadBlocks.B33_70);
+                        output.accept(MoreRoadBlocks.B33_90);
+                        output.accept(MoreRoadBlocks.B33_110);
+                        output.accept(MoreRoadBlocks.B33_130);
+                        output.accept(MoreRoadBlocks.B34);
+                        output.accept(MoreRoadBlocks.B34A);
+                        output.accept(MoreRoadBlocks.B35);
+                        output.accept(MoreRoadBlocks.B39);
                     }).build());
 
     public static void register(IEventBus eventBus) {

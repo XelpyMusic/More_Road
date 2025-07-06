@@ -105,5 +105,15 @@
   "block.moreroad.b29": "B29",
   "block.moreroad.b31": "B31",
   "block.moreroad.b33_15": "B33_15",
+  "block.moreroad.b33_30": "B33_30",
+  "block.moreroad.b33_50": "B33_50",
+  "block.moreroad.b33_70": "B33_70",
+  "block.moreroad.b33_90": "B33_90",
+  "block.moreroad.b33_110": "B33_110",
+  "block.moreroad.b33_130": "B33_130",
+  "block.moreroad.b34": "B34",
+  "block.moreroad.b34a": "B34a",
+  "block.moreroad.b35": "B35",
+  "block.moreroad.b39": "B39",
   "item.moreroad.test": "Test"
 }
