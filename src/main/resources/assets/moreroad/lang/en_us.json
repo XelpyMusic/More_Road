@@ -125,5 +125,16 @@
   "block.moreroad.c1a": "C1a",
   "block.moreroad.c1b": "C1b",
   "block.moreroad.c1c": "C1c",
+  "block.moreroad.c3": "C3",
+  "block.moreroad.c4a_50": "C4a_50",
+  "block.moreroad.c4b_50": "C4b_50",
+  "block.moreroad.c5": "C5",
+  "block.moreroad.c6": "C6",
+  "block.moreroad.c8": "C8",
+  "block.moreroad.c12": "C12",
+  "block.moreroad.c13a": "C13a",
+  "block.moreroad.c13b": "C13b",
+  "block.moreroad.c14_1": "C14_1",
+  "block.moreroad.c14_2": "C14_2",
   "item.moreroad.test": "Test"
 }
