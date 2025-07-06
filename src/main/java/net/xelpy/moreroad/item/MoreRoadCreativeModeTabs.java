@@ -146,6 +146,37 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.C1A);
                         output.accept(MoreRoadBlocks.C1B);
                         output.accept(MoreRoadBlocks.C1C);
+                        output.accept(MoreRoadBlocks.C3);
+                        output.accept(MoreRoadBlocks.C4A_50);
+                        output.accept(MoreRoadBlocks.C4B_50);
+                        output.accept(MoreRoadBlocks.C5);
+                        output.accept(MoreRoadBlocks.C6);
+                        output.accept(MoreRoadBlocks.C8);
+                        output.accept(MoreRoadBlocks.C12);
+                        output.accept(MoreRoadBlocks.C13A);
+                        output.accept(MoreRoadBlocks.C13B);
+                        output.accept(MoreRoadBlocks.C14_1);
+                        output.accept(MoreRoadBlocks.C14_2);
+                        output.accept(MoreRoadBlocks.C18);
+                        output.accept(MoreRoadBlocks.C20A);
+                        output.accept(MoreRoadBlocks.C20C);
+                        output.accept(MoreRoadBlocks.C23);
+                        output.accept(MoreRoadBlocks.C24A_1);
+                        output.accept(MoreRoadBlocks.C24A_4);
+                        output.accept(MoreRoadBlocks.C24B_1);
+                        output.accept(MoreRoadBlocks.C24B_2);
+                        output.accept(MoreRoadBlocks.C24C_1);
+                        output.accept(MoreRoadBlocks.C24C_2);
+                        output.accept(MoreRoadBlocks.C25A);
+                        output.accept(MoreRoadBlocks.C25B);
+                        output.accept(MoreRoadBlocks.C26A);
+                        output.accept(MoreRoadBlocks.C26B);
+                        output.accept(MoreRoadBlocks.C27);
+                        output.accept(MoreRoadBlocks.C28_1);
+                        output.accept(MoreRoadBlocks.C28_3);
+                        output.accept(MoreRoadBlocks.C29A);
+                        output.accept(MoreRoadBlocks.C29B);
+                        output.accept(MoreRoadBlocks.C30);
                     }).build());
 
     public static void register(IEventBus eventBus) {

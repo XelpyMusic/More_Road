@@ -522,6 +522,130 @@ public class MoreRoadBlocks {
             (properties) -> new C1cBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> C3 = registerBlock("c3",
+            (properties) -> new C3Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C4A_50 = registerBlock("c4a_50",
+            (properties) -> new C4a_50Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C4B_50 = registerBlock("c4b_50",
+            (properties) -> new C4b_50Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C5 = registerBlock("c5",
+            (properties) -> new C5Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C6 = registerBlock("c6",
+            (properties) -> new C6Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C8 = registerBlock("c8",
+            (properties) -> new C8Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C12 = registerBlock("c12",
+            (properties) -> new C12Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C13A = registerBlock("c13a",
+            (properties) -> new C13aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C13B = registerBlock("c13b",
+            (properties) -> new C13bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C14_1 = registerBlock("c14_1",
+            (properties) -> new C14_1Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C14_2 = registerBlock("c14_2",
+            (properties) -> new C14_2Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C18 = registerBlock("c18",
+            (properties) -> new C18Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C20A = registerBlock("c20a",
+            (properties) -> new C20aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C20C = registerBlock("c20c",
+            (properties) -> new C20cBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C23 = registerBlock("c23",
+            (properties) -> new C23Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C24A_1 = registerBlock("c24a_1",
+            (properties) -> new C24a_1Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C24A_4 = registerBlock("c24a_4",
+            (properties) -> new C24a_4Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C24B_1 = registerBlock("c24b_1",
+            (properties) -> new C24b_1Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C24B_2 = registerBlock("c24b_2",
+            (properties) -> new C24b_2Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C24C_1 = registerBlock("c24c_1",
+            (properties) -> new C24c_1Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C24C_2 = registerBlock("c24c_2",
+            (properties) -> new C24c_2Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C25A = registerBlock("c25a",
+            (properties) -> new C25aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C25B = registerBlock("c25b",
+            (properties) -> new C25bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C26A = registerBlock("c26a",
+            (properties) -> new C26aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C26B = registerBlock("c26b",
+            (properties) -> new C26bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C27 = registerBlock("c27",
+            (properties) -> new C27Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C28_1 = registerBlock("c28_1",
+            (properties) -> new C28_1Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C28_3 = registerBlock("c28_3",
+            (properties) -> new C28_3Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C29A = registerBlock("c29a",
+            (properties) -> new C29aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C29B = registerBlock("c29b",
+            (properties) -> new C29bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C30 = registerBlock("c30",
+            (properties) -> new C30Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
