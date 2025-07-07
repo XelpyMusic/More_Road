@@ -1,7 +1,7 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "moreroad:item/test"
+    "layer0": "moreroad:item/logo"
   },
   "render_type": "translucent"
 }

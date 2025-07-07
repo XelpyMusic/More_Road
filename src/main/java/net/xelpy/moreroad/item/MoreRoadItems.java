@@ -11,7 +11,7 @@ import net.xelpy.moreroad.MoreRoad;
 public class MoreRoadItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MoreRoad.MODID);
 
-    public static final DeferredItem<Item> TEST = ITEMS.registerItem("test",
+    public static final DeferredItem<Item> LOGO = ITEMS.registerItem("logo",
             Item::new, new Item.Properties());
 
     public static void register(IEventBus eventBus) {
