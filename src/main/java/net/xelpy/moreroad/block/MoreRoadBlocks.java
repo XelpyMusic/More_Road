@@ -862,6 +862,10 @@ public class MoreRoadBlocks {
             (properties) -> new CE50Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> POTEAU = registerBlock("poteau_block",
+            (properties) -> new PoteauBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {

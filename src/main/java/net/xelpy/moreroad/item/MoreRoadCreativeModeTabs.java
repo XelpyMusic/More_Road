@@ -230,6 +230,7 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.CE30a);
                         output.accept(MoreRoadBlocks.CE30b);
                         output.accept(MoreRoadBlocks.CE50);
+                        output.accept(MoreRoadBlocks.POTEAU);
                     }).build());
 
     public static void register(IEventBus eventBus) {
