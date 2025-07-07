@@ -646,6 +646,46 @@ public class MoreRoadBlocks {
             (properties) -> new C30Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> C50 = registerBlock("c50",
+            (properties) -> new C50Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C62 = registerBlock("c62",
+            (properties) -> new C62Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C64A = registerBlock("c64a",
+            (properties) -> new C64aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C64B = registerBlock("c64b",
+            (properties) -> new C64bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C64C = registerBlock("c64c",
+            (properties) -> new C64cBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C64D_1 = registerBlock("c64d_1",
+            (properties) -> new C64d_1Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C64D_2 = registerBlock("c64d_2",
+            (properties) -> new C64d_2Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C107 = registerBlock("c107",
+            (properties) -> new C107Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C108 = registerBlock("c108",
+            (properties) -> new C108Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> C111 = registerBlock("c111",
+            (properties) -> new C111Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
