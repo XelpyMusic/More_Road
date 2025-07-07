@@ -818,6 +818,50 @@ public class MoreRoadBlocks {
             (properties) -> new CE21Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> CE22 = registerBlock("ce22",
+            (properties) -> new CE22Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE23 = registerBlock("ce23",
+            (properties) -> new CE23Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE24 = registerBlock("ce24",
+            (properties) -> new CE24Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE25 = registerBlock("ce25",
+            (properties) -> new CE25Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE26 = registerBlock("ce26",
+            (properties) -> new CE26Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE27 = registerBlock("ce27",
+            (properties) -> new CE27Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE28 = registerBlock("ce28",
+            (properties) -> new CE28Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE29 = registerBlock("ce29",
+            (properties) -> new CE29Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE30a = registerBlock("ce30a",
+            (properties) -> new CE30aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE30b = registerBlock("ce30b",
+            (properties) -> new CE30bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> CE50 = registerBlock("ce50",
+            (properties) -> new CE50Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
