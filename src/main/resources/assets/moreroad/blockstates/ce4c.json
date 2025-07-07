@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/ce4c"
+    },
+    "facing=east": {
+      "model": "moreroad:block/ce4c",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/ce4c",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/ce4c",
+      "y": 270
+    }
+  }
+}
