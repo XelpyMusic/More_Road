@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/poteau_lampadaire"
+    },
+    "facing=east": {
+      "model": "moreroad:block/poteau_lampadaire",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/poteau_lampadaire",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/poteau_lampadaire",
+      "y": 270
+    }
+  }
+}

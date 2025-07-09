@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/luminaire_lampadaire_double"
+    },
+    "facing=east": {
+      "model": "moreroad:block/luminaire_lampadaire_double",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/luminaire_lampadaire_double",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/luminaire_lampadaire_double",
+      "y": 270
+    }
+  }
+}

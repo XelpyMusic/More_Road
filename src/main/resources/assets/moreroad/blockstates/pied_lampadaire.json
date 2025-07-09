@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/pied_lampadaire"
+    },
+    "facing=east": {
+      "model": "moreroad:block/pied_lampadaire",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/pied_lampadaire",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/pied_lampadaire",
+      "y": 270
+    }
+  }
+}

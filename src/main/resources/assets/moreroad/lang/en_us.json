@@ -1,5 +1,5 @@
 {
-  "creativetab.moreroad.test_items": "More Road",
+  "creativetab.moreroad.logo_items": "More Road",
   "block.moreroad.a1a": "A1a",
   "block.moreroad.a1b": "A1b",
   "block.moreroad.a1c": "A1c",
@@ -210,6 +210,15 @@
   "block.moreroad.ce30a": "CE30a",
   "block.moreroad.ce30b": "CE30b",
   "block.moreroad.ce50": "CE50",
+  "block.moreroad.eb10": "EB10",
   "block.moreroad.poteau_block": "Poteau",
+  "block.moreroad.pied_lampadaire": "Pied du Lampadaire",
+  "block.moreroad.pied_lampadaire_double": "Pied du Lampadaire Double",
+  "block.moreroad.poteau_lampadaire": "Poteau du Lampadaire",
+  "block.moreroad.poteau_lampadaire_double": "Poteau du Lampadaire Double",
+  "block.moreroad.luminaire_lampadaire": "Luminaire du Lampadaire",
+  "block.moreroad.luminaire_lampadaire_double": "Luminaire du Lampadaire Double",
+  "block.moreroad.feu_tricolore": "Feu Tricolore",
+  "block.moreroad.banc": "Banc",
   "item.moreroad.logo": "Logo"
 }

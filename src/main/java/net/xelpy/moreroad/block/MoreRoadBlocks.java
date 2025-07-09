@@ -2,17 +2,19 @@ package net.xelpy.moreroad.block;
 
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.*;
 import net.xelpy.moreroad.item.MoreRoadItems;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class MoreRoadBlocks {
     public static final DeferredRegister.Blocks BLOCKS =
@@ -862,9 +864,45 @@ public class MoreRoadBlocks {
             (properties) -> new CE50Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> EB10 = registerBlock("eb10",
+            (properties) -> new EB10Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
     public static final DeferredBlock<Block> POTEAU = registerBlock("poteau_block",
             (properties) -> new PoteauBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> PIEDLAMPADAIRE = registerBlock("pied_lampadaire",
+            (properties) -> new PiedLampadaireBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> PIEDLAMPADAIREDOUBLE = registerBlock("pied_lampadaire_double",
+            (properties) -> new PiedLampadaireDoubleBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> POTEAULAMPADAIRE = registerBlock("poteau_lampadaire",
+            (properties) -> new PoteauLampadaireBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> POTEAULAMPADAIREDOUBLE = registerBlock("poteau_lampadaire_double",
+            (properties) -> new PoteauLampadaireDoubleBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> LUMINAIRELAMPADAIRE = registerBlock("luminaire_lampadaire",
+            (properties) -> new LuminaireLampadaireBlock(properties
+                    .noOcclusion().sound(SoundType.IRON).lightLevel(state -> 15)));
+
+    public static final DeferredBlock<Block> LUMINAIRELAMPADAIREDOUBLE = registerBlock("luminaire_lampadaire_double",
+            (properties) -> new LuminaireLampadaireDoubleBlock(properties
+                    .noOcclusion().sound(SoundType.IRON).lightLevel(state -> 15)));
+
+    public static final DeferredBlock<Block> FEUTRICOLORE = registerBlock("feu_tricolore",
+            (properties) -> new FeuTricoloreBlock(properties
+                    .noOcclusion().sound(SoundType.IRON).lightLevel(state -> 8)));
+
+    public static final DeferredBlock<Block> BANC = registerBlock("banc",
+            (properties) -> new BancBlock(properties
+                    .noOcclusion().sound(SoundType.WOOD)));
 
 
 
