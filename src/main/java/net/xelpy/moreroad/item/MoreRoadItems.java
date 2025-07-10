@@ -14,6 +14,9 @@ public class MoreRoadItems {
     public static final DeferredItem<Item> LOGO = ITEMS.registerItem("logo",
             Item::new, new Item.Properties());
 
+    public static final DeferredItem<Item> LOGO2 = ITEMS.registerItem("logo2",
+            Item::new, new Item.Properties());
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

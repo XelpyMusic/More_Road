@@ -220,5 +220,6 @@
   "block.moreroad.luminaire_lampadaire_double": "Luminaire du Lampadaire Double",
   "block.moreroad.feu_tricolore": "Feu Tricolore",
   "block.moreroad.banc": "Banc",
-  "item.moreroad.logo": "Logo"
+  "block.moreroad.cone": "Cône",
+  "block.moreroad.bloc_de_guidage": "Bloc de Guidage"
 }

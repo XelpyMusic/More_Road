@@ -10,6 +10,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.xelpy.moreroad.block.MoreRoadBlocks;
 import net.xelpy.moreroad.item.MoreRoadCreativeModeTabs;
+import net.xelpy.moreroad.item.MoreRoadCreativeModeTabs2;
 import net.xelpy.moreroad.item.MoreRoadItems;
 import org.slf4j.Logger;
 
@@ -25,6 +26,7 @@ public class MoreRoad {
         NeoForge.EVENT_BUS.register(this);
 
         MoreRoadCreativeModeTabs.register(modEventBus);
+        MoreRoadCreativeModeTabs2.register(modEventBus);
 
         MoreRoadItems.register(modEventBus);
         MoreRoadBlocks.register(modEventBus);

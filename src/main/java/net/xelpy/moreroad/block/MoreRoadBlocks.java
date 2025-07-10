@@ -900,9 +900,17 @@ public class MoreRoadBlocks {
             (properties) -> new FeuTricoloreBlock(properties
                     .noOcclusion().sound(SoundType.IRON).lightLevel(state -> 8)));
 
+    public static final DeferredBlock<Block> CONE = registerBlock("cone",
+            (properties) -> new ConeBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
     public static final DeferredBlock<Block> BANC = registerBlock("banc",
             (properties) -> new BancBlock(properties
                     .noOcclusion().sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<Block> BLOCDEGUIDAGE = registerBlock("bloc_de_guidage",
+            (properties) -> new BlocDeGuidageBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
 
 
 

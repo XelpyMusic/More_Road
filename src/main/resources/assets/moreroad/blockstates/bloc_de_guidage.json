@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/bloc_de_guidage"
+    },
+    "facing=east": {
+      "model": "moreroad:block/bloc_de_guidage",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/bloc_de_guidage",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/bloc_de_guidage",
+      "y": 270
+    }
+  }
+}

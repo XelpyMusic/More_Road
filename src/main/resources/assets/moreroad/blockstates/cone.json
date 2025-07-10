@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/cone"
+    },
+    "facing=east": {
+      "model": "moreroad:block/cone",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/cone",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/cone",
+      "y": 270
+    }
+  }
+}
