@@ -20,6 +20,9 @@ public class MoreRoadCreativeModeTabs2 {
                     .title(Component.translatable("Mobilier Routier"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(MoreRoadBlocks.POTEAU);
+                        output.accept(MoreRoadBlocks.BITUME);
+                        output.accept(MoreRoadBlocks.DALLEDEBITUME);
+                        output.accept(MoreRoadBlocks.LIGNECEDEZLEPASSAGE);
                         output.accept(MoreRoadBlocks.PIEDLAMPADAIRE);
                         output.accept(MoreRoadBlocks.POTEAULAMPADAIRE);
                         output.accept(MoreRoadBlocks.LUMINAIRELAMPADAIRE);
@@ -30,6 +33,9 @@ public class MoreRoadCreativeModeTabs2 {
                         output.accept(MoreRoadBlocks.BANC);
                         output.accept(MoreRoadBlocks.CONE);
                         output.accept(MoreRoadBlocks.BLOCDEGUIDAGE);
+                        output.accept(MoreRoadBlocks.POTEAUELECTRIQUE);
+                        output.accept(MoreRoadBlocks.SUPPORTDESCABLESELECTRIQUES);
+                        output.accept(MoreRoadBlocks.CABLESELECTRIQUES);
                     }).build());
 
     public static void register(IEventBus eventBus) {

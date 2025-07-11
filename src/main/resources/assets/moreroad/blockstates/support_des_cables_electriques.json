@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/support_des_cables_electriques"
+    },
+    "facing=east": {
+      "model": "moreroad:block/support_des_cables_electriques",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/support_des_cables_electriques",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/support_des_cables_electriques",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/poteau_electrique"
+    },
+    "facing=east": {
+      "model": "moreroad:block/poteau_electrique",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/poteau_electrique",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/poteau_electrique",
+      "y": 270
+    }
+  }
+}

@@ -221,5 +221,11 @@
   "block.moreroad.feu_tricolore": "Feu Tricolore",
   "block.moreroad.banc": "Banc",
   "block.moreroad.cone": "Cône",
-  "block.moreroad.bloc_de_guidage": "Bloc de Guidage"
+  "block.moreroad.bloc_de_guidage": "Bloc de Guidage",
+  "block.moreroad.poteau_electrique": "Poteau Électrique",
+  "block.moreroad.support_des_cables_electriques": "Support des Câbles Électriques",
+  "block.moreroad.cables_electriques": "Câbles Électriques",
+  "block.moreroad.bitume": "Bloc de Bitume",
+  "block.moreroad.dalle_de_bitume": "Dalle de Bitume",
+  "block.moreroad.ligne_cedez_le_passage": "Ligne Cedez le Passage"
 }

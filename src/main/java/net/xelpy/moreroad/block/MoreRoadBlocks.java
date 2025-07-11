@@ -912,6 +912,30 @@ public class MoreRoadBlocks {
             (properties) -> new BlocDeGuidageBlock(properties
                     .noOcclusion().sound(SoundType.STONE)));
 
+    public static final DeferredBlock<Block> POTEAUELECTRIQUE = registerBlock("poteau_electrique",
+            (properties) -> new PoteauElectriqueBlock(properties
+                    .noOcclusion().sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<Block> SUPPORTDESCABLESELECTRIQUES = registerBlock("support_des_cables_electriques",
+            (properties) -> new SupportDesCablesElectriquesBlock(properties
+                    .noOcclusion().sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<Block> CABLESELECTRIQUES = registerBlock("cables_electriques",
+            (properties) -> new CablesElectriquesBlock(properties
+                    .noOcclusion().sound(SoundType.BAMBOO)));
+
+    public static final DeferredBlock<Block> BITUME = registerBlock("bitume",
+            (properties) -> new BitumeBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> DALLEDEBITUME = registerBlock("dalle_de_bitume",
+            (properties) -> new DalleDeBitumeBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> LIGNECEDEZLEPASSAGE = registerBlock("ligne_cedez_le_passage",
+            (properties) -> new LigneCedezLePassageBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {

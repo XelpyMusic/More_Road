@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "moreroad:block/dalle_de_bitume"
+    },
+    "type=top": {
+      "model": "moreroad:block/dalle_de_bitume_top"
+    },
+    "type=double": {
+      "model": "moreroad:block/bitume"
+    }
+  }
+}

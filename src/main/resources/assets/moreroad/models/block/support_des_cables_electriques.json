@@ -1,0 +1,210 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"textures": {
+		"6": "moreroad:block/oak_log",
+		"7": "moreroad:block/oak_log_top",
+		"8": "moreroad:block/oak_planks",
+		"9": "moreroad:block/gray_concrete",
+		"10": "moreroad:block/light_gray_concrete",
+		"11": "moreroad:block/black_concrete",
+		"particle": "moreroad:block/oak_log"
+	},
+	"elements": [
+		{
+			"name": "pylone",
+			"from": [4, 0, 4],
+			"to": [12, 16, 12],
+			"faces": {
+				"north": {"uv": [0, 0, 8, 16], "texture": "#6"},
+				"east": {"uv": [0, 0, 8, 16], "texture": "#6"},
+				"south": {"uv": [0, 0, 8, 16], "texture": "#6"},
+				"west": {"uv": [0, 0, 8, 16], "texture": "#6"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#7"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#7"}
+			}
+		},
+		{
+			"name": "barre1",
+			"from": [0, 11, 12],
+			"to": [16, 13, 13],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 2], "texture": "#8"},
+				"east": {"uv": [0, 0, 1, 2], "texture": "#8"},
+				"south": {"uv": [0, 0, 16, 2], "texture": "#8"},
+				"west": {"uv": [0, 0, 1, 2], "texture": "#8"},
+				"up": {"uv": [0, 0, 16, 1], "texture": "#8"},
+				"down": {"uv": [0, 0, 16, 1], "texture": "#8"}
+			}
+		},
+		{
+			"name": "barre2",
+			"from": [0, 11, 3],
+			"to": [16, 13, 4],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 2], "texture": "#8"},
+				"east": {"uv": [0, 0, 1, 2], "texture": "#8"},
+				"south": {"uv": [0, 0, 16, 2], "texture": "#8"},
+				"west": {"uv": [0, 0, 1, 2], "texture": "#8"},
+				"up": {"uv": [0, 0, 16, 1], "texture": "#8"},
+				"down": {"uv": [0, 0, 16, 1], "texture": "#8"}
+			}
+		},
+		{
+			"name": "pied1",
+			"from": [1.5, 11, 2],
+			"to": [2.5, 13, 3],
+			"faces": {
+				"north": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"east": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"west": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"down": {"uv": [0, 0, 1, 1], "texture": "#9"}
+			}
+		},
+		{
+			"name": "pied2",
+			"from": [13.5, 11, 2],
+			"to": [14.5, 13, 3],
+			"faces": {
+				"north": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"east": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"west": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"down": {"uv": [0, 0, 1, 1], "texture": "#9"}
+			}
+		},
+		{
+			"name": "pied3",
+			"from": [13.5, 11, 13],
+			"to": [14.5, 13, 14],
+			"faces": {
+				"east": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"south": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"west": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"down": {"uv": [0, 0, 1, 1], "texture": "#9"}
+			}
+		},
+		{
+			"name": "pied4",
+			"from": [1.5, 11, 13],
+			"to": [2.5, 13, 14],
+			"faces": {
+				"east": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"south": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"west": {"uv": [0, 0, 1, 2], "texture": "#9"},
+				"down": {"uv": [0, 0, 1, 1], "texture": "#9"}
+			}
+		},
+		{
+			"name": "Cube1",
+			"from": [1, 13, 1.5],
+			"to": [3, 15, 3.5],
+			"faces": {
+				"north": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"east": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"south": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"west": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"up": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"down": {"uv": [0, 0, 2, 2], "texture": "#10"}
+			}
+		},
+		{
+			"name": "Cube2",
+			"from": [13, 13, 1.5],
+			"to": [15, 15, 3.5],
+			"faces": {
+				"north": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"east": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"south": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"west": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"up": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"down": {"uv": [0, 0, 2, 2], "texture": "#10"}
+			}
+		},
+		{
+			"name": "Cube3",
+			"from": [13, 13, 12.5],
+			"to": [15, 15, 14.5],
+			"faces": {
+				"north": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"east": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"south": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"west": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"up": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"down": {"uv": [0, 0, 2, 2], "texture": "#10"}
+			}
+		},
+		{
+			"name": "Cube4",
+			"from": [1, 13, 12.5],
+			"to": [3, 15, 14.5],
+			"faces": {
+				"north": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"east": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"south": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"west": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"up": {"uv": [0, 0, 2, 2], "texture": "#10"},
+				"down": {"uv": [0, 0, 2, 2], "texture": "#10"}
+			}
+		},
+		{
+			"name": "fil1",
+			"from": [1.5, 13.5, 0],
+			"to": [2.5, 14.5, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 1, 1], "texture": "#11"},
+				"east": {"uv": [0, 0, 16, 1], "texture": "#11"},
+				"south": {"uv": [0, 0, 1, 1], "texture": "#11"},
+				"west": {"uv": [0, 0, 16, 1], "texture": "#11"},
+				"up": {"uv": [0, 0, 1, 16], "texture": "#11"},
+				"down": {"uv": [0, 0, 1, 16], "texture": "#11"}
+			}
+		},
+		{
+			"name": "fil2",
+			"from": [13.5, 13.5, 0],
+			"to": [14.5, 14.5, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#11"},
+				"east": {"uv": [0, 0, 16, 1], "texture": "#11"},
+				"south": {"uv": [0, 0, 1, 1], "texture": "#11"},
+				"west": {"uv": [0, 0, 16, 1], "texture": "#11"},
+				"up": {"uv": [0, 0, 1, 16], "texture": "#11"},
+				"down": {"uv": [0, 0, 1, 16], "texture": "#11"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [0, 4, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"thirdperson_lefthand": {
+			"translation": [0, 4, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"firstperson_righthand": {
+			"scale": [0.4, 0.4, 0.3]
+		},
+		"firstperson_lefthand": {
+			"scale": [0.4, 0.4, 0.3]
+		},
+		"ground": {
+			"translation": [0, 2.75, 0],
+			"scale": [0.7, 0.7, 0.7]
+		},
+		"gui": {
+			"rotation": [30, 45, 0],
+			"translation": [0, -0.25, 0],
+			"scale": [0.7, 0.7, 0.7]
+		},
+		"head": {
+			"rotation": [0, -180, 0],
+			"translation": [0, 12, 0],
+			"scale": [0.7, 0.7, 0.7]
+		},
+		"fixed": {
+			"rotation": [0, -180, 0],
+			"scale": [0.7, 0.7, 0.7]
+		}
+	}
+}

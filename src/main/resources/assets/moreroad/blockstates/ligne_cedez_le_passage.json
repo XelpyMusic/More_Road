@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/ligne_cedez_le_passage"
+    },
+    "facing=east": {
+      "model": "moreroad:block/ligne_cedez_le_passage",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/ligne_cedez_le_passage",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/ligne_cedez_le_passage",
+      "y": 270
+    }
+  }
+}
