@@ -227,5 +227,14 @@
   "block.moreroad.cables_electriques": "Câbles Électriques",
   "block.moreroad.bitume": "Bloc de Bitume",
   "block.moreroad.dalle_de_bitume": "Dalle de Bitume",
-  "block.moreroad.ligne_cedez_le_passage": "Ligne Cedez le Passage"
+  "block.moreroad.ligne_cedez_le_passage": "Ligne Cedez le Passage",
+  "block.moreroad.fleche": "Flèche",
+  "block.moreroad.ligne_continue": "Ligne Continue",
+  "block.moreroad.ligne_de_dissuasion": "Ligne de Dissuasion",
+  "block.moreroad.ligne_de_rive": "Ligne de Rive",
+  "block.moreroad.ligne_de_rive_continue": "Ligne de Rive Continue",
+  "block.moreroad.ligne_de_stop": "Ligne de Stop",
+  "block.moreroad.ligne_discontinue": "Ligne Discontinue",
+  "block.moreroad.passage_pieton": "Passage Piéton",
+  "block.moreroad.borne_incendie": "Borne d'incendie"
 }

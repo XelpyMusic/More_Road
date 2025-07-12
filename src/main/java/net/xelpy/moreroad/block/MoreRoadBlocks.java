@@ -936,6 +936,41 @@ public class MoreRoadBlocks {
             (properties) -> new LigneCedezLePassageBlock(properties
                     .noOcclusion().sound(SoundType.STONE)));
 
+    public static final DeferredBlock<Block> FLECHE = registerBlock("fleche",
+            (properties) -> new FlecheBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> LIGNECONTINUE = registerBlock("ligne_continue",
+            (properties) -> new LigneContinueBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> LIGNEDEDISSUASION = registerBlock("ligne_de_dissuasion",
+            (properties) -> new LigneDeDissuasionBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> LIGNEDERIVE = registerBlock("ligne_de_rive",
+            (properties) -> new LigneDeRiveBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> LIGNEDERIVECONTINUE = registerBlock("ligne_de_rive_continue",
+            (properties) -> new LigneDeRiveContinueBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> LIGNEDESTOP = registerBlock("ligne_de_stop",
+            (properties) -> new LigneDeStopBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> LIGNEDISCONTINUE = registerBlock("ligne_discontinue",
+            (properties) -> new LigneDiscontinueBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> PASSAGEPIETON = registerBlock("passage_pieton",
+            (properties) -> new PassagePietonBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> BORNEINCENDIE = registerBlock("borne_incendie",
+            (properties) -> new BorneIncendieBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {

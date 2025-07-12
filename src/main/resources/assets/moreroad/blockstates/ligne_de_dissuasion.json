@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/ligne_de_dissuasion"
+    },
+    "facing=east": {
+      "model": "moreroad:block/ligne_de_dissuasion",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/ligne_de_dissuasion",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/ligne_de_dissuasion",
+      "y": 270
+    }
+  }
+}

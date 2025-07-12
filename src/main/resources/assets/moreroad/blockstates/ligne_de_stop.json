@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/ligne_de_stop"
+    },
+    "facing=east": {
+      "model": "moreroad:block/ligne_de_stop",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/ligne_de_stop",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/ligne_de_stop",
+      "y": 270
+    }
+  }
+}

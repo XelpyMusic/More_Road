@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/borne_incendie"
+    },
+    "facing=east": {
+      "model": "moreroad:block/borne_incendie",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/borne_incendie",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/borne_incendie",
+      "y": 270
+    }
+  }
+}
