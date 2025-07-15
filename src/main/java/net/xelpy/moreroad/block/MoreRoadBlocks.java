@@ -992,6 +992,35 @@ public class MoreRoadBlocks {
             (properties) -> new GlissiereDeSecuriteBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> B6B1 = registerBlock("b6b1",
+            (properties) -> new B6b1Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B6B2 = registerBlock("b6b2",
+            (properties) -> new B6b2Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B6B3 = registerBlock("b6b3",
+            (properties) -> new B6b3Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B6B3_ANCIEN = registerBlock("b6b3_ancien",
+            (properties) -> new B6b3_ancienBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B6B4 = registerBlock("b6b4",
+            (properties) -> new B6b4Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B6B5 = registerBlock("b6b5",
+            (properties) -> new B6b5Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B6B5_ANCIEN = registerBlock("b6b5_ancien",
+            (properties) -> new B6b5_ancienBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
         DeferredBlock<T> toReturn = BLOCKS.registerBlock(name, function);
