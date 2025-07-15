@@ -1020,6 +1020,46 @@ public class MoreRoadBlocks {
             (properties) -> new B6b5_ancienBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> B14_5 = registerBlock("b14_5",
+            (properties) -> new B14_5Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B14_10 = registerBlock("b14_10",
+            (properties) -> new B14_10Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B14_20 = registerBlock("b14_20",
+            (properties) -> new B14_20Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B14_40 = registerBlock("b14_40",
+            (properties) -> new B14_40Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B14_45 = registerBlock("b14_45",
+            (properties) -> new B14_45Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B14_60 = registerBlock("b14_60",
+            (properties) -> new B14_60Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B14_80 = registerBlock("b14_80",
+            (properties) -> new B14_80Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B14_100 = registerBlock("b14_100",
+            (properties) -> new B14_100Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B30_30 = registerBlock("b30_30",
+            (properties) -> new B30_30Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> B51_30 = registerBlock("b51_30",
+            (properties) -> new B51_30Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {

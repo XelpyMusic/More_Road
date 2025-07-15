@@ -12,19 +12,19 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class C25bBlock extends HorizontalDirectionalBlock {
-    public static final MapCodec<C25bBlock> CODEC = simpleCodec(C25bBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 7, 16, 23.4, 10);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 6, 16, 23.4, 9);
-    private static final VoxelShape SHAPE_EAST = Block.box(6, 0, 0, 9, 23.4, 16);
-    private static final VoxelShape SHAPE_WEST = Block.box(7, 0, 0, 10, 23.4, 16);
+public class B14_5Block extends HorizontalDirectionalBlock {
+    public static final MapCodec<B14_5Block> CODEC = simpleCodec(B14_5Block::new);
+    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 7, 16, 16, 10);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 6, 16, 16, 9);
+    private static final VoxelShape SHAPE_EAST = Block.box(6, 0, 0, 9, 16, 16);
+    private static final VoxelShape SHAPE_WEST = Block.box(7, 0, 0, 10, 16, 16);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return CODEC;
     }
 
-    public C25bBlock(Properties pProperties) {
+    public B14_5Block(Properties pProperties) {
         super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }

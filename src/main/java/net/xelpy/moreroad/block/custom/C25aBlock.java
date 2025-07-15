@@ -14,10 +14,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class C25aBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<C25aBlock> CODEC = simpleCodec(C25aBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 7, 16, 24, 10);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 6, 16, 24, 9);
-    private static final VoxelShape SHAPE_EAST = Block.box(6, 0, 0, 9, 24, 16);
-    private static final VoxelShape SHAPE_WEST = Block.box(7, 0, 0, 10, 24, 16);
+    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 7, 16, 23.4, 10);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 6, 16, 23.4, 9);
+    private static final VoxelShape SHAPE_EAST = Block.box(6, 0, 0, 9, 23.4, 16);
+    private static final VoxelShape SHAPE_WEST = Block.box(7, 0, 0, 10, 23.4, 16);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

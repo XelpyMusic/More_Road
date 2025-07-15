@@ -97,11 +97,19 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.B12);
                         output.accept(MoreRoadBlocks.B13);
                         output.accept(MoreRoadBlocks.B13A);
+                        output.accept(MoreRoadBlocks.B14_5);
+                        output.accept(MoreRoadBlocks.B14_10);
                         output.accept(MoreRoadBlocks.B14_15);
+                        output.accept(MoreRoadBlocks.B14_20);
                         output.accept(MoreRoadBlocks.B14_30);
+                        output.accept(MoreRoadBlocks.B14_40);
+                        output.accept(MoreRoadBlocks.B14_45);
                         output.accept(MoreRoadBlocks.B14_50);
+                        output.accept(MoreRoadBlocks.B14_60);
                         output.accept(MoreRoadBlocks.B14_70);
+                        output.accept(MoreRoadBlocks.B14_80);
                         output.accept(MoreRoadBlocks.B14_90);
+                        output.accept(MoreRoadBlocks.B14_100);
                         output.accept(MoreRoadBlocks.B14_110);
                         output.accept(MoreRoadBlocks.B14_130);
                         output.accept(MoreRoadBlocks.B15);
@@ -130,6 +138,7 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.B27A);
                         output.accept(MoreRoadBlocks.B27B);
                         output.accept(MoreRoadBlocks.B29);
+                        output.accept(MoreRoadBlocks.B30_30);
                         output.accept(MoreRoadBlocks.B31);
                         output.accept(MoreRoadBlocks.B33_15);
                         output.accept(MoreRoadBlocks.B33_30);
@@ -149,6 +158,7 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.B44);
                         output.accept(MoreRoadBlocks.B45A);
                         output.accept(MoreRoadBlocks.B49);
+                        output.accept(MoreRoadBlocks.B51_30);
                         output.accept(MoreRoadBlocks.C1A);
                         output.accept(MoreRoadBlocks.C1B);
                         output.accept(MoreRoadBlocks.C1C);
