@@ -972,6 +972,14 @@ public class MoreRoadBlocks {
             (properties) -> new BorneIncendieBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> BORNEECLAIRAGE = registerBlock("borne_eclairage",
+            (properties) -> new BorneEclairageBlock(properties
+                    .noOcclusion().sound(SoundType.IRON).lightLevel(state -> 15)));
+
+    public static final DeferredBlock<Block> BARRIEREDESECURITE = registerBlock("barriere_de_securite",
+            (properties) -> new BarriereDeSecuriteBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
         DeferredBlock<T> toReturn = BLOCKS.registerBlock(name, function);

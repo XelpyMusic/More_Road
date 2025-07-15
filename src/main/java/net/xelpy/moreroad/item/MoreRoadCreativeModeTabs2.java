@@ -45,6 +45,8 @@ public class MoreRoadCreativeModeTabs2 {
                         output.accept(MoreRoadBlocks.SUPPORTDESCABLESELECTRIQUES);
                         output.accept(MoreRoadBlocks.CABLESELECTRIQUES);
                         output.accept(MoreRoadBlocks.BORNEINCENDIE);
+                        output.accept(MoreRoadBlocks.BORNEECLAIRAGE);
+                        output.accept(MoreRoadBlocks.BARRIEREDESECURITE);
                     }).build());
 
     public static void register(IEventBus eventBus) {

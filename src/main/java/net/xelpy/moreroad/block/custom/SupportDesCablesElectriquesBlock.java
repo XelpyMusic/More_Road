@@ -14,10 +14,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class SupportDesCablesElectriquesBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<SupportDesCablesElectriquesBlock> CODEC = simpleCodec(SupportDesCablesElectriquesBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
-    private static final VoxelShape SHAPE_EAST = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
-    private static final VoxelShape SHAPE_WEST = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
+    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 0, 16, 16, 16);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 0, 16, 16, 16);
+    private static final VoxelShape SHAPE_EAST = Block.box(0, 0, 0, 16, 16, 16);
+    private static final VoxelShape SHAPE_WEST = Block.box(0, 0, 0, 16, 16, 16);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
@@ -25,7 +25,7 @@ public class SupportDesCablesElectriquesBlock extends HorizontalDirectionalBlock
     }
 
     public SupportDesCablesElectriquesBlock(Properties pProperties) {
-        super(pProperties);
+        super(pProperties.noOcclusion());
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 

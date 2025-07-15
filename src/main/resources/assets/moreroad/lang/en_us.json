@@ -236,5 +236,7 @@
   "block.moreroad.ligne_de_stop": "Ligne de Stop",
   "block.moreroad.ligne_discontinue": "Ligne Discontinue",
   "block.moreroad.passage_pieton": "Passage Piéton",
-  "block.moreroad.borne_incendie": "Borne d'incendie"
+  "block.moreroad.borne_incendie": "Borne d'incendie",
+  "block.moreroad.borne_eclairage": "Borne d'éclairage",
+  "block.moreroad.barriere_de_securite": "Barrière de Sécurité"
 }

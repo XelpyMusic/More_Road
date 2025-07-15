@@ -27,7 +27,6 @@ public class LigneDeStopBlock extends HorizontalDirectionalBlock {
     public LigneDeStopBlock(Properties pProperties) {
         super(pProperties.noOcclusion().noCollission());
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-
     }
 
     @Override

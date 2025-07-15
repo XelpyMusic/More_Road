@@ -14,10 +14,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PoteauElectriqueBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<PoteauElectriqueBlock> CODEC = simpleCodec(PoteauElectriqueBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
-    private static final VoxelShape SHAPE_EAST = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
-    private static final VoxelShape SHAPE_WEST = Block.box(6.5, 0, 6.5, 9.5, 16, 9.5);
+    private static final VoxelShape SHAPE_NORTH = Block.box(4, 0, 4, 12, 16, 12);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(4, 0, 4, 12, 16, 12);
+    private static final VoxelShape SHAPE_EAST = Block.box(4, 0, 4, 12, 16, 12);
+    private static final VoxelShape SHAPE_WEST = Block.box(4, 0, 4, 12, 16, 12);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

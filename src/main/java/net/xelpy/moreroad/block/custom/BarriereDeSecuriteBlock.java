@@ -12,19 +12,19 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class CablesElectriquesBlock extends HorizontalDirectionalBlock {
-    public static final MapCodec<CablesElectriquesBlock> CODEC = simpleCodec(CablesElectriquesBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(1.5, 13.5, 0, 14.5, 14.5, 16);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(1.5, 13.5, 0, 14.5, 14.5, 16);
-    private static final VoxelShape SHAPE_EAST = Block.box(0, 13.5, 1.5, 16, 14.5, 14.5);
-    private static final VoxelShape SHAPE_WEST = Block.box(0, 13.5, 1.5, 16, 14.5, 14.5);
+public class BarriereDeSecuriteBlock extends HorizontalDirectionalBlock {
+    public static final MapCodec<BarriereDeSecuriteBlock> CODEC = simpleCodec(BarriereDeSecuriteBlock::new);
+    private static final VoxelShape SHAPE_NORTH = Block.box(-13, 0, 3, 27, 19, 13);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(-13, 0, 3, 27, 19, 13);
+    private static final VoxelShape SHAPE_EAST = Block.box(3, 0, -13, 13, 19, 27);
+    private static final VoxelShape SHAPE_WEST = Block.box(3, 0, -13, 13, 19, 27);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return CODEC;
     }
 
-    public CablesElectriquesBlock(Properties pProperties) {
+    public BarriereDeSecuriteBlock(Properties pProperties) {
         super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
