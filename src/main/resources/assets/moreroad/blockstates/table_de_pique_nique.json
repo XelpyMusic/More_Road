@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/table_de_pique_nique"
+    },
+    "facing=east": {
+      "model": "moreroad:block/table_de_pique_nique",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/table_de_pique_nique",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/table_de_pique_nique",
+      "y": 270
+    }
+  }
+}

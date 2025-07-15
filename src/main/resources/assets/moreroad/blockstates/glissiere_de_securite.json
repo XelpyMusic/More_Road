@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/glissiere_de_securite"
+    },
+    "facing=east": {
+      "model": "moreroad:block/glissiere_de_securite",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/glissiere_de_securite",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/glissiere_de_securite",
+      "y": 270
+    }
+  }
+}

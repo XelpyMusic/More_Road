@@ -980,6 +980,18 @@ public class MoreRoadBlocks {
             (properties) -> new BarriereDeSecuriteBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> POUBELLE = registerBlock("poubelle",
+            (properties) -> new PoubelleBlock(properties
+                    .noOcclusion().sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<Block> TABLEDEPIQUENIQUE = registerBlock("table_de_pique_nique",
+            (properties) -> new TableDePiqueNiqueBlock(properties
+                    .noOcclusion().sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<Block> GLISSIEREDESECURITE = registerBlock("glissiere_de_securite",
+            (properties) -> new GlissiereDeSecuriteBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
         DeferredBlock<T> toReturn = BLOCKS.registerBlock(name, function);

@@ -238,5 +238,8 @@
   "block.moreroad.passage_pieton": "Passage Piéton",
   "block.moreroad.borne_incendie": "Borne d'incendie",
   "block.moreroad.borne_eclairage": "Borne d'éclairage",
-  "block.moreroad.barriere_de_securite": "Barrière de Sécurité"
+  "block.moreroad.barriere_de_securite": "Barrière de Sécurité",
+  "block.moreroad.poubelle": "Poubelle",
+  "block.moreroad.table_de_pique_nique": "Table de Pique-Nique",
+  "block.moreroad.glissiere_de_securite": "Glissière de Sécurité"
 }

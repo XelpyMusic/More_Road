@@ -31,6 +31,7 @@ public class MoreRoadCreativeModeTabs2 {
                         output.accept(MoreRoadBlocks.LIGNEDESTOP);
                         output.accept(MoreRoadBlocks.LIGNEDISCONTINUE);
                         output.accept(MoreRoadBlocks.PASSAGEPIETON);
+                        output.accept(MoreRoadBlocks.GLISSIEREDESECURITE);
                         output.accept(MoreRoadBlocks.PIEDLAMPADAIRE);
                         output.accept(MoreRoadBlocks.POTEAULAMPADAIRE);
                         output.accept(MoreRoadBlocks.LUMINAIRELAMPADAIRE);
@@ -47,6 +48,8 @@ public class MoreRoadCreativeModeTabs2 {
                         output.accept(MoreRoadBlocks.BORNEINCENDIE);
                         output.accept(MoreRoadBlocks.BORNEECLAIRAGE);
                         output.accept(MoreRoadBlocks.BARRIEREDESECURITE);
+                        output.accept(MoreRoadBlocks.POUBELLE);
+                        output.accept(MoreRoadBlocks.TABLEDEPIQUENIQUE);
                     }).build());
 
     public static void register(IEventBus eventBus) {
