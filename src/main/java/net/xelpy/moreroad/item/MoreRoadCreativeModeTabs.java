@@ -158,8 +158,18 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.B44);
                         output.accept(MoreRoadBlocks.B45A);
                         output.accept(MoreRoadBlocks.B49);
+                        output.accept(MoreRoadBlocks.B50A);
+                        output.accept(MoreRoadBlocks.B50B);
+                        output.accept(MoreRoadBlocks.B50C);
+                        output.accept(MoreRoadBlocks.B50C_ANCIEN);
+                        output.accept(MoreRoadBlocks.B50D);
+                        output.accept(MoreRoadBlocks.B50E);
+                        output.accept(MoreRoadBlocks.B50E_ANCIEN);
                         output.accept(MoreRoadBlocks.B51_30);
+                        output.accept(MoreRoadBlocks.B52);
+                        output.accept(MoreRoadBlocks.B53);
                         output.accept(MoreRoadBlocks.C1A);
+                        output.accept(MoreRoadBlocks.C1B_ANCIEN);
                         output.accept(MoreRoadBlocks.C1B);
                         output.accept(MoreRoadBlocks.C1C);
                         output.accept(MoreRoadBlocks.C3);
@@ -248,6 +258,9 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.CE30b);
                         output.accept(MoreRoadBlocks.CE50);
                         output.accept(MoreRoadBlocks.EB10);
+                        output.accept(MoreRoadBlocks.J4);
+                        output.accept(MoreRoadBlocks.J4A);
+                        output.accept(MoreRoadBlocks.J5);
                     }).build());
 
     public static void register(IEventBus eventBus) {
