@@ -15,9 +15,9 @@ public class MoreRoadCreativeModeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TAB =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MoreRoad.MODID);
 
-    public static final Supplier<CreativeModeTab> MORE_ROAD_TAB = CREATIVE_MODE_TAB.register("more_road_tab",
+    public static final Supplier<CreativeModeTab> TAB1 = CREATIVE_MODE_TAB.register("tab1",
             () -> CreativeModeTab.builder().icon(() -> new ItemStack(MoreRoadItems.LOGO.get()))
-                    .title(Component.translatable("Panneaux"))
+                    .title(Component.translatable("creativetab.moreroad.logo"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(MoreRoadBlocks.A1A);
                         output.accept(MoreRoadBlocks.A1B);
