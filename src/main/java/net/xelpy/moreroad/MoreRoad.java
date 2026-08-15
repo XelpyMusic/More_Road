@@ -8,7 +8,9 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.xelpy.moreroad.network.MoreRoadNetworking;
 import net.xelpy.moreroad.block.MoreRoadBlocks;
+import net.xelpy.moreroad.block.entity.MoreRoadBlockEntities;
 import net.xelpy.moreroad.item.MoreRoadCreativeModeTabs;
 import net.xelpy.moreroad.item.MoreRoadCreativeModeTabs2;
 import net.xelpy.moreroad.item.MoreRoadItems;
@@ -22,6 +24,7 @@ public class MoreRoad {
     public MoreRoad(IEventBus modEventBus, ModContainer modContainer) {
 
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(MoreRoadNetworking::register);
 
         NeoForge.EVENT_BUS.register(this);
 
@@ -30,6 +33,7 @@ public class MoreRoad {
 
         MoreRoadItems.register(modEventBus);
         MoreRoadBlocks.register(modEventBus);
+        MoreRoadBlockEntities.register(modEventBus);
 
     }
 
