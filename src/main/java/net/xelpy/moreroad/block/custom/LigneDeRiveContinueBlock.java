@@ -25,7 +25,7 @@ public class LigneDeRiveContinueBlock extends HorizontalDirectionalBlock {
     }
 
     public LigneDeRiveContinueBlock(Properties pProperties) {
-        super(pProperties.noOcclusion().noCollission());
+        super(pProperties.noOcclusion().noCollision());
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 
     }

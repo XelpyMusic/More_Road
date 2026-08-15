@@ -25,7 +25,7 @@ public class LigneDiscontinueBlock extends HorizontalDirectionalBlock {
     }
 
     public LigneDiscontinueBlock(Properties pProperties) {
-        super(pProperties.noOcclusion().noCollission());
+        super(pProperties.noOcclusion().noCollision());
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 
     }
