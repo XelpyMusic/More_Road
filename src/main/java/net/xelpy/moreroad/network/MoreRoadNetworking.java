@@ -3,76 +3,428 @@ package net.xelpy.moreroad.network;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.xelpy.moreroad.block.custom.D21ABlock;
+import net.xelpy.moreroad.block.custom.D21APanelData;
+import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.EB10Block;
+import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 
 public final class MoreRoadNetworking {
 
+    /*
+     * ============================================================
+     * LIMITES
+     * ============================================================
+     */
+
+    private static final int MAX_EB10_LINE_LENGTH = 32;
+
+    private static final int MAX_D21A_DESTINATION_LENGTH = 48;
+
+    private static final int MAX_D21A_DISTANCE_LENGTH = 8;
+
+    private static final int MAX_EDIT_DISTANCE = 8;
+
+
+    /*
+     * ============================================================
+     * CONSTRUCTEUR PRIVÉ
+     * ============================================================
+     */
+
     private MoreRoadNetworking() {
     }
 
-    public static void register(RegisterPayloadHandlersEvent event) {
 
-        PayloadRegistrar registrar = event.registrar("1");
+    /*
+     * ============================================================
+     * ENREGISTREMENT DES PAYLOADS
+     * ============================================================
+     */
+
+    public static void register(
+            RegisterPayloadHandlersEvent event
+    ) {
+
+        PayloadRegistrar registrar =
+                event.registrar("1");
+
+
+        /*
+         * --------------------------------------------------------
+         * EB10 / EB20
+         * --------------------------------------------------------
+         */
 
         registrar.playToServer(
                 UpdateEB10TextPayload.TYPE,
                 UpdateEB10TextPayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateEB10Text
         );
+
+
+        /*
+         * --------------------------------------------------------
+         * D21A
+         * --------------------------------------------------------
+         */
+
+        registrar.playToServer(
+                UpdateD21APayload.TYPE,
+                UpdateD21APayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateD21A
+        );
     }
+
+
+    /*
+     * ============================================================
+     * EB10 / EB20
+     * ============================================================
+     */
 
     private static void handleUpdateEB10Text(
             UpdateEB10TextPayload payload,
             IPayloadContext context
     ) {
-        var player = context.player();
-        Level level = player.level();
 
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+
+        Level level = player.level();
         BlockPos pos = payload.pos();
 
-        // Le chunk doit toujours être chargé.
+
+        /*
+         * Le chunk doit être chargé.
+         */
         if (!level.hasChunkAt(pos)) {
             return;
         }
 
-        // Évite qu'un client modifie un panneau très loin de lui.
-        if (player.blockPosition().distManhattan(pos) > 8) {
-            return;
-        }
 
-        if (!(level.getBlockEntity(pos) instanceof EB10BlockEntity blockEntity)) {
-            return;
-        }
-
-        String text = payload.cityName().strip();
-
-        if (text.length() > 32) {
-            text = text.substring(0, 32);
-        }
-
-        blockEntity.setCityName(text);
-
-        BlockStateSync.update(level, pos, blockEntity);
-    }
-
-    private static final class BlockStateSync {
-
-        private static void update(
-                Level level,
-                BlockPos pos,
-                EB10BlockEntity blockEntity
+        /*
+         * Le joueur doit être suffisamment proche.
+         */
+        if (
+                player
+                        .blockPosition()
+                        .distManhattan(pos)
+                        > MAX_EDIT_DISTANCE
         ) {
-            var state = blockEntity.getBlockState();
 
-            level.sendBlockUpdated(
+            return;
+        }
+
+
+        /*
+         * Vérification de la BlockEntity.
+         */
+        if (
+                !(level.getBlockEntity(pos)
+                        instanceof EB10BlockEntity blockEntity)
+        ) {
+
+            return;
+        }
+
+
+        /*
+         * --------------------------------------------------------
+         * TEXTE
+         * --------------------------------------------------------
+         */
+
+        String line1 =
+                cleanText(
+                        payload.line1(),
+                        MAX_EB10_LINE_LENGTH
+                );
+
+
+        String line2 =
+                cleanText(
+                        payload.line2(),
+                        MAX_EB10_LINE_LENGTH
+                );
+
+
+        blockEntity.setText(
+                line1,
+                line2
+        );
+
+
+        /*
+         * --------------------------------------------------------
+         * BLOCKSTATE EB10 / EB20
+         * --------------------------------------------------------
+         */
+
+        BlockState currentState =
+                level.getBlockState(pos);
+
+
+        if (
+                !currentState.hasProperty(
+                        EB10Block.EB20
+                )
+        ) {
+
+            return;
+        }
+
+
+        boolean currentEb20 =
+                currentState.getValue(
+                        EB10Block.EB20
+                );
+
+
+        boolean requestedEb20 =
+                payload.eb20();
+
+
+        /*
+         * On ne modifie l'état que si nécessaire.
+         */
+        if (
+                currentEb20
+                        != requestedEb20
+        ) {
+
+            BlockState newState =
+                    currentState.setValue(
+                            EB10Block.EB20,
+                            requestedEb20
+                    );
+
+
+            level.setBlock(
                     pos,
-                    state,
-                    state,
+                    newState,
                     Block.UPDATE_ALL
             );
         }
+
+
+        /*
+         * --------------------------------------------------------
+         * SYNCHRONISATION
+         * --------------------------------------------------------
+         */
+
+        BlockState finalState =
+                level.getBlockState(pos);
+
+
+        level.sendBlockUpdated(
+                pos,
+                finalState,
+                finalState,
+                Block.UPDATE_ALL
+        );
+    }
+
+
+    /*
+     * ============================================================
+     * D21A
+     * ============================================================
+     */
+
+    private static void handleUpdateD21A(
+            UpdateD21APayload payload,
+            IPayloadContext context
+    ) {
+
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+
+        if (
+                player
+                        .blockPosition()
+                        .distManhattan(pos)
+                        > MAX_EDIT_DISTANCE
+        ) {
+            return;
+        }
+
+        if (
+                !(level.getBlockEntity(pos)
+                        instanceof D21ABlockEntity blockEntity)
+        ) {
+            return;
+        }
+
+        D21APanelData[] panels =
+                new D21APanelData[D21ABlockEntity.MAX_PANELS];
+
+        for (int i = 0; i < D21ABlockEntity.MAX_PANELS; i++) {
+            D21APanelData requested = payload.panel(i);
+
+            String destination =
+                    cleanText(
+                            requested.destination(),
+                            MAX_D21A_DESTINATION_LENGTH
+                    );
+
+            String distance =
+                    cleanText(
+                            requested.distance(),
+                            MAX_D21A_DISTANCE_LENGTH
+                    );
+
+            panels[i] =
+                    new D21APanelData(
+                            requested.enabled(),
+                            destination,
+                            distance,
+                            requested.type(),
+                            requested.arrowRight(),
+                            requested.autorouteLogo()
+                    );
+        }
+
+        blockEntity.setPanels(panels);
+
+        /*
+         * Les propriétés TYPE / ARROW_RIGHT restent synchronisées avec le
+         * panneau 1 uniquement pour préserver la compatibilité avec les
+         * anciens mondes et les anciennes données. Le renderer multi-panneaux
+         * n'utilise plus ces propriétés pour choisir les plaques.
+         */
+        BlockState currentState =
+                level.getBlockState(pos);
+
+        D21APanelData firstPanel = panels[0];
+
+        if (
+                currentState.hasProperty(D21ABlock.TYPE)
+                        && currentState.hasProperty(D21ABlock.ARROW_RIGHT)
+        ) {
+            BlockState newState =
+                    currentState
+                            .setValue(
+                                    D21ABlock.TYPE,
+                                    firstPanel.type()
+                            )
+                            .setValue(
+                                    D21ABlock.ARROW_RIGHT,
+                                    firstPanel.arrowRight()
+                            );
+
+            if (!newState.equals(currentState)) {
+                level.setBlock(
+                        pos,
+                        newState,
+                        Block.UPDATE_ALL
+                );
+            }
+        }
+
+        BlockState finalState =
+                level.getBlockState(pos);
+
+        level.sendBlockUpdated(
+                pos,
+                finalState,
+                finalState,
+                Block.UPDATE_ALL
+        );
+    }
+
+
+    /*
+     * ============================================================
+     * CONVERSION DU TYPE D21A
+     * ============================================================
+     */
+
+    private static D21AType parseD21AType(
+            String value
+    ) {
+
+        if (value == null) {
+            return D21AType.WHITE;
+        }
+
+
+        return switch (value) {
+
+            case "green" ->
+                    D21AType.GREEN;
+
+            case "blue" ->
+                    D21AType.BLUE;
+
+            default ->
+                    D21AType.WHITE;
+        };
+    }
+
+
+    /*
+     * ============================================================
+     * NETTOYAGE DU TEXTE
+     * ============================================================
+     */
+
+    private static String cleanText(
+            String text,
+            int maxLength
+    ) {
+
+        if (text == null) {
+            return "";
+        }
+
+
+        String cleaned =
+                text
+                        .replace(
+                                '\n',
+                                ' '
+                        )
+                        .replace(
+                                '\r',
+                                ' '
+                        )
+                        .strip();
+
+
+        if (
+                cleaned.length()
+                        > maxLength
+        ) {
+
+            cleaned =
+                    cleaned.substring(
+                            0,
+                            maxLength
+                    );
+        }
+
+
+        return cleaned;
     }
 }

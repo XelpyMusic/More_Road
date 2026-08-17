@@ -1,18 +1,34 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,eb20=false": {
       "model": "moreroad:block/eb10"
     },
-    "facing=east": {
+    "facing=east,eb20=false": {
       "model": "moreroad:block/eb10",
       "y": 90
     },
-    "facing=south": {
+    "facing=south,eb20=false": {
       "model": "moreroad:block/eb10",
       "y": 180
     },
-    "facing=west": {
+    "facing=west,eb20=false": {
       "model": "moreroad:block/eb10",
+      "y": 270
+    },
+
+    "facing=north,eb20=true": {
+      "model": "moreroad:block/eb20"
+    },
+    "facing=east,eb20=true": {
+      "model": "moreroad:block/eb20",
+      "y": 90
+    },
+    "facing=south,eb20=true": {
+      "model": "moreroad:block/eb20",
+      "y": 180
+    },
+    "facing=west,eb20=true": {
+      "model": "moreroad:block/eb20",
       "y": 270
     }
   }

@@ -9,12 +9,21 @@ public final class EB10ClientHooks {
     private EB10ClientHooks() {
     }
 
+
     public static void openEditor(
             BlockPos pos,
-            String currentName
+            String line1,
+            String line2,
+            boolean eb20
     ) {
+
         Minecraft.getInstance().gui.setScreen(
-                new EB10EditScreen(pos, currentName)
+                new EB10EditScreen(
+                        pos,
+                        line1,
+                        line2,
+                        eb20
+                )
         );
     }
 }

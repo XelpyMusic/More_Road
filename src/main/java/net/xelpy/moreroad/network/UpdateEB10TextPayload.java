@@ -10,7 +10,9 @@ import net.xelpy.moreroad.MoreRoad;
 
 public record UpdateEB10TextPayload(
         BlockPos pos,
-        String cityName
+        String line1,
+        String line2,
+        boolean eb20
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateEB10TextPayload> TYPE =
@@ -21,16 +23,25 @@ public record UpdateEB10TextPayload(
                     )
             );
 
+
     public static final StreamCodec<ByteBuf, UpdateEB10TextPayload> STREAM_CODEC =
             StreamCodec.composite(
+
                     BlockPos.STREAM_CODEC,
                     UpdateEB10TextPayload::pos,
 
                     ByteBufCodecs.STRING_UTF8,
-                    UpdateEB10TextPayload::cityName,
+                    UpdateEB10TextPayload::line1,
+
+                    ByteBufCodecs.STRING_UTF8,
+                    UpdateEB10TextPayload::line2,
+
+                    ByteBufCodecs.BOOL,
+                    UpdateEB10TextPayload::eb20,
 
                     UpdateEB10TextPayload::new
             );
+
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

@@ -11,11 +11,30 @@ import java.util.function.Supplier;
 
 public class MoreRoadBlockEntities {
 
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
-            DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MoreRoad.MODID);
+    /*
+     * ============================================================
+     * REGISTRE
+     * ============================================================
+     */
 
-    public static final Supplier<BlockEntityType<EB10BlockEntity>> EB10 =
-            BLOCK_ENTITY_TYPES.register("eb10",
+    public static final DeferredRegister<BlockEntityType<?>>
+            BLOCK_ENTITY_TYPES =
+            DeferredRegister.create(
+                    Registries.BLOCK_ENTITY_TYPE,
+                    MoreRoad.MODID
+            );
+
+
+    /*
+     * ============================================================
+     * EB10 / EB20
+     * ============================================================
+     */
+
+    public static final Supplier<BlockEntityType<EB10BlockEntity>>
+            EB10 =
+            BLOCK_ENTITY_TYPES.register(
+                    "eb10",
                     () -> new BlockEntityType<>(
                             EB10BlockEntity::new,
                             false,
@@ -23,7 +42,35 @@ public class MoreRoadBlockEntities {
                     )
             );
 
+
+    /*
+     * ============================================================
+     * D21A
+     * ============================================================
+     */
+
+    public static final Supplier<BlockEntityType<D21ABlockEntity>>
+            D21A =
+            BLOCK_ENTITY_TYPES.register(
+                    "d21a",
+                    () -> new BlockEntityType<>(
+                            D21ABlockEntity::new,
+                            false,
+                            MoreRoadBlocks.D21A.get()
+                    )
+            );
+
+
+    /*
+     * ============================================================
+     * ENREGISTREMENT
+     * ============================================================
+     */
+
     public static void register(IEventBus eventBus) {
-        BLOCK_ENTITY_TYPES.register(eventBus);
+
+        BLOCK_ENTITY_TYPES.register(
+                eventBus
+        );
     }
 }

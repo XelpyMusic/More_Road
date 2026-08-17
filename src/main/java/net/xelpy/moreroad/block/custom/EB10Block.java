@@ -3,32 +3,33 @@ package net.xelpy.moreroad.block.custom;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.BlockHitResult;
-import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 import net.xelpy.moreroad.client.EB10ClientHooks;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 
 public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock {
 
     public static final MapCodec<EB10Block> CODEC = simpleCodec(EB10Block::new);
+
+    /*
+     * false = EB10
+     * true  = EB20
+     */
+    public static final BooleanProperty EB20 = BooleanProperty.create("eb20");
 
     private static final VoxelShape SHAPE_NORTH =
             Block.box(0, 0, 7, 16, 16, 10);
@@ -50,9 +51,19 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
     public EB10Block(Properties properties) {
         super(properties);
 
+        /*
+         * Quand on pose le panneau :
+         *
+         * facing = nord par défaut
+         * eb20   = false
+         *
+         * Donc EB10 est toujours le modèle initial.
+         */
         this.registerDefaultState(
-                this.stateDefinition.any()
+                this.stateDefinition
+                        .any()
                         .setValue(FACING, Direction.NORTH)
+                        .setValue(EB20, false)
         );
     }
 
@@ -77,18 +88,22 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
                 .setValue(
                         FACING,
                         context.getHorizontalDirection().getOpposite()
-                );
+                )
+                .setValue(EB20, false);
     }
 
     @Override
     protected void createBlockStateDefinition(
             StateDefinition.Builder<Block, BlockState> builder
     ) {
-        builder.add(FACING);
+        builder.add(FACING, EB20);
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(
+            BlockPos pos,
+            BlockState state
+    ) {
         return new EB10BlockEntity(pos, state);
     }
 
@@ -100,14 +115,17 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
             Player player,
             BlockHitResult hitResult
     ) {
-        if (!(level.getBlockEntity(pos) instanceof EB10BlockEntity blockEntity)) {
+        if (!(level.getBlockEntity(pos)
+                instanceof EB10BlockEntity blockEntity)) {
             return InteractionResult.PASS;
         }
 
         if (level.isClientSide()) {
             EB10ClientHooks.openEditor(
                     pos,
-                    blockEntity.getCityName()
+                    blockEntity.getLine1(),
+                    blockEntity.getLine2(),
+                    state.getValue(EB20)
             );
         }
 

@@ -1,0 +1,7 @@
+{
+  "parent": "moreroad:block/d21a_left",
+  "textures": {
+    "2": "moreroad:block/d21a_left_green_autoroute",
+    "particle": "moreroad:block/d21a_left_green_autoroute"
+  }
+}

@@ -257,6 +257,7 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.CE30a);
                         output.accept(MoreRoadBlocks.CE30b);
                         output.accept(MoreRoadBlocks.CE50);
+                        output.accept(MoreRoadBlocks.D21A);
                         output.accept(MoreRoadBlocks.EB10);
                         output.accept(MoreRoadBlocks.J4);
                         output.accept(MoreRoadBlocks.J4A);
