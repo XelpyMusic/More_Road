@@ -175,6 +175,7 @@ public class D21ABlock
                 belowState.getBlock() instanceof PoteauBlock
                         || belowState.getBlock() instanceof D21ABlock
                         || belowState.getBlock() instanceof D21A2Block
+                        || belowState.getBlock() instanceof EB10Block
         ) {
             facing = belowState.getValue(FACING);
         } else {
@@ -185,6 +186,7 @@ public class D21ABlock
                     aboveState.getBlock() instanceof PoteauBlock
                             || aboveState.getBlock() instanceof D21ABlock
                             || aboveState.getBlock() instanceof D21A2Block
+                            || aboveState.getBlock() instanceof EB10Block
             ) {
                 facing = aboveState.getValue(FACING);
             }

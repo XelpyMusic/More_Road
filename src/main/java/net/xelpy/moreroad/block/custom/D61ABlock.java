@@ -14,26 +14,25 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.xelpy.moreroad.block.entity.D21ABlockEntity;
-import net.xelpy.moreroad.client.D21AClientHooks;
+import net.xelpy.moreroad.block.entity.D61ABlockEntity;
+import net.xelpy.moreroad.client.D61AClientHooks;
 
-public class D21A2Block
+public class D61ABlock
         extends HorizontalDirectionalBlock
         implements EntityBlock {
 
-    public static final MapCodec<D21A2Block> CODEC =
-            simpleCodec(D21A2Block::new);
+    public static final MapCodec<D61ABlock> CODEC =
+            simpleCodec(D61ABlock::new);
 
-    /*
-     * Espacement historique des ensembles composés uniquement de D21A2.
-     * D21APanelLayout le conserve automatiquement pour un poteau 100 %
-     * double, tout en calculant un espacement adapté pour les mélanges.
-     */
-    public static final double PANEL_VERTICAL_STEP = 0.64D;
+    public static final EnumProperty<D21AType> TYPE =
+            EnumProperty.create("type", D21AType.class);
+
+    public static final double PANEL_VERTICAL_STEP = 0.52D;
 
     private static final VoxelShape POLE_NORTH =
             Block.box(7.0, 0.0, 8.0, 9.0, 16.0, 10.0);
@@ -47,21 +46,20 @@ public class D21A2Block
     private static final VoxelShape POLE_WEST =
             Block.box(8.0, 0.0, 7.0, 10.0, 16.0, 9.0);
 
-    @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-        return CODEC;
-    }
-
-    public D21A2Block(Properties properties) {
+    public D61ABlock(Properties properties) {
         super(properties);
 
         this.registerDefaultState(
                 this.stateDefinition
                         .any()
                         .setValue(FACING, Direction.NORTH)
-                        .setValue(D21ABlock.TYPE, D21AType.WHITE)
-                        .setValue(D21ABlock.ARROW_RIGHT, false)
+                        .setValue(TYPE, D21AType.WHITE)
         );
+    }
+
+    @Override
+    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -74,7 +72,7 @@ public class D21A2Block
         Direction facing = state.getValue(FACING);
         VoxelShape result = getPoleShape(facing);
 
-        if (level.getBlockEntity(pos) instanceof D21ABlockEntity blockEntity) {
+        if (level.getBlockEntity(pos) instanceof D61ABlockEntity blockEntity) {
             D21APanelData[] panels = blockEntity.getPanels();
 
             for (int i = 0; i < panels.length; i++) {
@@ -85,15 +83,14 @@ public class D21A2Block
                 }
 
                 double yOffset =
-                        D21APanelLayout.getPanelYOffset(
+                        D61APanelLayout.getPanelYOffset(
                                 panels,
                                 i
                         );
 
                 VoxelShape panelShape =
-                        D21APanelLayout.getPanelShape(
+                        D61APanelLayout.getPanelShape(
                                 facing,
-                                panel.arrowRight(),
                                 panel.doubleLine()
                         ).move(
                                 0.0D,
@@ -107,31 +104,13 @@ public class D21A2Block
             return result;
         }
 
-        /*
-         * Fallback pendant le chargement : un bloc D21A2 neuf reste double.
-         */
         return Shapes.or(
                 result,
-                D21APanelLayout.getPanelShape(
+                D61APanelLayout.getPanelShape(
                         facing,
-                        state.getValue(D21ABlock.ARROW_RIGHT),
-                        true
+                        false
                 )
         );
-    }
-
-    public static double getPanelYOffset(
-            int enabledCount,
-            int activeIndex
-    ) {
-        if (enabledCount <= 1) {
-            return 0.0D;
-        }
-
-        return (
-                (enabledCount - 1) / 2.0D
-                        - activeIndex
-        ) * PANEL_VERTICAL_STEP;
     }
 
     private static VoxelShape getPoleShape(Direction facing) {
@@ -155,26 +134,14 @@ public class D21A2Block
                         .getHorizontalDirection()
                         .getOpposite();
 
-        BlockState belowState =
-                level.getBlockState(pos.below());
+        BlockState belowState = level.getBlockState(pos.below());
 
-        if (
-                belowState.getBlock() instanceof PoteauBlock
-                        || belowState.getBlock() instanceof D21ABlock
-                        || belowState.getBlock() instanceof D21A2Block
-                        || belowState.getBlock() instanceof EB10Block
-        ) {
+        if (isCompatiblePoleOrPanel(belowState.getBlock())) {
             facing = belowState.getValue(FACING);
         } else {
-            BlockState aboveState =
-                    level.getBlockState(pos.above());
+            BlockState aboveState = level.getBlockState(pos.above());
 
-            if (
-                    aboveState.getBlock() instanceof PoteauBlock
-                            || aboveState.getBlock() instanceof D21ABlock
-                            || aboveState.getBlock() instanceof D21A2Block
-                            || aboveState.getBlock() instanceof EB10Block
-            ) {
+            if (isCompatiblePoleOrPanel(aboveState.getBlock())) {
                 facing = aboveState.getValue(FACING);
             }
         }
@@ -183,12 +150,21 @@ public class D21A2Block
                 .setValue(FACING, facing);
     }
 
+    private static boolean isCompatiblePoleOrPanel(Block block) {
+        return block instanceof PoteauBlock
+                || block instanceof D61ABlock
+                || block instanceof D61A2Block
+                || block instanceof D21ABlock
+                || block instanceof D21A2Block
+                || block instanceof EB10Block;
+    }
+
     @Override
     public BlockEntity newBlockEntity(
             BlockPos pos,
             BlockState state
     ) {
-        return new D21ABlockEntity(pos, state);
+        return new D61ABlockEntity(pos, state);
     }
 
     @Override
@@ -199,12 +175,12 @@ public class D21A2Block
             Player player,
             BlockHitResult hitResult
     ) {
-        if (!(level.getBlockEntity(pos) instanceof D21ABlockEntity blockEntity)) {
+        if (!(level.getBlockEntity(pos) instanceof D61ABlockEntity blockEntity)) {
             return InteractionResult.PASS;
         }
 
         if (level.isClientSide()) {
-            D21AClientHooks.openEditorTwoLines(
+            D61AClientHooks.openEditor(
                     pos,
                     blockEntity.getPanels()
             );
@@ -219,8 +195,7 @@ public class D21A2Block
     ) {
         builder.add(
                 FACING,
-                D21ABlock.TYPE,
-                D21ABlock.ARROW_RIGHT
+                TYPE
         );
     }
 }

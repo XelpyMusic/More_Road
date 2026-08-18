@@ -12,6 +12,7 @@ import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.EB10Block;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
+import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 
 public final class MoreRoadNetworking {
@@ -78,6 +79,12 @@ public final class MoreRoadNetworking {
                 UpdateD21APayload.TYPE,
                 UpdateD21APayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateD21A
+        );
+
+        registrar.playToServer(
+                UpdateD61APayload.TYPE,
+                UpdateD61APayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateD61A
         );
     }
 
@@ -368,6 +375,91 @@ public final class MoreRoadNetworking {
         );
     }
 
+
+
+    /*
+     * ============================================================
+     * D61A
+     * ============================================================
+     */
+
+    private static void handleUpdateD61A(
+            UpdateD61APayload payload,
+            IPayloadContext context
+    ) {
+
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+
+        if (
+                player
+                        .blockPosition()
+                        .distManhattan(pos)
+                        > MAX_EDIT_DISTANCE
+        ) {
+            return;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof D61ABlockEntity blockEntity)) {
+            return;
+        }
+
+        D21APanelData[] panels = new D21APanelData[D61ABlockEntity.MAX_PANELS];
+
+        for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
+            D21APanelData requested = payload.panel(i);
+
+            String line1 = cleanText(requested.line1(), MAX_D21A_LINE_LENGTH);
+            String line2 = cleanText(requested.line2(), MAX_D21A_LINE_LENGTH);
+            String distance1 = cleanText(requested.distance1(), MAX_D21A_DISTANCE_LENGTH);
+            String distance2 = cleanText(requested.distance2(), MAX_D21A_DISTANCE_LENGTH);
+
+            D21AType type = requested.type() == D21AType.GREEN
+                    ? D21AType.GREEN
+                    : D21AType.WHITE;
+
+            panels[i] = new D21APanelData(
+                    requested.enabled(),
+                    line1,
+                    line2,
+                    distance1,
+                    distance2,
+                    type,
+                    false,
+                    false,
+                    requested.doubleLine()
+            );
+        }
+
+        blockEntity.setPanels(panels);
+
+        BlockState currentState = level.getBlockState(pos);
+        D21APanelData firstPanel = panels[0];
+
+        if (currentState.hasProperty(net.xelpy.moreroad.block.custom.D61ABlock.TYPE)) {
+            BlockState newState = currentState.setValue(
+                    net.xelpy.moreroad.block.custom.D61ABlock.TYPE,
+                    firstPanel.type() == D21AType.GREEN ? D21AType.GREEN : D21AType.WHITE
+            );
+
+            if (!newState.equals(currentState)) {
+                level.setBlock(pos, newState, Block.UPDATE_ALL);
+            }
+        }
+
+        BlockState finalState = level.getBlockState(pos);
+        level.sendBlockUpdated(pos, finalState, finalState, Block.UPDATE_ALL);
+    }
 
     /*
      * ============================================================

@@ -1,35 +1,54 @@
 {
-  "variants": {
-    "facing=north,eb20=false": {
-      "model": "moreroad:block/eb10"
+  "multipart": [
+    {
+      "when": { "facing": "north" },
+      "apply": { "model": "moreroad:block/poteau_block" }
     },
-    "facing=east,eb20=false": {
-      "model": "moreroad:block/eb10",
-      "y": 90
+    {
+      "when": { "facing": "east" },
+      "apply": { "model": "moreroad:block/poteau_block", "y": 90 }
     },
-    "facing=south,eb20=false": {
-      "model": "moreroad:block/eb10",
-      "y": 180
+    {
+      "when": { "facing": "south" },
+      "apply": { "model": "moreroad:block/poteau_block", "y": 180 }
     },
-    "facing=west,eb20=false": {
-      "model": "moreroad:block/eb10",
-      "y": 270
+    {
+      "when": { "facing": "west" },
+      "apply": { "model": "moreroad:block/poteau_block", "y": 270 }
     },
 
-    "facing=north,eb20=true": {
-      "model": "moreroad:block/eb20"
+    {
+      "when": { "facing": "north", "eb20": "false" },
+      "apply": { "model": "moreroad:block/eb10" }
     },
-    "facing=east,eb20=true": {
-      "model": "moreroad:block/eb20",
-      "y": 90
+    {
+      "when": { "facing": "east", "eb20": "false" },
+      "apply": { "model": "moreroad:block/eb10", "y": 90 }
     },
-    "facing=south,eb20=true": {
-      "model": "moreroad:block/eb20",
-      "y": 180
+    {
+      "when": { "facing": "south", "eb20": "false" },
+      "apply": { "model": "moreroad:block/eb10", "y": 180 }
     },
-    "facing=west,eb20=true": {
-      "model": "moreroad:block/eb20",
-      "y": 270
+    {
+      "when": { "facing": "west", "eb20": "false" },
+      "apply": { "model": "moreroad:block/eb10", "y": 270 }
+    },
+
+    {
+      "when": { "facing": "north", "eb20": "true" },
+      "apply": { "model": "moreroad:block/eb20" }
+    },
+    {
+      "when": { "facing": "east", "eb20": "true" },
+      "apply": { "model": "moreroad:block/eb20", "y": 90 }
+    },
+    {
+      "when": { "facing": "south", "eb20": "true" },
+      "apply": { "model": "moreroad:block/eb20", "y": 180 }
+    },
+    {
+      "when": { "facing": "west", "eb20": "true" },
+      "apply": { "model": "moreroad:block/eb20", "y": 270 }
     }
-  }
+  ]
 }

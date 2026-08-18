@@ -890,6 +890,32 @@ public class MoreRoadBlocks {
                     (properties) -> new D21A2PanelModelBlock(properties
                             .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> D61A = registerBlock("d61a",
+            (properties) -> new D61ABlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D61A2 = registerBlock("d61a2",
+            (properties) -> new D61A2Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    /*
+     * Bloc interne utilisé uniquement par le renderer du D61A.
+     * Aucun BlockItem n'est enregistré pour lui.
+     */
+    public static final DeferredBlock<Block> D61A_PANEL_MODEL =
+            BLOCKS.registerBlock("d61a_panel_model",
+                    (properties) -> new D61APanelModelBlock(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    /*
+     * Bloc interne utilisé uniquement par le renderer du D61A2.
+     * Aucun BlockItem n'est enregistré pour lui.
+     */
+    public static final DeferredBlock<Block> D61A2_PANEL_MODEL =
+            BLOCKS.registerBlock("d61a2_panel_model",
+                    (properties) -> new D61A2PanelModelBlock(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
     public static final DeferredBlock<Block> EB10 = registerBlock("eb10",
             (properties) -> new EB10Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
@@ -1127,11 +1153,15 @@ public class MoreRoadBlocks {
                     .noOcclusion().sound(SoundType.IRON)));
 
     public static final DeferredBlock<Block> J4 = registerBlock("j4",
-            (properties) -> new J4aBlock(properties
+            (properties) -> new J4Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
     public static final DeferredBlock<Block> J4A = registerBlock("j4a",
             (properties) -> new J4aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> J4B = registerBlock("j4b",
+            (properties) -> new J4bBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
     public static final DeferredBlock<Block> J5 = registerBlock("j5",

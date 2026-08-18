@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 import net.xelpy.moreroad.client.EB10ClientHooks;
@@ -31,17 +32,53 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
      */
     public static final BooleanProperty EB20 = BooleanProperty.create("eb20");
 
-    private static final VoxelShape SHAPE_NORTH =
-            Block.box(0, 0, 7, 16, 16, 10);
+    /*
+     * Le panneau EB10/EB20 a désormais son propre poteau visuel,
+     * comme les D21A. La hitbox combine donc :
+     *
+     * - le segment de poteau centré ;
+     * - le panneau, aligné sur les dimensions réelles du modèle.
+     *
+     * Dimensions exactes relevées dans les modèles Blockbench :
+     *
+     * EB10 : X -8 -> 24, Y 3.65 -> 15, Z 6 -> 8
+     * EB20 : X -8 -> 24, Y 3.65 -> 15, Z 5.8 -> 8
+     */
+    private static final VoxelShape EB10_PANEL_NORTH =
+            Block.box(-8.0, 3.65, 6.0, 24.0, 15.0, 8.0);
 
-    private static final VoxelShape SHAPE_SOUTH =
-            Block.box(0, 0, 6, 16, 16, 9);
+    private static final VoxelShape EB10_PANEL_SOUTH =
+            Block.box(-8.0, 3.65, 8.0, 24.0, 15.0, 10.0);
 
-    private static final VoxelShape SHAPE_EAST =
-            Block.box(6, 0, 0, 9, 16, 16);
+    private static final VoxelShape EB10_PANEL_EAST =
+            Block.box(8.0, 3.65, -8.0, 10.0, 15.0, 24.0);
 
-    private static final VoxelShape SHAPE_WEST =
-            Block.box(7, 0, 0, 10, 16, 16);
+    private static final VoxelShape EB10_PANEL_WEST =
+            Block.box(6.0, 3.65, -8.0, 8.0, 15.0, 24.0);
+
+    private static final VoxelShape EB20_PANEL_NORTH =
+            Block.box(-8.0, 3.65, 5.8, 24.0, 15.0, 8.0);
+
+    private static final VoxelShape EB20_PANEL_SOUTH =
+            Block.box(-8.0, 3.65, 8.0, 24.0, 15.0, 10.2);
+
+    private static final VoxelShape EB20_PANEL_EAST =
+            Block.box(8.0, 3.65, -8.0, 10.2, 15.0, 24.0);
+
+    private static final VoxelShape EB20_PANEL_WEST =
+            Block.box(5.8, 3.65, -8.0, 8.0, 15.0, 24.0);
+
+    private static final VoxelShape POLE_NORTH =
+            Block.box(7.0, 0.0, 8.0, 9.0, 16.0, 10.0);
+
+    private static final VoxelShape POLE_SOUTH =
+            Block.box(7.0, 0.0, 6.0, 9.0, 16.0, 8.0);
+
+    private static final VoxelShape POLE_EAST =
+            Block.box(6.0, 0.0, 7.0, 8.0, 16.0, 9.0);
+
+    private static final VoxelShape POLE_WEST =
+            Block.box(8.0, 0.0, 7.0, 10.0, 16.0, 9.0);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
@@ -51,14 +88,6 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
     public EB10Block(Properties properties) {
         super(properties);
 
-        /*
-         * Quand on pose le panneau :
-         *
-         * facing = nord par défaut
-         * eb20   = false
-         *
-         * Donc EB10 est toujours le modèle initial.
-         */
         this.registerDefaultState(
                 this.stateDefinition
                         .any()
@@ -74,21 +103,67 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
             BlockPos pos,
             CollisionContext context
     ) {
-        return switch (state.getValue(FACING)) {
-            case SOUTH -> SHAPE_SOUTH;
-            case EAST -> SHAPE_EAST;
-            case WEST -> SHAPE_WEST;
-            default -> SHAPE_NORTH;
+        Direction facing = state.getValue(FACING);
+        boolean eb20 = state.getValue(EB20);
+
+        VoxelShape panelShape = getPanelShape(facing, eb20);
+        VoxelShape poleShape = getPoleShape(facing);
+
+        return Shapes.or(poleShape, panelShape);
+    }
+
+    private static VoxelShape getPanelShape(Direction facing, boolean eb20) {
+        return switch (facing) {
+            case SOUTH -> eb20 ? EB20_PANEL_SOUTH : EB10_PANEL_SOUTH;
+            case EAST -> eb20 ? EB20_PANEL_EAST : EB10_PANEL_EAST;
+            case WEST -> eb20 ? EB20_PANEL_WEST : EB10_PANEL_WEST;
+            default -> eb20 ? EB20_PANEL_NORTH : EB10_PANEL_NORTH;
+        };
+    }
+
+    private static VoxelShape getPoleShape(Direction facing) {
+        return switch (facing) {
+            case SOUTH -> POLE_SOUTH;
+            case EAST -> POLE_EAST;
+            case WEST -> POLE_WEST;
+            default -> POLE_NORTH;
         };
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+
+        Direction facing =
+                context.getHorizontalDirection().getOpposite();
+
+        BlockState belowState =
+                level.getBlockState(pos.below());
+
+        if (
+                belowState.getBlock() instanceof PoteauBlock
+                        || belowState.getBlock() instanceof D21ABlock
+                        || belowState.getBlock() instanceof D21A2Block
+                        || belowState.getBlock() instanceof EB10Block
+        ) {
+            facing = belowState.getValue(FACING);
+        } else {
+            BlockState aboveState =
+                    level.getBlockState(pos.above());
+
+            if (
+                    aboveState.getBlock() instanceof PoteauBlock
+                            || aboveState.getBlock() instanceof D21ABlock
+                            || aboveState.getBlock() instanceof D21A2Block
+                            || aboveState.getBlock() instanceof EB10Block
+            ) {
+                facing = aboveState.getValue(FACING);
+            }
+        }
+
         return this.defaultBlockState()
-                .setValue(
-                        FACING,
-                        context.getHorizontalDirection().getOpposite()
-                )
+                .setValue(FACING, facing)
                 .setValue(EB20, false);
     }
 

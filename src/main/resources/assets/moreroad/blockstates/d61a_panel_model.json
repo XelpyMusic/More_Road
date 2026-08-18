@@ -1,0 +1,18 @@
+{
+  "variants": {
+    "facing=north,type=white": { "model": "moreroad:block/d61a_white" },
+    "facing=east,type=white": { "model": "moreroad:block/d61a_white", "y": 90 },
+    "facing=south,type=white": { "model": "moreroad:block/d61a_white", "y": 180 },
+    "facing=west,type=white": { "model": "moreroad:block/d61a_white", "y": 270 },
+
+    "facing=north,type=green": { "model": "moreroad:block/d61a_green" },
+    "facing=east,type=green": { "model": "moreroad:block/d61a_green", "y": 90 },
+    "facing=south,type=green": { "model": "moreroad:block/d61a_green", "y": 180 },
+    "facing=west,type=green": { "model": "moreroad:block/d61a_green", "y": 270 },
+
+    "facing=north,type=blue": { "model": "moreroad:block/d61a_white" },
+    "facing=east,type=blue": { "model": "moreroad:block/d61a_white", "y": 90 },
+    "facing=south,type=blue": { "model": "moreroad:block/d61a_white", "y": 180 },
+    "facing=west,type=blue": { "model": "moreroad:block/d61a_white", "y": 270 }
+  }
+}

@@ -24,12 +24,6 @@ import java.util.Locale;
 public class EB10BlockEntityRenderer
         implements BlockEntityRenderer<EB10BlockEntity, EB10RenderState> {
 
-    /*
-     * ============================================================
-     * POLICE L1
-     * ============================================================
-     */
-
     private static final FontDescription.Resource ROAD_FONT =
             new FontDescription.Resource(
                     Identifier.fromNamespaceAndPath(
@@ -39,76 +33,43 @@ public class EB10BlockEntityRenderer
             );
 
     /*
-     * ============================================================
-     * POSITION GÉNÉRALE
-     * ============================================================
+     * Le grand modèle EB10/EB20 est centré à X = 8.
+     * Le texte doit donc rester vraiment centré horizontalement.
      */
-
-    private static final float TEXT_X_OFFSET = 0.025F;
-
-    // Distance devant la face du panneau
-    private static final float TEXT_Z = 0.066F;
+    private static final float TEXT_X_OFFSET = 0.0F;
 
     /*
-     * ============================================================
-     * UNE SEULE LIGNE
-     * ============================================================
+     * Le texte est rendu légèrement devant la face pour rester visible.
      */
-
-    // Position que nous avions réglée pour NICE / TOULOUSE
-    private static final float SINGLE_LINE_Y = 0.748F;
-
-    private static final float SINGLE_LINE_BASE_SCALE = 0.0130F;
+    private static final float TEXT_Z = 0.128F;
 
     /*
-     * ============================================================
-     * DEUX LIGNES
-     * ============================================================
-     *
-     * Les deux lignes ont chacune leur propre position dans
-     * le monde. Elles ne peuvent donc plus se chevaucher.
+     * Une ligne : encore un tout petit peu plus bas.
      */
-
-    private static final float FIRST_LINE_Y = 0.795F;
-    private static final float SECOND_LINE_Y = 0.680F;
-
-    private static final float TWO_LINES_BASE_SCALE = 0.0100F;
+    private static final float SINGLE_LINE_Y = 0.560F;
+    private static final float SINGLE_LINE_BASE_SCALE = 0.0205F;
 
     /*
-     * ============================================================
-     * LARGEUR MAXIMALE
-     * ============================================================
-     *
-     * Même si l'utilisateur tape une ligne très longue,
-     * elle sera réduite juste assez pour ne pas sortir du panneau.
+     * Deux lignes : même ajustement vertical léger.
      */
+    private static final float FIRST_LINE_Y = 0.640F;
+    private static final float SECOND_LINE_Y = 0.480F;
+    private static final float TWO_LINES_BASE_SCALE = 0.0155F;
 
-    private static final float MAX_TEXT_WORLD_WIDTH = 0.80F;
-
+    /*
+     * La plaque est large : on laisse une grande zone utile avant de réduire.
+     */
+    private static final float MAX_TEXT_WORLD_WIDTH = 1.28F;
 
     public EB10BlockEntityRenderer(
             BlockEntityRendererProvider.Context context
     ) {
     }
 
-
-    /*
-     * ============================================================
-     * RENDER STATE
-     * ============================================================
-     */
-
     @Override
     public EB10RenderState createRenderState() {
         return new EB10RenderState();
     }
-
-
-    /*
-     * ============================================================
-     * RÉCUPÉRATION DES DONNÉES
-     * ============================================================
-     */
 
     @Override
     public void extractRenderState(
@@ -126,10 +87,6 @@ public class EB10BlockEntityRenderer
                 crumblingOverlay
         );
 
-        /*
-         * Nouveau système :
-         * deux lignes indépendantes.
-         */
         renderState.line1 = blockEntity.getLine1();
         renderState.line2 = blockEntity.getLine2();
 
@@ -138,13 +95,6 @@ public class EB10BlockEntityRenderer
                 .getValue(EB10Block.FACING);
     }
 
-
-    /*
-     * ============================================================
-     * RENDU
-     * ============================================================
-     */
-
     @Override
     public void submit(
             EB10RenderState renderState,
@@ -152,27 +102,14 @@ public class EB10BlockEntityRenderer
             SubmitNodeCollector collector,
             CameraRenderState cameraState
     ) {
-
         String line1 = cleanText(renderState.line1);
         String line2 = cleanText(renderState.line2);
 
-        /*
-         * Aucun texte.
-         */
         if (line1.isBlank() && line2.isBlank()) {
             return;
         }
 
-        /*
-         * --------------------------------------------------------
-         * UNE SEULE LIGNE
-         * --------------------------------------------------------
-         *
-         * Si la deuxième ligne est vide, on garde exactement le
-         * comportement prévu pour NICE, TOULOUSE, ARCACHON...
-         */
         if (line2.isBlank()) {
-
             submitLine(
                     line1,
                     SINGLE_LINE_Y,
@@ -181,24 +118,8 @@ public class EB10BlockEntityRenderer
                     poseStack,
                     collector
             );
-
             return;
         }
-
-        /*
-         * --------------------------------------------------------
-         * DEUX LIGNES
-         * --------------------------------------------------------
-         *
-         * L'utilisateur décide lui-même de la coupure.
-         *
-         * Exemple :
-         *
-         * Ligne 1 : SAINT-RÉMY-
-         * Ligne 2 : DE-PROVENCE
-         *
-         * Les tirets sont conservés exactement.
-         */
 
         if (!line1.isBlank()) {
             submitLine(
@@ -223,13 +144,6 @@ public class EB10BlockEntityRenderer
         }
     }
 
-
-    /*
-     * ============================================================
-     * RENDU D'UNE LIGNE
-     * ============================================================
-     */
-
     private static void submitLine(
             String value,
             float worldY,
@@ -238,27 +152,20 @@ public class EB10BlockEntityRenderer
             PoseStack poseStack,
             SubmitNodeCollector collector
     ) {
-
         if (value == null || value.isBlank()) {
             return;
         }
 
         Font font = Minecraft.getInstance().font;
 
-
-        /*
-         * Police Caractères L1.
-         */
         Component component =
                 Component.literal(value)
                         .withStyle(
                                 Style.EMPTY.withFont(ROAD_FONT)
                         );
 
-
         FormattedCharSequence text =
                 component.getVisualOrderText();
-
 
         int textWidth = font.width(text);
 
@@ -266,139 +173,67 @@ public class EB10BlockEntityRenderer
             return;
         }
 
-
-        /*
-         * --------------------------------------------------------
-         * REDIMENSIONNEMENT AUTOMATIQUE
-         * --------------------------------------------------------
-         *
-         * Une ligne normale garde sa taille de base.
-         *
-         * Si elle devient trop longue, on la réduit juste assez
-         * pour respecter MAX_TEXT_WORLD_WIDTH.
-         */
-
         float scale = Math.min(
                 baseScale,
                 MAX_TEXT_WORLD_WIDTH / textWidth
         );
 
-
         poseStack.pushPose();
 
-
-        /*
-         * Centre du bloc.
-         */
         poseStack.translate(
                 0.5F,
                 worldY,
                 0.5F
         );
 
-
-        /*
-         * Orientation du panneau.
-         */
         float rotation = switch (renderState.facing) {
-
             case SOUTH -> 0F;
-
             case WEST -> -90F;
-
             case NORTH -> 180F;
-
             case EAST -> 90F;
-
             default -> 0F;
         };
-
 
         poseStack.mulPose(
                 Axis.YP.rotationDegrees(rotation)
         );
 
-
-        /*
-         * Position sur la face.
-         */
         poseStack.translate(
                 TEXT_X_OFFSET,
                 0F,
                 TEXT_Z
         );
 
-
-        /*
-         * Taille.
-         */
         poseStack.scale(
                 scale,
                 -scale,
                 scale
         );
 
+        float textX = -textWidth / 2.0F;
+        float textY = -font.lineHeight / 2.0F;
 
-        /*
-         * Centrage horizontal et vertical.
-         */
-        float textX =
-                -textWidth / 2.0F;
-
-        float textY =
-                -font.lineHeight / 2.0F;
-
-
-        /*
-         * Rendu.
-         */
         collector.submitText(
                 poseStack,
-
                 textX,
                 textY,
-
                 text,
-
                 false,
-
                 Font.DisplayMode.NORMAL,
-
                 renderState.lightCoords,
-
-                // Noir
                 0xFF000000,
-
-                // Aucun fond
                 0x00000000,
-
-                // Aucun contour
                 0x00000000
         );
-
 
         poseStack.popPose();
     }
 
-
-    /*
-     * ============================================================
-     * NETTOYAGE
-     * ============================================================
-     */
-
     private static String cleanText(String text) {
-
         if (text == null) {
             return "";
         }
 
-        /*
-         * On met uniquement en majuscules.
-         *
-         * IMPORTANT :
-         * aucun tiret n'est supprimé.
-         */
         return text
                 .strip()
                 .toUpperCase(Locale.ROOT);

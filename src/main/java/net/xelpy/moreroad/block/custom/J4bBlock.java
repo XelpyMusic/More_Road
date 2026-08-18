@@ -13,18 +13,16 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class J4aBlock extends HorizontalDirectionalBlock {
+public class J4bBlock extends HorizontalDirectionalBlock {
 
-    public static final MapCodec<J4aBlock> CODEC = simpleCodec(J4aBlock::new);
+    public static final MapCodec<J4bBlock> CODEC = simpleCodec(J4bBlock::new);
 
     /*
-     * Hitbox recalée sur le NOUVEAU modèle J4a du src(7).
+     * Hitbox recalée sur le NOUVEAU modèle J4b du src(7).
+     * J4b possède les mêmes dimensions physiques que J4a.
      *
      * Plaque : X -8 -> 24, Y 0.32441 -> 11, Z 6 -> 8
      * Poteau : X  7 ->  9, Y 0       -> 12, Z 8 -> 10
-     *
-     * La plaque et le poteau sont séparés dans la collision afin que la
-     * hitbox ne remplisse pas tout le volume vide jusqu'au poteau.
      */
     private static final VoxelShape PANEL_NORTH =
             Block.box(-8.0, 0.32441, 6.0, 24.0, 11.0, 8.0);
@@ -67,7 +65,7 @@ public class J4aBlock extends HorizontalDirectionalBlock {
         return CODEC;
     }
 
-    public J4aBlock(Properties properties) {
+    public J4bBlock(Properties properties) {
         super(properties);
 
         this.registerDefaultState(
