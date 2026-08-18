@@ -183,7 +183,9 @@ public final class MoreRoadNetworking {
 
         blockEntity.setText(
                 line1,
-                line2
+                line2,
+                payload.line1Font(),
+                payload.line2Font()
         );
 
         blockEntity.setCartoucheType(
@@ -349,7 +351,9 @@ public final class MoreRoadNetworking {
                             requested.type(),
                             requested.arrowRight(),
                             requested.autorouteLogo(),
-                            requested.doubleLine()
+                            requested.doubleLine(),
+                            requested.line1Font(),
+                            requested.line2Font()
                     );
         }
 
@@ -478,7 +482,9 @@ public final class MoreRoadNetworking {
                     requested.arrowEnabled(),
                     requested.arrowPosition(),
                     requested.arrowDirection(),
-                    autorouteLogo
+                    autorouteLogo,
+                    requested.line1Font(),
+                    requested.line2Font()
             );
         }
 

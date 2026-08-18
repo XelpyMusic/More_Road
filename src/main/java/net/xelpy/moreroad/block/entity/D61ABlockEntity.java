@@ -16,6 +16,7 @@ import net.xelpy.moreroad.block.custom.D61AArrowDirection;
 import net.xelpy.moreroad.block.custom.D61AArrowPosition;
 import net.xelpy.moreroad.block.custom.D61ABlock;
 import net.xelpy.moreroad.block.custom.D61APanelData;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public class D61ABlockEntity extends net.minecraft.world.level.block.entity.BlockEntity {
 
@@ -171,6 +172,22 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
             boolean autorouteLogo =
                     input.getBooleanOr(prefix + "autoroute_logo", false);
 
+            RoadTextFont line1Font =
+                    RoadTextFont.fromSerializedName(
+                            input.getStringOr(
+                                    prefix + "line1_font",
+                                    RoadTextFont.L1.getSerializedName()
+                            )
+                    );
+
+            RoadTextFont line2Font =
+                    RoadTextFont.fromSerializedName(
+                            input.getStringOr(
+                                    prefix + "line2_font",
+                                    RoadTextFont.L1.getSerializedName()
+                            )
+                    );
+
             this.panels[i] = sanitizePanel(
                     new D61APanelData(
                             enabled,
@@ -183,7 +200,9 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
                             arrowEnabled,
                             arrowPosition,
                             arrowDirection,
-                            autorouteLogo
+                            autorouteLogo,
+                            line1Font,
+                            line2Font
                     )
             );
         }
@@ -216,6 +235,8 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
             output.putString(prefix + "arrow_position", panel.arrowPosition().getSerializedName());
             output.putString(prefix + "arrow_direction", panel.arrowDirection().getSerializedName());
             output.putBoolean(prefix + "autoroute_logo", panel.autorouteLogo());
+            output.putString(prefix + "line1_font", panel.line1Font().getSerializedName());
+            output.putString(prefix + "line2_font", panel.line2Font().getSerializedName());
         }
 
         output.putString("destination", this.panels[0].line1());
@@ -250,7 +271,9 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
                 panel.arrowEnabled(),
                 panel.arrowPosition(),
                 panel.arrowDirection(),
-                type != D21AType.WHITE && panel.autorouteLogo()
+                type != D21AType.WHITE && panel.autorouteLogo(),
+                panel.line1Font(),
+                panel.line2Font()
         );
     }
 

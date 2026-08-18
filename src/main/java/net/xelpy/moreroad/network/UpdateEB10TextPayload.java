@@ -8,11 +8,14 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.CartoucheType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public record UpdateEB10TextPayload(
         BlockPos pos,
         String line1,
         String line2,
+        RoadTextFont line1Font,
+        RoadTextFont line2Font,
         boolean eb20,
         CartoucheType cartoucheType,
         String cartoucheText
@@ -34,6 +37,12 @@ public record UpdateEB10TextPayload(
                             BlockPos.STREAM_CODEC.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            RoadTextFont.fromSerializedName(
+                                    ByteBufCodecs.STRING_UTF8.decode(buffer)
+                            ),
+                            RoadTextFont.fromSerializedName(
+                                    ByteBufCodecs.STRING_UTF8.decode(buffer)
+                            ),
                             ByteBufCodecs.BOOL.decode(buffer),
                             CartoucheType.fromSerializedName(
                                     ByteBufCodecs.STRING_UTF8.decode(buffer)
@@ -50,6 +59,14 @@ public record UpdateEB10TextPayload(
                     BlockPos.STREAM_CODEC.encode(buffer, payload.pos());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line1());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line2());
+                    ByteBufCodecs.STRING_UTF8.encode(
+                            buffer,
+                            normalizeFont(payload.line1Font()).getSerializedName()
+                    );
+                    ByteBufCodecs.STRING_UTF8.encode(
+                            buffer,
+                            normalizeFont(payload.line2Font()).getSerializedName()
+                    );
                     ByteBufCodecs.BOOL.encode(buffer, payload.eb20());
                     ByteBufCodecs.STRING_UTF8.encode(
                             buffer,
@@ -64,6 +81,10 @@ public record UpdateEB10TextPayload(
             };
 
     public UpdateEB10TextPayload {
+        line1 = normalizeText(line1);
+        line2 = normalizeText(line2);
+        line1Font = normalizeFont(line1Font);
+        line2Font = normalizeFont(line2Font);
         cartoucheType = normalizeCartoucheType(cartoucheType);
         cartoucheText = normalizeText(cartoucheText);
     }
@@ -79,6 +100,10 @@ public record UpdateEB10TextPayload(
         return cartoucheType == null
                 ? CartoucheType.NONE
                 : cartoucheType;
+    }
+
+    private static RoadTextFont normalizeFont(RoadTextFont font) {
+        return font == null ? RoadTextFont.L1 : font;
     }
 
     private static String normalizeText(String text) {

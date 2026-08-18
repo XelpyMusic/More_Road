@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.Direction;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 
 public class D21ARenderState extends BlockEntityRenderState {
@@ -23,6 +24,12 @@ public class D21ARenderState extends BlockEntityRenderState {
 
     public final D21AType[] panelTypes =
             new D21AType[D21ABlockEntity.MAX_PANELS];
+
+    public final RoadTextFont[] line1Fonts =
+            new RoadTextFont[D21ABlockEntity.MAX_PANELS];
+
+    public final RoadTextFont[] line2Fonts =
+            new RoadTextFont[D21ABlockEntity.MAX_PANELS];
 
     public final boolean[] arrowRights =
             new boolean[D21ABlockEntity.MAX_PANELS];

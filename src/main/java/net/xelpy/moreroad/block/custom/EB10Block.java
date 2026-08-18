@@ -232,6 +232,8 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
                     pos,
                     blockEntity.getLine1(),
                     blockEntity.getLine2(),
+                    blockEntity.getLine1Font(),
+                    blockEntity.getLine2Font(),
                     state.getValue(EB20),
                     blockEntity.getCartoucheType(),
                     blockEntity.getCartoucheText()

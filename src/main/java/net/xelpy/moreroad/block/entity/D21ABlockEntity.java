@@ -15,6 +15,7 @@ import net.xelpy.moreroad.block.custom.D21A2Block;
 import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public class D21ABlockEntity extends BlockEntity {
 
@@ -276,6 +277,22 @@ public class D21ABlockEntity extends BlockEntity {
                             blockDefaultDoubleLine
                     );
 
+            RoadTextFont line1Font =
+                    RoadTextFont.fromSerializedName(
+                            input.getStringOr(
+                                    prefix + "line1_font",
+                                    RoadTextFont.L1.getSerializedName()
+                            )
+                    );
+
+            RoadTextFont line2Font =
+                    RoadTextFont.fromSerializedName(
+                            input.getStringOr(
+                                    prefix + "line2_font",
+                                    RoadTextFont.L1.getSerializedName()
+                            )
+                    );
+
             this.panels[i] =
                     new D21APanelData(
                             enabled,
@@ -286,7 +303,9 @@ public class D21ABlockEntity extends BlockEntity {
                             type,
                             arrowRight,
                             autorouteLogo,
-                            doubleLine
+                            doubleLine,
+                            line1Font,
+                            line2Font
                     );
         }
     }
@@ -358,6 +377,16 @@ public class D21ABlockEntity extends BlockEntity {
             output.putBoolean(
                     prefix + "double_line",
                     panel.doubleLine()
+            );
+
+            output.putString(
+                    prefix + "line1_font",
+                    panel.line1Font().getSerializedName()
+            );
+
+            output.putString(
+                    prefix + "line2_font",
+                    panel.line2Font().getSerializedName()
             );
         }
 

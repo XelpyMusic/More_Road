@@ -32,6 +32,7 @@ import net.xelpy.moreroad.block.custom.D61ABlock;
 import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.D61APanelLayout;
 import net.xelpy.moreroad.block.custom.D61APanelModelBlock;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 
 import java.util.Locale;
@@ -39,11 +40,19 @@ import java.util.Locale;
 public class D61ABlockEntityRenderer
         implements BlockEntityRenderer<D61ABlockEntity, D61ARenderState> {
 
-    private static final FontDescription.Resource ROAD_FONT =
+    private static final FontDescription.Resource ROAD_FONT_L1 =
             new FontDescription.Resource(
                     Identifier.fromNamespaceAndPath(
                             MoreRoad.MODID,
                             "caracteres_l1"
+                    )
+            );
+
+    private static final FontDescription.Resource ROAD_FONT_L4 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(
+                            MoreRoad.MODID,
+                            "caracteres_l4"
                     )
             );
 
@@ -201,6 +210,8 @@ public class D61ABlockEntityRenderer
             renderState.distance1[i] = panel.distance1();
             renderState.distance2[i] = panel.distance2();
             renderState.panelTypes[i] = sanitizeType(panel.type());
+            renderState.line1Fonts[i] = panel.line1Font();
+            renderState.line2Fonts[i] = panel.line2Font();
             renderState.doubleLines[i] = panel.doubleLine();
             renderState.autorouteLogos[i] =
                     renderState.panelTypes[i] != D21AType.WHITE
@@ -344,6 +355,8 @@ public class D61ABlockEntityRenderer
                     cleanText(renderState.line2[i]),
                     cleanText(renderState.distance1[i]),
                     cleanText(renderState.distance2[i]),
+                    renderState.line1Fonts[i],
+                    renderState.line2Fonts[i],
                     renderState.panelTypes[i],
                     renderState.autorouteLogos[i],
                     renderState.doubleLines[i],
@@ -551,6 +564,8 @@ public class D61ABlockEntityRenderer
             String line2,
             String distance1,
             String distance2,
+            RoadTextFont line1Font,
+            RoadTextFont line2Font,
             D21AType panelType,
             boolean autorouteLogo,
             boolean doubleLine,
@@ -580,6 +595,8 @@ public class D61ABlockEntityRenderer
                     line2,
                     distance1,
                     distance2,
+                    line1Font,
+                    line2Font,
                     textColor,
                     autorouteLogo,
                     arrowEnabled,
@@ -597,6 +614,7 @@ public class D61ABlockEntityRenderer
         submitSingleLinePanelText(
                 line1,
                 distance,
+                line1Font,
                 textColor,
                 autorouteLogo,
                 arrowEnabled,
@@ -611,6 +629,7 @@ public class D61ABlockEntityRenderer
     private static void submitSingleLinePanelText(
             String destination,
             String distance,
+            RoadTextFont destinationFont,
             int textColor,
             boolean autorouteLogo,
             boolean arrowEnabled,
@@ -667,6 +686,7 @@ public class D61ABlockEntityRenderer
                     SINGLE_DESTINATION_BASE_SCALE,
                     destinationMaxWidth,
                     TextAnchor.LEFT,
+                    destinationFont,
                     textColor,
                     renderState,
                     poseStack,
@@ -699,6 +719,8 @@ public class D61ABlockEntityRenderer
             String line2,
             String distance1,
             String distance2,
+            RoadTextFont line1Font,
+            RoadTextFont line2Font,
             int textColor,
             boolean autorouteLogo,
             boolean arrowEnabled,
@@ -771,6 +793,7 @@ public class D61ABlockEntityRenderer
                     DOUBLE_DESTINATION_BASE_SCALE,
                     maxWidth,
                     TextAnchor.LEFT,
+                    line1Font,
                     textColor,
                     renderState,
                     poseStack,
@@ -811,6 +834,7 @@ public class D61ABlockEntityRenderer
                     DOUBLE_DESTINATION_BASE_SCALE,
                     maxWidth,
                     TextAnchor.LEFT,
+                    line2Font,
                     textColor,
                     renderState,
                     poseStack,
@@ -852,6 +876,34 @@ public class D61ABlockEntityRenderer
             PoseStack poseStack,
             SubmitNodeCollector collector
     ) {
+        submitAnchoredText(
+                value,
+                anchorX,
+                worldY,
+                baseScale,
+                maxWorldWidth,
+                anchor,
+                RoadTextFont.L1,
+                color,
+                renderState,
+                poseStack,
+                collector
+        );
+    }
+
+    private static void submitAnchoredText(
+            String value,
+            float anchorX,
+            float worldY,
+            float baseScale,
+            float maxWorldWidth,
+            TextAnchor anchor,
+            RoadTextFont textFont,
+            int color,
+            D61ARenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
         if (value == null || value.isBlank()) {
             return;
         }
@@ -860,7 +912,9 @@ public class D61ABlockEntityRenderer
 
         Component component =
                 Component.literal(value)
-                        .withStyle(Style.EMPTY.withFont(ROAD_FONT));
+                        .withStyle(
+                                Style.EMPTY.withFont(getRoadFont(textFont))
+                        );
 
         FormattedCharSequence text = component.getVisualOrderText();
         int textWidth = font.width(text);
@@ -906,6 +960,14 @@ public class D61ABlockEntityRenderer
         );
 
         poseStack.popPose();
+    }
+
+    private static FontDescription.Resource getRoadFont(
+            RoadTextFont textFont
+    ) {
+        return textFont == RoadTextFont.L4
+                ? ROAD_FONT_L4
+                : ROAD_FONT_L1;
     }
 
     private static float getFacingRotation(net.minecraft.core.Direction facing) {

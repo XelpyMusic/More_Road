@@ -17,7 +17,9 @@ public record D61APanelData(
         boolean arrowEnabled,
         D61AArrowPosition arrowPosition,
         D61AArrowDirection arrowDirection,
-        boolean autorouteLogo
+        boolean autorouteLogo,
+        RoadTextFont line1Font,
+        RoadTextFont line2Font
 ) {
 
     public D61APanelData {
@@ -25,6 +27,8 @@ public record D61APanelData(
         line2 = line2 == null ? "" : line2;
         distance1 = distance1 == null ? "" : distance1;
         distance2 = distance2 == null ? "" : distance2;
+        line1Font = line1Font == null ? RoadTextFont.L1 : line1Font;
+        line2Font = line2Font == null ? RoadTextFont.L1 : line2Font;
 
         type = switch (type == null ? D21AType.WHITE : type) {
             case GREEN -> D21AType.GREEN;
@@ -42,6 +46,39 @@ public record D61APanelData(
 
         // Comme sur les panneaux directionnels : jamais de logo sur blanc.
         autorouteLogo = type != D21AType.WHITE && autorouteLogo;
+    }
+
+    /*
+     * Compatibilité V61 et versions antérieures : les lignes utilisent L1.
+     */
+    public D61APanelData(
+            boolean enabled,
+            String line1,
+            String line2,
+            String distance1,
+            String distance2,
+            D21AType type,
+            boolean doubleLine,
+            boolean arrowEnabled,
+            D61AArrowPosition arrowPosition,
+            D61AArrowDirection arrowDirection,
+            boolean autorouteLogo
+    ) {
+        this(
+                enabled,
+                line1,
+                line2,
+                distance1,
+                distance2,
+                type,
+                doubleLine,
+                arrowEnabled,
+                arrowPosition,
+                arrowDirection,
+                autorouteLogo,
+                RoadTextFont.L1,
+                RoadTextFont.L1
+        );
     }
 
     public String destination() {
@@ -72,7 +109,9 @@ public record D61APanelData(
                 false,
                 D61AArrowPosition.RIGHT,
                 D61AArrowDirection.UP,
-                false
+                false,
+                RoadTextFont.L1,
+                RoadTextFont.L1
         );
     }
 
@@ -92,7 +131,9 @@ public record D61APanelData(
                 false,
                 D61AArrowPosition.RIGHT,
                 D61AArrowDirection.UP,
-                false
+                false,
+                RoadTextFont.L1,
+                RoadTextFont.L1
         );
     }
 }

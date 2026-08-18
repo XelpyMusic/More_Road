@@ -9,6 +9,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.network.UpdateD21APayload;
 
@@ -26,6 +27,8 @@ public class D21A2EditScreen extends Screen {
     private D21AType selectedType = D21AType.WHITE;
     private boolean arrowRight = false;
     private boolean autorouteLogo = false;
+    private RoadTextFont line1Font = RoadTextFont.L1;
+    private RoadTextFont line2Font = RoadTextFont.L1;
     private CartoucheType cartoucheType = CartoucheType.NONE;
     private String cartoucheText = "";
 
@@ -45,6 +48,8 @@ public class D21A2EditScreen extends Screen {
     private Button blueButton;
     private Button autorouteLogoButton;
     private Button directionButton;
+    private Button line1FontButton;
+    private Button line2FontButton;
     private Button cartoucheButton;
 
     public D21A2EditScreen(
@@ -93,18 +98,36 @@ public class D21A2EditScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
 
+        /*
+         * V63 - Inventory / editor UX pass
+         *
+         * Aucun réglage n'est retiré. L'interface est simplement regroupée
+         * en quatre zones logiques :
+         *  1. état du panneau ;
+         *  2. textes ;
+         *  3. apparence ;
+         *  4. cartouche.
+         *
+         * Les largeurs sont calculées à partir de la largeur disponible pour
+         * rester lisibles même avec une GUI scale élevée.
+         */
+        int formWidth = Math.min(380, this.width - 24);
+        int left = centerX - formWidth / 2;
+        int gap = 6;
+
         /* ========================================================
          * ONGLETS PANNEAUX 1 A 4
          * ======================================================== */
 
-        int tabWidth = 71;
-        int tabGap = 5;
-        int tabsTotalWidth =
-                tabWidth * D21ABlockEntity.MAX_PANELS
-                        + tabGap * (D21ABlockEntity.MAX_PANELS - 1);
+        int tabWidth =
+                (
+                        formWidth
+                                - gap
+                                * (D21ABlockEntity.MAX_PANELS - 1)
+                )
+                        / D21ABlockEntity.MAX_PANELS;
 
-        int tabsStartX = centerX - tabsTotalWidth / 2;
-        int tabsY = centerY - 175;
+        int tabsY = centerY - 195;
 
         for (int i = 0; i < D21ABlockEntity.MAX_PANELS; i++) {
             final int panelIndex = i;
@@ -115,7 +138,7 @@ public class D21A2EditScreen extends Screen {
                                     button -> selectPanel(panelIndex)
                             )
                             .bounds(
-                                    tabsStartX + i * (tabWidth + tabGap),
+                                    left + i * (tabWidth + gap),
                                     tabsY,
                                     tabWidth,
                                     20
@@ -126,8 +149,17 @@ public class D21A2EditScreen extends Screen {
         }
 
         /* ========================================================
-         * ACTIF / FORMAT
+         * ÉTAT DU PANNEAU
          * ======================================================== */
+
+        addSectionHeader(
+                "ÉTAT DU PANNEAU",
+                left,
+                centerY - 167,
+                formWidth
+        );
+
+        int halfWidth = (formWidth - gap) / 2;
 
         this.enabledButton =
                 Button.builder(
@@ -139,9 +171,9 @@ public class D21A2EditScreen extends Screen {
                                 }
                         )
                         .bounds(
-                                centerX - 150,
-                                centerY - 145,
-                                300,
+                                left,
+                                centerY - 146,
+                                halfWidth,
                                 20
                         )
                         .build();
@@ -159,9 +191,9 @@ public class D21A2EditScreen extends Screen {
                                 }
                         )
                         .bounds(
-                                centerX - 150,
-                                centerY - 115,
-                                300,
+                                left + halfWidth + gap,
+                                centerY - 146,
+                                halfWidth,
                                 20
                         )
                         .build();
@@ -169,15 +201,39 @@ public class D21A2EditScreen extends Screen {
         this.addRenderableWidget(this.formatButton);
 
         /* ========================================================
-         * LIGNE 1 + DISTANCE 1
+         * TEXTES
          * ======================================================== */
+
+        addSectionHeader(
+                "TEXTES  •  Destination / Police / Km",
+                left,
+                centerY - 116,
+                formWidth
+        );
+
+        int lineLabelWidth = 36;
+        int fontButtonWidth = 92;
+        int distanceWidth = 70;
+        int destinationWidth =
+                formWidth
+                        - lineLabelWidth
+                        - fontButtonWidth
+                        - distanceWidth
+                        - gap * 3;
+
+        addRowLabel(
+                "L1",
+                left,
+                centerY - 95,
+                lineLabelWidth
+        );
 
         this.line1Field =
                 new EditBox(
                         this.font,
-                        centerX - 150,
-                        centerY - 85,
-                        230,
+                        left + lineLabelWidth + gap,
+                        centerY - 95,
+                        destinationWidth,
                         20,
                         Component.literal("Destination ligne 1")
                 );
@@ -185,12 +241,36 @@ public class D21A2EditScreen extends Screen {
         this.line1Field.setMaxLength(48);
         this.addRenderableWidget(this.line1Field);
 
+        this.line1FontButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.line1Font = this.line1Font.next();
+                                    updateFontButtons();
+                                }
+                        )
+                        .bounds(
+                                left + lineLabelWidth + gap + destinationWidth + gap,
+                                centerY - 95,
+                                fontButtonWidth,
+                                20
+                        )
+                        .build();
+
+        this.addRenderableWidget(this.line1FontButton);
+
         this.distance1Field =
                 new EditBox(
                         this.font,
-                        centerX + 90,
-                        centerY - 85,
-                        60,
+                        left
+                                + lineLabelWidth
+                                + gap
+                                + destinationWidth
+                                + gap
+                                + fontButtonWidth
+                                + gap,
+                        centerY - 95,
+                        distanceWidth,
                         20,
                         Component.literal("Distance ligne 1")
                 );
@@ -198,16 +278,19 @@ public class D21A2EditScreen extends Screen {
         this.distance1Field.setMaxLength(8);
         this.addRenderableWidget(this.distance1Field);
 
-        /* ========================================================
-         * LIGNE 2 + DISTANCE 2
-         * ======================================================== */
+        addRowLabel(
+                "L2",
+                left,
+                centerY - 69,
+                lineLabelWidth
+        );
 
         this.line2Field =
                 new EditBox(
                         this.font,
-                        centerX - 150,
-                        centerY - 55,
-                        230,
+                        left + lineLabelWidth + gap,
+                        centerY - 69,
+                        destinationWidth,
                         20,
                         Component.literal("Destination ligne 2")
                 );
@@ -215,12 +298,36 @@ public class D21A2EditScreen extends Screen {
         this.line2Field.setMaxLength(48);
         this.addRenderableWidget(this.line2Field);
 
+        this.line2FontButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.line2Font = this.line2Font.next();
+                                    updateFontButtons();
+                                }
+                        )
+                        .bounds(
+                                left + lineLabelWidth + gap + destinationWidth + gap,
+                                centerY - 69,
+                                fontButtonWidth,
+                                20
+                        )
+                        .build();
+
+        this.addRenderableWidget(this.line2FontButton);
+
         this.distance2Field =
                 new EditBox(
                         this.font,
-                        centerX + 90,
-                        centerY - 55,
-                        60,
+                        left
+                                + lineLabelWidth
+                                + gap
+                                + destinationWidth
+                                + gap
+                                + fontButtonWidth
+                                + gap,
+                        centerY - 69,
+                        distanceWidth,
                         20,
                         Component.literal("Distance ligne 2")
                 );
@@ -229,8 +336,17 @@ public class D21A2EditScreen extends Screen {
         this.addRenderableWidget(this.distance2Field);
 
         /* ========================================================
-         * COULEURS
+         * APPARENCE
          * ======================================================== */
+
+        addSectionHeader(
+                "APPARENCE  •  Couleur / Logo / Direction",
+                left,
+                centerY - 39,
+                formWidth
+        );
+
+        int colorWidth = (formWidth - gap * 2) / 3;
 
         this.whiteButton =
                 Button.builder(
@@ -238,9 +354,9 @@ public class D21A2EditScreen extends Screen {
                                 button -> selectType(D21AType.WHITE)
                         )
                         .bounds(
-                                centerX - 150,
-                                centerY - 20,
-                                95,
+                                left,
+                                centerY - 18,
+                                colorWidth,
                                 20
                         )
                         .build();
@@ -253,9 +369,9 @@ public class D21A2EditScreen extends Screen {
                                 button -> selectType(D21AType.GREEN)
                         )
                         .bounds(
-                                centerX - 47,
-                                centerY - 20,
-                                94,
+                                left + colorWidth + gap,
+                                centerY - 18,
+                                colorWidth,
                                 20
                         )
                         .build();
@@ -268,18 +384,14 @@ public class D21A2EditScreen extends Screen {
                                 button -> selectType(D21AType.BLUE)
                         )
                         .bounds(
-                                centerX + 55,
-                                centerY - 20,
-                                95,
+                                left + (colorWidth + gap) * 2,
+                                centerY - 18,
+                                colorWidth,
                                 20
                         )
                         .build();
 
         this.addRenderableWidget(this.blueButton);
-
-        /* ========================================================
-         * LOGO AUTOROUTE / DIRECTION
-         * ======================================================== */
 
         this.autorouteLogoButton =
                 Button.builder(
@@ -290,9 +402,9 @@ public class D21A2EditScreen extends Screen {
                                 }
                         )
                         .bounds(
-                                centerX - 150,
-                                centerY + 10,
-                                300,
+                                left,
+                                centerY + 8,
+                                halfWidth,
                                 20
                         )
                         .build();
@@ -308,9 +420,9 @@ public class D21A2EditScreen extends Screen {
                                 }
                         )
                         .bounds(
-                                centerX - 150,
-                                centerY + 40,
-                                300,
+                                left + halfWidth + gap,
+                                centerY + 8,
+                                halfWidth,
                                 20
                         )
                         .build();
@@ -318,8 +430,15 @@ public class D21A2EditScreen extends Screen {
         this.addRenderableWidget(this.directionButton);
 
         /* ========================================================
-         * CARTOUCHE E41 A E45
+         * CARTOUCHE
          * ======================================================== */
+
+        addSectionHeader(
+                "CARTOUCHE  •  Type / Texte",
+                left,
+                centerY + 38,
+                formWidth
+        );
 
         this.cartoucheButton =
                 Button.builder(
@@ -330,9 +449,9 @@ public class D21A2EditScreen extends Screen {
                                 }
                         )
                         .bounds(
-                                centerX - 150,
-                                centerY + 70,
-                                300,
+                                left,
+                                centerY + 59,
+                                formWidth,
                                 20
                         )
                         .build();
@@ -342,11 +461,11 @@ public class D21A2EditScreen extends Screen {
         this.cartoucheTextField =
                 new EditBox(
                         this.font,
-                        centerX - 150,
-                        centerY + 100,
-                        300,
+                        left,
+                        centerY + 85,
+                        formWidth,
                         20,
-                        Component.literal("Texte du cartouche (ex. D 240)")
+                        Component.literal("Texte du cartouche")
                 );
 
         this.cartoucheTextField.setMaxLength(24);
@@ -354,18 +473,18 @@ public class D21A2EditScreen extends Screen {
         this.addRenderableWidget(this.cartoucheTextField);
 
         /* ========================================================
-         * VALIDER / ANNULER
+         * ACTIONS
          * ======================================================== */
 
         this.addRenderableWidget(
                 Button.builder(
-                                Component.literal("Valider"),
+                                Component.literal("Valider les modifications"),
                                 button -> save()
                         )
                         .bounds(
-                                centerX - 150,
-                                centerY + 130,
-                                145,
+                                left,
+                                centerY + 115,
+                                halfWidth,
                                 20
                         )
                         .build()
@@ -377,9 +496,9 @@ public class D21A2EditScreen extends Screen {
                                 button -> this.onClose()
                         )
                         .bounds(
-                                centerX + 5,
-                                centerY + 130,
-                                145,
+                                left + halfWidth + gap,
+                                centerY + 115,
+                                halfWidth,
                                 20
                         )
                         .build()
@@ -440,7 +559,9 @@ public class D21A2EditScreen extends Screen {
                         this.selectedType,
                         this.arrowRight,
                         this.autorouteLogo,
-                        this.doubleLine
+                        this.doubleLine,
+                        this.line1Font,
+                        this.line2Font
                 );
     }
 
@@ -453,6 +574,8 @@ public class D21A2EditScreen extends Screen {
         this.selectedType = panel.type();
         this.arrowRight = panel.arrowRight();
         this.autorouteLogo = panel.autorouteLogo();
+        this.line1Font = panel.line1Font();
+        this.line2Font = panel.line2Font();
 
         if (this.selectedType == D21AType.WHITE) {
             this.autorouteLogo = false;
@@ -469,15 +592,91 @@ public class D21A2EditScreen extends Screen {
         updateTypeButtons();
         updateAutorouteLogoButton();
         updateDirectionButton();
+        updateFontButtons();
         updatePanelButtons();
+    }
+
+    private void addSectionHeader(
+            String label,
+            int x,
+            int y,
+            int width
+    ) {
+        Button header =
+                Button.builder(
+                                Component.literal("— " + label + " —"),
+                                button -> {
+                                }
+                        )
+                        .bounds(
+                                x,
+                                y,
+                                width,
+                                16
+                        )
+                        .build();
+
+        header.active = false;
+        this.addRenderableWidget(header);
+    }
+
+    private void addRowLabel(
+            String label,
+            int x,
+            int y,
+            int width
+    ) {
+        Button rowLabel =
+                Button.builder(
+                                Component.literal(label),
+                                button -> {
+                                }
+                        )
+                        .bounds(
+                                x,
+                                y,
+                                width,
+                                20
+                        )
+                        .build();
+
+        rowLabel.active = false;
+        this.addRenderableWidget(rowLabel);
     }
 
     private void updateFieldVisibility() {
         this.line2Field.visible = this.doubleLine;
         this.line2Field.active = this.doubleLine;
 
+        if (this.line2FontButton != null) {
+            this.line2FontButton.visible = this.doubleLine;
+            this.line2FontButton.active = this.doubleLine;
+        }
+
         this.distance2Field.visible = this.doubleLine;
         this.distance2Field.active = this.doubleLine;
+    }
+
+    private void updateFontButtons() {
+        if (this.line1FontButton != null) {
+            this.line1FontButton.setMessage(
+                    Component.literal(
+                            this.line1Font == RoadTextFont.L4
+                                    ? "Police : L4"
+                                    : "Police : L1"
+                    )
+            );
+        }
+
+        if (this.line2FontButton != null) {
+            this.line2FontButton.setMessage(
+                    Component.literal(
+                            this.line2Font == RoadTextFont.L4
+                                    ? "Police : L4"
+                                    : "Police : L1"
+                    )
+            );
+        }
     }
 
     private void updatePanelButtons() {
@@ -516,8 +715,8 @@ public class D21A2EditScreen extends Screen {
         this.enabledButton.setMessage(
                 Component.literal(
                         this.panelEnabled
-                                ? "Panneau actif : Oui"
-                                : "Panneau actif : Non"
+                                ? "Actif : Oui"
+                                : "Actif : Non"
                 )
         );
     }
@@ -526,8 +725,8 @@ public class D21A2EditScreen extends Screen {
         this.formatButton.setMessage(
                 Component.literal(
                         this.doubleLine
-                                ? "[ Format : Double - 2 lignes ]"
-                                : "Format : Simple - 1 ligne"
+                                ? "[ Double • 2 lignes ]"
+                                : "Simple • 1 ligne"
                 )
         );
     }

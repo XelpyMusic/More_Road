@@ -12,6 +12,7 @@ import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D61AArrowDirection;
 import net.xelpy.moreroad.block.custom.D61AArrowPosition;
 import net.xelpy.moreroad.block.custom.D61APanelData;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public record UpdateD61APayload(
         BlockPos pos,
@@ -147,6 +148,14 @@ public record UpdateD61APayload(
         ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.arrowPosition().getSerializedName());
         ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.arrowDirection().getSerializedName());
         ByteBufCodecs.BOOL.encode(buffer, sanitized.autorouteLogo());
+        ByteBufCodecs.STRING_UTF8.encode(
+                buffer,
+                sanitized.line1Font().getSerializedName()
+        );
+        ByteBufCodecs.STRING_UTF8.encode(
+                buffer,
+                sanitized.line2Font().getSerializedName()
+        );
     }
 
     private static D61APanelData decodePanel(ByteBuf buffer) {
@@ -163,6 +172,12 @@ public record UpdateD61APayload(
         D61AArrowDirection arrowDirection =
                 D61AArrowDirection.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer));
         boolean autorouteLogo = ByteBufCodecs.BOOL.decode(buffer);
+        RoadTextFont line1Font = RoadTextFont.fromSerializedName(
+                ByteBufCodecs.STRING_UTF8.decode(buffer)
+        );
+        RoadTextFont line2Font = RoadTextFont.fromSerializedName(
+                ByteBufCodecs.STRING_UTF8.decode(buffer)
+        );
 
         return sanitizePanel(
                 new D61APanelData(
@@ -176,7 +191,9 @@ public record UpdateD61APayload(
                         arrowEnabled,
                         arrowPosition,
                         arrowDirection,
-                        autorouteLogo
+                        autorouteLogo,
+                        line1Font,
+                        line2Font
                 )
         );
     }
@@ -199,7 +216,9 @@ public record UpdateD61APayload(
                 panel.arrowEnabled(),
                 panel.arrowPosition(),
                 panel.arrowDirection(),
-                type != D21AType.WHITE && panel.autorouteLogo()
+                type != D21AType.WHITE && panel.autorouteLogo(),
+                panel.line1Font(),
+                panel.line2Font()
         );
     }
 

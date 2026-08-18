@@ -1,0 +1,57 @@
+package net.xelpy.moreroad.block.custom;
+
+/**
+ * Polices routières utilisables pour les destinations saisies par le joueur.
+ *
+ * L1 : caractères routiers standards.
+ * L4 : caractères routiers italiques, notamment utiles pour certaines
+ *      indications locales (gare, lieu urbain, équipement, etc.).
+ */
+public enum RoadTextFont {
+
+    L1("l1", "L1 - Standard", "caracteres_l1"),
+    L4("l4", "L4 - Italique", "caracteres_l4");
+
+    private final String serializedName;
+    private final String displayName;
+    private final String resourceName;
+
+    RoadTextFont(
+            String serializedName,
+            String displayName,
+            String resourceName
+    ) {
+        this.serializedName = serializedName;
+        this.displayName = displayName;
+        this.resourceName = resourceName;
+    }
+
+    public String getSerializedName() {
+        return this.serializedName;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    public String getResourceName() {
+        return this.resourceName;
+    }
+
+    public RoadTextFont next() {
+        RoadTextFont[] values = values();
+        return values[(this.ordinal() + 1) % values.length];
+    }
+
+    public static RoadTextFont fromSerializedName(String value) {
+        if (value != null) {
+            for (RoadTextFont font : values()) {
+                if (font.getSerializedName().equals(value)) {
+                    return font;
+                }
+            }
+        }
+
+        return L1;
+    }
+}

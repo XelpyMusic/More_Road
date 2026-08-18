@@ -9,7 +9,9 @@ public record D21APanelData(
         D21AType type,
         boolean arrowRight,
         boolean autorouteLogo,
-        boolean doubleLine
+        boolean doubleLine,
+        RoadTextFont line1Font,
+        RoadTextFont line2Font
 ) {
 
     public D21APanelData {
@@ -18,6 +20,8 @@ public record D21APanelData(
         distance1 = distance1 == null ? "" : distance1;
         distance2 = distance2 == null ? "" : distance2;
         type = type == null ? D21AType.WHITE : type;
+        line1Font = line1Font == null ? RoadTextFont.L1 : line1Font;
+        line2Font = line2Font == null ? RoadTextFont.L1 : line2Font;
 
         /*
          * Le pictogramme autoroute est proposé uniquement sur les
@@ -28,6 +32,36 @@ public record D21APanelData(
         autorouteLogo =
                 type != D21AType.WHITE
                         && autorouteLogo;
+    }
+
+    /*
+     * Compatibilité V61 et versions antérieures : si aucune police n'est
+     * précisée, les deux lignes utilisent caracteres_l1.
+     */
+    public D21APanelData(
+            boolean enabled,
+            String line1,
+            String line2,
+            String distance1,
+            String distance2,
+            D21AType type,
+            boolean arrowRight,
+            boolean autorouteLogo,
+            boolean doubleLine
+    ) {
+        this(
+                enabled,
+                line1,
+                line2,
+                distance1,
+                distance2,
+                type,
+                arrowRight,
+                autorouteLogo,
+                doubleLine,
+                RoadTextFont.L1,
+                RoadTextFont.L1
+        );
     }
 
     /*
@@ -53,7 +87,9 @@ public record D21APanelData(
                 type,
                 arrowRight,
                 autorouteLogo,
-                false
+                false,
+                RoadTextFont.L1,
+                RoadTextFont.L1
         );
     }
 
@@ -91,7 +127,9 @@ public record D21APanelData(
                 D21AType.WHITE,
                 false,
                 false,
-                doubleLine
+                doubleLine,
+                RoadTextFont.L1,
+                RoadTextFont.L1
         );
     }
 
@@ -109,7 +147,9 @@ public record D21APanelData(
                 D21AType.WHITE,
                 false,
                 false,
-                doubleLine
+                doubleLine,
+                RoadTextFont.L1,
+                RoadTextFont.L1
         );
     }
 }

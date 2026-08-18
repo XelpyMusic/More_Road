@@ -11,6 +11,7 @@ import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D61AArrowDirection;
 import net.xelpy.moreroad.block.custom.D61AArrowPosition;
 import net.xelpy.moreroad.block.custom.D61APanelData;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.network.UpdateD61APayload;
 
@@ -27,6 +28,8 @@ public class D61AEditScreen extends Screen {
     private boolean doubleLine = false;
     private D21AType selectedType = D21AType.WHITE;
     private boolean autorouteLogo = false;
+    private RoadTextFont line1Font = RoadTextFont.L1;
+    private RoadTextFont line2Font = RoadTextFont.L1;
 
     private boolean arrowEnabled = false;
     private D61AArrowPosition arrowPosition = D61AArrowPosition.RIGHT;
@@ -54,6 +57,8 @@ public class D61AEditScreen extends Screen {
     private Button autorouteLogoButton;
     private Button arrowEnabledButton;
     private Button arrowPositionButton;
+    private Button line1FontButton;
+    private Button line2FontButton;
     private Button cartoucheButton;
 
     public D61AEditScreen(
@@ -100,7 +105,9 @@ public class D61AEditScreen extends Screen {
                     panel.arrowEnabled(),
                     panel.arrowPosition(),
                     panel.arrowDirection(),
-                    type != D21AType.WHITE && panel.autorouteLogo()
+                    type != D21AType.WHITE && panel.autorouteLogo(),
+                    panel.line1Font(),
+                    panel.line2Font()
             );
         }
     }
@@ -112,217 +119,441 @@ public class D61AEditScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
 
-        int tabWidth = 71;
-        int tabGap = 5;
-        int tabsTotalWidth =
-                tabWidth * D61ABlockEntity.MAX_PANELS
-                        + tabGap * (D61ABlockEntity.MAX_PANELS - 1);
+        int formWidth = Math.min(380, this.width - 24);
+        int left = centerX - formWidth / 2;
+        int gap = 6;
+        int halfWidth = (formWidth - gap) / 2;
 
-        int tabsStartX = centerX - tabsTotalWidth / 2;
-        int tabsY = centerY - 190;
+        /* ========================================================
+         * ONGLETS PANNEAUX 1 A 4
+         * ======================================================== */
+
+        int tabWidth =
+                (
+                        formWidth
+                                - gap
+                                * (D61ABlockEntity.MAX_PANELS - 1)
+                )
+                        / D61ABlockEntity.MAX_PANELS;
+
+        int tabsY = centerY - 218;
 
         for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
             final int panelIndex = i;
 
-            this.panelButtons[i] = Button.builder(
-                            Component.empty(),
-                            button -> selectPanel(panelIndex)
-                    )
-                    .bounds(
-                            tabsStartX + i * (tabWidth + tabGap),
-                            tabsY,
-                            tabWidth,
-                            20
-                    )
-                    .build();
+            this.panelButtons[i] =
+                    Button.builder(
+                                    Component.empty(),
+                                    button -> selectPanel(panelIndex)
+                            )
+                            .bounds(
+                                    left + i * (tabWidth + gap),
+                                    tabsY,
+                                    tabWidth,
+                                    20
+                            )
+                            .build();
 
             this.addRenderableWidget(this.panelButtons[i]);
         }
 
-        this.enabledButton = Button.builder(
-                        Component.empty(),
-                        button -> {
-                            this.panelEnabled = !this.panelEnabled;
-                            updateEnabledButton();
-                            updatePanelButtons();
-                        }
-                )
-                .bounds(centerX - 150, centerY - 160, 300, 20)
-                .build();
+        /* ========================================================
+         * ÉTAT DU PANNEAU
+         * ======================================================== */
+
+        addSectionHeader(
+                "ÉTAT DU PANNEAU",
+                left,
+                centerY - 190,
+                formWidth
+        );
+
+        this.enabledButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.panelEnabled = !this.panelEnabled;
+                                    updateEnabledButton();
+                                    updatePanelButtons();
+                                }
+                        )
+                        .bounds(
+                                left,
+                                centerY - 169,
+                                halfWidth,
+                                20
+                        )
+                        .build();
+
         this.addRenderableWidget(this.enabledButton);
 
-        this.formatButton = Button.builder(
-                        Component.empty(),
-                        button -> {
-                            this.doubleLine = !this.doubleLine;
-                            updateFormatButton();
-                            updateFieldVisibility();
-                            updatePanelButtons();
-                        }
-                )
-                .bounds(centerX - 150, centerY - 130, 300, 20)
-                .build();
+        this.formatButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.doubleLine = !this.doubleLine;
+                                    updateFormatButton();
+                                    updateFieldVisibility();
+                                    updatePanelButtons();
+                                }
+                        )
+                        .bounds(
+                                left + halfWidth + gap,
+                                centerY - 169,
+                                halfWidth,
+                                20
+                        )
+                        .build();
+
         this.addRenderableWidget(this.formatButton);
 
-        this.line1Field = new EditBox(
-                this.font,
-                centerX - 150,
-                centerY - 100,
-                230,
-                20,
-                Component.literal("Destination ligne 1")
+        /* ========================================================
+         * TEXTES
+         * ======================================================== */
+
+        addSectionHeader(
+                "TEXTES  •  Destination / Police / Km",
+                left,
+                centerY - 139,
+                formWidth
         );
+
+        int lineLabelWidth = 36;
+        int fontButtonWidth = 92;
+        int distanceWidth = 70;
+        int destinationWidth =
+                formWidth
+                        - lineLabelWidth
+                        - fontButtonWidth
+                        - distanceWidth
+                        - gap * 3;
+
+        addRowLabel(
+                "L1",
+                left,
+                centerY - 118,
+                lineLabelWidth
+        );
+
+        this.line1Field =
+                new EditBox(
+                        this.font,
+                        left + lineLabelWidth + gap,
+                        centerY - 118,
+                        destinationWidth,
+                        20,
+                        Component.literal("Destination ligne 1")
+                );
         this.line1Field.setMaxLength(48);
         this.addRenderableWidget(this.line1Field);
 
-        this.distance1Field = new EditBox(
-                this.font,
-                centerX + 90,
-                centerY - 100,
-                60,
-                20,
-                Component.literal("Distance ligne 1")
-        );
+        this.line1FontButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.line1Font = this.line1Font.next();
+                                    updateFontButtons();
+                                }
+                        )
+                        .bounds(
+                                left + lineLabelWidth + gap + destinationWidth + gap,
+                                centerY - 118,
+                                fontButtonWidth,
+                                20
+                        )
+                        .build();
+        this.addRenderableWidget(this.line1FontButton);
+
+        this.distance1Field =
+                new EditBox(
+                        this.font,
+                        left
+                                + lineLabelWidth
+                                + gap
+                                + destinationWidth
+                                + gap
+                                + fontButtonWidth
+                                + gap,
+                        centerY - 118,
+                        distanceWidth,
+                        20,
+                        Component.literal("Distance ligne 1")
+                );
         this.distance1Field.setMaxLength(8);
         this.addRenderableWidget(this.distance1Field);
 
-        this.line2Field = new EditBox(
-                this.font,
-                centerX - 150,
-                centerY - 70,
-                230,
-                20,
-                Component.literal("Destination ligne 2")
+        addRowLabel(
+                "L2",
+                left,
+                centerY - 92,
+                lineLabelWidth
         );
+
+        this.line2Field =
+                new EditBox(
+                        this.font,
+                        left + lineLabelWidth + gap,
+                        centerY - 92,
+                        destinationWidth,
+                        20,
+                        Component.literal("Destination ligne 2")
+                );
         this.line2Field.setMaxLength(48);
         this.addRenderableWidget(this.line2Field);
 
-        this.distance2Field = new EditBox(
-                this.font,
-                centerX + 90,
-                centerY - 70,
-                60,
-                20,
-                Component.literal("Distance ligne 2")
-        );
+        this.line2FontButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.line2Font = this.line2Font.next();
+                                    updateFontButtons();
+                                }
+                        )
+                        .bounds(
+                                left + lineLabelWidth + gap + destinationWidth + gap,
+                                centerY - 92,
+                                fontButtonWidth,
+                                20
+                        )
+                        .build();
+        this.addRenderableWidget(this.line2FontButton);
+
+        this.distance2Field =
+                new EditBox(
+                        this.font,
+                        left
+                                + lineLabelWidth
+                                + gap
+                                + destinationWidth
+                                + gap
+                                + fontButtonWidth
+                                + gap,
+                        centerY - 92,
+                        distanceWidth,
+                        20,
+                        Component.literal("Distance ligne 2")
+                );
         this.distance2Field.setMaxLength(8);
         this.addRenderableWidget(this.distance2Field);
 
-        this.whiteButton = Button.builder(
-                        Component.literal("Blanc"),
-                        button -> selectType(D21AType.WHITE)
-                )
-                .bounds(centerX - 150, centerY - 35, 96, 20)
-                .build();
+        /* ========================================================
+         * APPARENCE
+         * ======================================================== */
+
+        addSectionHeader(
+                "APPARENCE  •  Couleur / Logo",
+                left,
+                centerY - 62,
+                formWidth
+        );
+
+        int colorWidth = (formWidth - gap * 2) / 3;
+
+        this.whiteButton =
+                Button.builder(
+                                Component.literal("Blanc"),
+                                button -> selectType(D21AType.WHITE)
+                        )
+                        .bounds(
+                                left,
+                                centerY - 41,
+                                colorWidth,
+                                20
+                        )
+                        .build();
         this.addRenderableWidget(this.whiteButton);
 
-        this.greenButton = Button.builder(
-                        Component.literal("Vert"),
-                        button -> selectType(D21AType.GREEN)
-                )
-                .bounds(centerX - 48, centerY - 35, 96, 20)
-                .build();
+        this.greenButton =
+                Button.builder(
+                                Component.literal("Vert"),
+                                button -> selectType(D21AType.GREEN)
+                        )
+                        .bounds(
+                                left + colorWidth + gap,
+                                centerY - 41,
+                                colorWidth,
+                                20
+                        )
+                        .build();
         this.addRenderableWidget(this.greenButton);
 
-        this.blueButton = Button.builder(
-                        Component.literal("Bleu"),
-                        button -> selectType(D21AType.BLUE)
-                )
-                .bounds(centerX + 54, centerY - 35, 96, 20)
-                .build();
+        this.blueButton =
+                Button.builder(
+                                Component.literal("Bleu"),
+                                button -> selectType(D21AType.BLUE)
+                        )
+                        .bounds(
+                                left + (colorWidth + gap) * 2,
+                                centerY - 41,
+                                colorWidth,
+                                20
+                        )
+                        .build();
         this.addRenderableWidget(this.blueButton);
 
-        this.autorouteLogoButton = Button.builder(
-                        Component.empty(),
-                        button -> {
-                            this.autorouteLogo = !this.autorouteLogo;
-                            updateAutorouteButton();
-                        }
-                )
-                .bounds(centerX - 150, centerY - 5, 300, 20)
-                .build();
+        this.autorouteLogoButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.autorouteLogo = !this.autorouteLogo;
+                                    updateAutorouteButton();
+                                }
+                        )
+                        .bounds(
+                                left,
+                                centerY - 15,
+                                formWidth,
+                                20
+                        )
+                        .build();
         this.addRenderableWidget(this.autorouteLogoButton);
 
-        this.arrowEnabledButton = Button.builder(
-                        Component.empty(),
-                        button -> {
-                            this.arrowEnabled = !this.arrowEnabled;
-                            updateFieldVisibility();
-                            updateArrowControls();
-                            updatePanelButtons();
-                        }
-                )
-                .bounds(centerX - 150, centerY + 25, 145, 20)
-                .build();
+        /* ========================================================
+         * FLÈCHE
+         * ======================================================== */
+
+        addSectionHeader(
+                "FLÈCHE  •  Activation / Position / Direction",
+                left,
+                centerY + 15,
+                formWidth
+        );
+
+        this.arrowEnabledButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.arrowEnabled = !this.arrowEnabled;
+                                    updateFieldVisibility();
+                                    updateArrowControls();
+                                    updatePanelButtons();
+                                }
+                        )
+                        .bounds(
+                                left,
+                                centerY + 36,
+                                halfWidth,
+                                20
+                        )
+                        .build();
         this.addRenderableWidget(this.arrowEnabledButton);
 
-        this.arrowPositionButton = Button.builder(
-                        Component.empty(),
-                        button -> {
-                            this.arrowPosition = this.arrowPosition.opposite();
-                            updateArrowControls();
-                        }
-                )
-                .bounds(centerX + 5, centerY + 25, 145, 20)
-                .build();
+        this.arrowPositionButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.arrowPosition =
+                                            this.arrowPosition.opposite();
+                                    updateArrowControls();
+                                }
+                        )
+                        .bounds(
+                                left + halfWidth + gap,
+                                centerY + 36,
+                                halfWidth,
+                                20
+                        )
+                        .build();
         this.addRenderableWidget(this.arrowPositionButton);
 
-        D61AArrowDirection[] directions = D61AArrowDirection.values();
-        int directionWidth = 34;
+        D61AArrowDirection[] directions =
+                D61AArrowDirection.values();
+
         int directionGap = 4;
-        int directionStartX = centerX - 150;
-        int directionY = centerY + 55;
+        int directionWidth =
+                (
+                        formWidth
+                                - directionGap
+                                * (directions.length - 1)
+                )
+                        / directions.length;
+
+        int directionY = centerY + 62;
 
         for (int i = 0; i < directions.length; i++) {
             final D61AArrowDirection direction = directions[i];
 
-            this.directionButtons[i] = Button.builder(
-                            Component.literal(direction.symbol()),
-                            button -> {
-                                this.arrowDirection = direction;
-                                updateArrowControls();
-                            }
-                    )
-                    .bounds(
-                            directionStartX + i * (directionWidth + directionGap),
-                            directionY,
-                            directionWidth,
-                            20
-                    )
-                    .build();
+            this.directionButtons[i] =
+                    Button.builder(
+                                    Component.literal(direction.symbol()),
+                                    button -> {
+                                        this.arrowDirection = direction;
+                                        updateArrowControls();
+                                    }
+                            )
+                            .bounds(
+                                    left
+                                            + i
+                                            * (
+                                            directionWidth
+                                                    + directionGap
+                                    ),
+                                    directionY,
+                                    directionWidth,
+                                    20
+                            )
+                            .build();
 
             this.addRenderableWidget(this.directionButtons[i]);
         }
 
-        this.cartoucheButton = Button.builder(
-                        Component.empty(),
-                        button -> {
-                            this.cartoucheType = this.cartoucheType.next();
-                            updateCartoucheButton();
-                        }
-                )
-                .bounds(centerX - 150, centerY + 85, 300, 20)
-                .build();
+        /* ========================================================
+         * CARTOUCHE
+         * ======================================================== */
+
+        addSectionHeader(
+                "CARTOUCHE  •  Type / Texte",
+                left,
+                centerY + 92,
+                formWidth
+        );
+
+        this.cartoucheButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.cartoucheType =
+                                            this.cartoucheType.next();
+                                    updateCartoucheButton();
+                                }
+                        )
+                        .bounds(
+                                left,
+                                centerY + 113,
+                                formWidth,
+                                20
+                        )
+                        .build();
         this.addRenderableWidget(this.cartoucheButton);
 
-        this.cartoucheTextField = new EditBox(
-                this.font,
-                centerX - 150,
-                centerY + 115,
-                300,
-                20,
-                Component.literal("Texte du cartouche (ex. D 240)")
-        );
+        this.cartoucheTextField =
+                new EditBox(
+                        this.font,
+                        left,
+                        centerY + 139,
+                        formWidth,
+                        20,
+                        Component.literal("Texte du cartouche")
+                );
         this.cartoucheTextField.setMaxLength(24);
         this.cartoucheTextField.setValue(this.cartoucheText);
         this.addRenderableWidget(this.cartoucheTextField);
 
+        /* ========================================================
+         * ACTIONS
+         * ======================================================== */
+
         this.addRenderableWidget(
                 Button.builder(
-                                Component.literal("Valider"),
+                                Component.literal("Valider les modifications"),
                                 button -> save()
                         )
-                        .bounds(centerX - 150, centerY + 145, 145, 20)
+                        .bounds(
+                                left,
+                                centerY + 169,
+                                halfWidth,
+                                20
+                        )
                         .build()
         );
 
@@ -331,7 +562,12 @@ public class D61AEditScreen extends Screen {
                                 Component.literal("Annuler"),
                                 button -> this.onClose()
                         )
-                        .bounds(centerX + 5, centerY + 145, 145, 20)
+                        .bounds(
+                                left + halfWidth + gap,
+                                centerY + 169,
+                                halfWidth,
+                                20
+                        )
                         .build()
         );
 
@@ -388,7 +624,9 @@ public class D61AEditScreen extends Screen {
                 this.arrowEnabled,
                 this.arrowPosition,
                 this.arrowDirection,
-                this.selectedType != D21AType.WHITE && this.autorouteLogo
+                this.selectedType != D21AType.WHITE && this.autorouteLogo,
+                this.line1Font,
+                this.line2Font
         );
     }
 
@@ -405,6 +643,8 @@ public class D61AEditScreen extends Screen {
         this.arrowEnabled = panel.arrowEnabled();
         this.arrowPosition = panel.arrowPosition();
         this.arrowDirection = panel.arrowDirection();
+        this.line1Font = panel.line1Font();
+        this.line2Font = panel.line2Font();
 
         this.line1Field.setValue(panel.line1());
         this.line2Field.setValue(panel.line2());
@@ -417,18 +657,94 @@ public class D61AEditScreen extends Screen {
         updateTypeButtons();
         updateAutorouteButton();
         updateArrowControls();
+        updateFontButtons();
         updatePanelButtons();
+    }
+
+    private void addSectionHeader(
+            String label,
+            int x,
+            int y,
+            int width
+    ) {
+        Button header =
+                Button.builder(
+                                Component.literal("— " + label + " —"),
+                                button -> {
+                                }
+                        )
+                        .bounds(
+                                x,
+                                y,
+                                width,
+                                16
+                        )
+                        .build();
+
+        header.active = false;
+        this.addRenderableWidget(header);
+    }
+
+    private void addRowLabel(
+            String label,
+            int x,
+            int y,
+            int width
+    ) {
+        Button rowLabel =
+                Button.builder(
+                                Component.literal(label),
+                                button -> {
+                                }
+                        )
+                        .bounds(
+                                x,
+                                y,
+                                width,
+                                20
+                        )
+                        .build();
+
+        rowLabel.active = false;
+        this.addRenderableWidget(rowLabel);
     }
 
     private void updateFieldVisibility() {
         this.line2Field.visible = this.doubleLine;
         this.line2Field.active = this.doubleLine;
 
+        if (this.line2FontButton != null) {
+            this.line2FontButton.visible = this.doubleLine;
+            this.line2FontButton.active = this.doubleLine;
+        }
+
         // Flèche OU kilométrage : la valeur reste mémorisée dans le champ.
         this.distance1Field.visible = !this.arrowEnabled;
         this.distance1Field.active = !this.arrowEnabled;
         this.distance2Field.visible = this.doubleLine && !this.arrowEnabled;
         this.distance2Field.active = this.doubleLine && !this.arrowEnabled;
+    }
+
+    private void updateFontButtons() {
+        if (this.line1FontButton != null) {
+            this.line1FontButton.setMessage(
+                    Component.literal(
+                            this.line1Font == RoadTextFont.L4
+                                    ? "Police : L4"
+                                    : "Police : L1"
+                    )
+            );
+        }
+
+        if (this.line2FontButton != null) {
+            this.line2FontButton.setMessage(
+                    Component.literal(
+                            this.line2Font == RoadTextFont.L4
+                                    ? "Police : L4"
+                                    : "Police : L1"
+                    )
+            );
+        }
     }
 
     private void updatePanelButtons() {
@@ -476,8 +792,8 @@ public class D61AEditScreen extends Screen {
         this.enabledButton.setMessage(
                 Component.literal(
                         this.panelEnabled
-                                ? "Panneau actif : Oui"
-                                : "Panneau actif : Non"
+                                ? "Actif : Oui"
+                                : "Actif : Non"
                 )
         );
     }
@@ -486,8 +802,8 @@ public class D61AEditScreen extends Screen {
         this.formatButton.setMessage(
                 Component.literal(
                         this.doubleLine
-                                ? "[ Format : Double - 2 lignes ]"
-                                : "Format : Simple - 1 ligne"
+                                ? "[ Double • 2 lignes ]"
+                                : "Simple • 1 ligne"
                 )
         );
     }

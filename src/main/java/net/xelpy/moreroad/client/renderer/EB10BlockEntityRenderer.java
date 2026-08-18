@@ -25,6 +25,7 @@ import net.xelpy.moreroad.block.MoreRoadBlocks;
 import net.xelpy.moreroad.block.custom.CartoucheLayout;
 import net.xelpy.moreroad.block.custom.CartoucheModelBlock;
 import net.xelpy.moreroad.block.custom.EB10Block;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 
 import java.util.Locale;
@@ -32,11 +33,19 @@ import java.util.Locale;
 public class EB10BlockEntityRenderer
         implements BlockEntityRenderer<EB10BlockEntity, EB10RenderState> {
 
-    private static final FontDescription.Resource ROAD_FONT =
+    private static final FontDescription.Resource ROAD_FONT_L1 =
             new FontDescription.Resource(
                     Identifier.fromNamespaceAndPath(
                             MoreRoad.MODID,
                             "caracteres_l1"
+                    )
+            );
+
+    private static final FontDescription.Resource ROAD_FONT_L4 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(
+                            MoreRoad.MODID,
+                            "caracteres_l4"
                     )
             );
 
@@ -103,6 +112,8 @@ public class EB10BlockEntityRenderer
 
         renderState.line1 = blockEntity.getLine1();
         renderState.line2 = blockEntity.getLine2();
+        renderState.line1Font = blockEntity.getLine1Font();
+        renderState.line2Font = blockEntity.getLine2Font();
 
         BlockState blockState = blockEntity.getBlockState();
 
@@ -190,6 +201,7 @@ public class EB10BlockEntityRenderer
         if (line2.isBlank()) {
             submitLine(
                     line1,
+                    renderState.line1Font,
                     SINGLE_LINE_Y,
                     SINGLE_LINE_BASE_SCALE,
                     renderState,
@@ -202,6 +214,7 @@ public class EB10BlockEntityRenderer
         if (!line1.isBlank()) {
             submitLine(
                     line1,
+                    renderState.line1Font,
                     FIRST_LINE_Y,
                     TWO_LINES_BASE_SCALE,
                     renderState,
@@ -213,6 +226,7 @@ public class EB10BlockEntityRenderer
         if (!line2.isBlank()) {
             submitLine(
                     line2,
+                    renderState.line2Font,
                     SECOND_LINE_Y,
                     TWO_LINES_BASE_SCALE,
                     renderState,
@@ -330,6 +344,7 @@ public class EB10BlockEntityRenderer
 
     private static void submitLine(
             String value,
+            RoadTextFont textFont,
             float worldY,
             float baseScale,
             EB10RenderState renderState,
@@ -345,7 +360,7 @@ public class EB10BlockEntityRenderer
         Component component =
                 Component.literal(value)
                         .withStyle(
-                                Style.EMPTY.withFont(ROAD_FONT)
+                                Style.EMPTY.withFont(getRoadFont(textFont))
                         );
 
         FormattedCharSequence text =
@@ -411,6 +426,14 @@ public class EB10BlockEntityRenderer
         );
 
         poseStack.popPose();
+    }
+
+    private static FontDescription.Resource getRoadFont(
+            RoadTextFont textFont
+    ) {
+        return textFont == RoadTextFont.L4
+                ? ROAD_FONT_L4
+                : ROAD_FONT_L1;
     }
 
     private static String cleanText(String text) {

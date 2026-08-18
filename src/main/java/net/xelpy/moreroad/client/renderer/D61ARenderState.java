@@ -7,6 +7,7 @@ import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D61AArrowDirection;
 import net.xelpy.moreroad.block.custom.D61AArrowPosition;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 
 public class D61ARenderState extends BlockEntityRenderState {
@@ -17,6 +18,8 @@ public class D61ARenderState extends BlockEntityRenderState {
     public final String[] distance2 = new String[D61ABlockEntity.MAX_PANELS];
 
     public final D21AType[] panelTypes = new D21AType[D61ABlockEntity.MAX_PANELS];
+    public final RoadTextFont[] line1Fonts = new RoadTextFont[D61ABlockEntity.MAX_PANELS];
+    public final RoadTextFont[] line2Fonts = new RoadTextFont[D61ABlockEntity.MAX_PANELS];
     public final boolean[] enabled = new boolean[D61ABlockEntity.MAX_PANELS];
     public final boolean[] doubleLines = new boolean[D61ABlockEntity.MAX_PANELS];
     public final boolean[] autorouteLogos = new boolean[D61ABlockEntity.MAX_PANELS];

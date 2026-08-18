@@ -10,6 +10,7 @@ import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public record UpdateD21APayload(
         BlockPos pos,
@@ -155,81 +156,53 @@ public record UpdateD21APayload(
             ByteBuf buffer,
             D21APanelData panel
     ) {
-        ByteBufCodecs.BOOL.encode(
-                buffer,
-                panel.enabled()
-        );
-
-        ByteBufCodecs.STRING_UTF8.encode(
-                buffer,
-                panel.line1()
-        );
-
-        ByteBufCodecs.STRING_UTF8.encode(
-                buffer,
-                panel.line2()
-        );
-
-        ByteBufCodecs.STRING_UTF8.encode(
-                buffer,
-                panel.distance1()
-        );
-
-        ByteBufCodecs.STRING_UTF8.encode(
-                buffer,
-                panel.distance2()
-        );
-
+        ByteBufCodecs.BOOL.encode(buffer, panel.enabled());
+        ByteBufCodecs.STRING_UTF8.encode(buffer, panel.line1());
+        ByteBufCodecs.STRING_UTF8.encode(buffer, panel.line2());
+        ByteBufCodecs.STRING_UTF8.encode(buffer, panel.distance1());
+        ByteBufCodecs.STRING_UTF8.encode(buffer, panel.distance2());
         ByteBufCodecs.STRING_UTF8.encode(
                 buffer,
                 panel.type().getSerializedName()
         );
-
-        ByteBufCodecs.BOOL.encode(
+        ByteBufCodecs.BOOL.encode(buffer, panel.arrowRight());
+        ByteBufCodecs.BOOL.encode(buffer, panel.autorouteLogo());
+        ByteBufCodecs.BOOL.encode(buffer, panel.doubleLine());
+        ByteBufCodecs.STRING_UTF8.encode(
                 buffer,
-                panel.arrowRight()
+                panel.line1Font().getSerializedName()
         );
-
-        ByteBufCodecs.BOOL.encode(
+        ByteBufCodecs.STRING_UTF8.encode(
                 buffer,
-                panel.autorouteLogo()
-        );
-
-        ByteBufCodecs.BOOL.encode(
-                buffer,
-                panel.doubleLine()
+                panel.line2Font().getSerializedName()
         );
     }
 
     private static D21APanelData decodePanel(ByteBuf buffer) {
-        boolean enabled =
-                ByteBufCodecs.BOOL.decode(buffer);
-
-        String line1 =
-                ByteBufCodecs.STRING_UTF8.decode(buffer);
-
-        String line2 =
-                ByteBufCodecs.STRING_UTF8.decode(buffer);
-
-        String distance1 =
-                ByteBufCodecs.STRING_UTF8.decode(buffer);
-
-        String distance2 =
-                ByteBufCodecs.STRING_UTF8.decode(buffer);
+        boolean enabled = ByteBufCodecs.BOOL.decode(buffer);
+        String line1 = ByteBufCodecs.STRING_UTF8.decode(buffer);
+        String line2 = ByteBufCodecs.STRING_UTF8.decode(buffer);
+        String distance1 = ByteBufCodecs.STRING_UTF8.decode(buffer);
+        String distance2 = ByteBufCodecs.STRING_UTF8.decode(buffer);
 
         D21AType type =
                 parseType(
                         ByteBufCodecs.STRING_UTF8.decode(buffer)
                 );
 
-        boolean arrowRight =
-                ByteBufCodecs.BOOL.decode(buffer);
+        boolean arrowRight = ByteBufCodecs.BOOL.decode(buffer);
+        boolean autorouteLogo = ByteBufCodecs.BOOL.decode(buffer);
+        boolean doubleLine = ByteBufCodecs.BOOL.decode(buffer);
 
-        boolean autorouteLogo =
-                ByteBufCodecs.BOOL.decode(buffer);
+        RoadTextFont line1Font =
+                RoadTextFont.fromSerializedName(
+                        ByteBufCodecs.STRING_UTF8.decode(buffer)
+                );
 
-        boolean doubleLine =
-                ByteBufCodecs.BOOL.decode(buffer);
+        RoadTextFont line2Font =
+                RoadTextFont.fromSerializedName(
+                        ByteBufCodecs.STRING_UTF8.decode(buffer)
+                );
 
         return new D21APanelData(
                 enabled,
@@ -240,19 +213,19 @@ public record UpdateD21APayload(
                 type,
                 arrowRight,
                 autorouteLogo,
-                doubleLine
+                doubleLine,
+                line1Font,
+                line2Font
         );
     }
 
     private static D21AType parseType(String value) {
-        if (value == null) {
-            return D21AType.WHITE;
+        if ("green".equals(value)) {
+            return D21AType.GREEN;
         }
-
-        return switch (value) {
-            case "green" -> D21AType.GREEN;
-            case "blue" -> D21AType.BLUE;
-            default -> D21AType.WHITE;
-        };
+        if ("blue".equals(value)) {
+            return D21AType.BLUE;
+        }
+        return D21AType.WHITE;
     }
 }
