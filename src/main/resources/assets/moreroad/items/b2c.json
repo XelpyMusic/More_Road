@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "moreroad:block/b2c"
+    "model": "moreroad:item/b2c"
   }
 }

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "moreroad:block/c1b_ancien"
+    "model": "moreroad:item/c1b_ancien"
   }
 }
