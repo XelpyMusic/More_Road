@@ -1,18 +1,228 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,speed=5": {
       "model": "moreroad:block/b14_5"
     },
-    "facing=east": {
+    "facing=east,speed=5": {
       "model": "moreroad:block/b14_5",
       "y": 90
     },
-    "facing=south": {
+    "facing=south,speed=5": {
       "model": "moreroad:block/b14_5",
       "y": 180
     },
-    "facing=west": {
+    "facing=west,speed=5": {
       "model": "moreroad:block/b14_5",
+      "y": 270
+    },
+    "facing=north,speed=10": {
+      "model": "moreroad:block/b14_10"
+    },
+    "facing=east,speed=10": {
+      "model": "moreroad:block/b14_10",
+      "y": 90
+    },
+    "facing=south,speed=10": {
+      "model": "moreroad:block/b14_10",
+      "y": 180
+    },
+    "facing=west,speed=10": {
+      "model": "moreroad:block/b14_10",
+      "y": 270
+    },
+    "facing=north,speed=15": {
+      "model": "moreroad:block/b14_15"
+    },
+    "facing=east,speed=15": {
+      "model": "moreroad:block/b14_15",
+      "y": 90
+    },
+    "facing=south,speed=15": {
+      "model": "moreroad:block/b14_15",
+      "y": 180
+    },
+    "facing=west,speed=15": {
+      "model": "moreroad:block/b14_15",
+      "y": 270
+    },
+    "facing=north,speed=20": {
+      "model": "moreroad:block/b14_20"
+    },
+    "facing=east,speed=20": {
+      "model": "moreroad:block/b14_20",
+      "y": 90
+    },
+    "facing=south,speed=20": {
+      "model": "moreroad:block/b14_20",
+      "y": 180
+    },
+    "facing=west,speed=20": {
+      "model": "moreroad:block/b14_20",
+      "y": 270
+    },
+    "facing=north,speed=30": {
+      "model": "moreroad:block/b14_30"
+    },
+    "facing=east,speed=30": {
+      "model": "moreroad:block/b14_30",
+      "y": 90
+    },
+    "facing=south,speed=30": {
+      "model": "moreroad:block/b14_30",
+      "y": 180
+    },
+    "facing=west,speed=30": {
+      "model": "moreroad:block/b14_30",
+      "y": 270
+    },
+    "facing=north,speed=40": {
+      "model": "moreroad:block/b14_40"
+    },
+    "facing=east,speed=40": {
+      "model": "moreroad:block/b14_40",
+      "y": 90
+    },
+    "facing=south,speed=40": {
+      "model": "moreroad:block/b14_40",
+      "y": 180
+    },
+    "facing=west,speed=40": {
+      "model": "moreroad:block/b14_40",
+      "y": 270
+    },
+    "facing=north,speed=45": {
+      "model": "moreroad:block/b14_45"
+    },
+    "facing=east,speed=45": {
+      "model": "moreroad:block/b14_45",
+      "y": 90
+    },
+    "facing=south,speed=45": {
+      "model": "moreroad:block/b14_45",
+      "y": 180
+    },
+    "facing=west,speed=45": {
+      "model": "moreroad:block/b14_45",
+      "y": 270
+    },
+    "facing=north,speed=50": {
+      "model": "moreroad:block/b14_50"
+    },
+    "facing=east,speed=50": {
+      "model": "moreroad:block/b14_50",
+      "y": 90
+    },
+    "facing=south,speed=50": {
+      "model": "moreroad:block/b14_50",
+      "y": 180
+    },
+    "facing=west,speed=50": {
+      "model": "moreroad:block/b14_50",
+      "y": 270
+    },
+    "facing=north,speed=60": {
+      "model": "moreroad:block/b14_60"
+    },
+    "facing=east,speed=60": {
+      "model": "moreroad:block/b14_60",
+      "y": 90
+    },
+    "facing=south,speed=60": {
+      "model": "moreroad:block/b14_60",
+      "y": 180
+    },
+    "facing=west,speed=60": {
+      "model": "moreroad:block/b14_60",
+      "y": 270
+    },
+    "facing=north,speed=70": {
+      "model": "moreroad:block/b14_70"
+    },
+    "facing=east,speed=70": {
+      "model": "moreroad:block/b14_70",
+      "y": 90
+    },
+    "facing=south,speed=70": {
+      "model": "moreroad:block/b14_70",
+      "y": 180
+    },
+    "facing=west,speed=70": {
+      "model": "moreroad:block/b14_70",
+      "y": 270
+    },
+    "facing=north,speed=80": {
+      "model": "moreroad:block/b14_80"
+    },
+    "facing=east,speed=80": {
+      "model": "moreroad:block/b14_80",
+      "y": 90
+    },
+    "facing=south,speed=80": {
+      "model": "moreroad:block/b14_80",
+      "y": 180
+    },
+    "facing=west,speed=80": {
+      "model": "moreroad:block/b14_80",
+      "y": 270
+    },
+    "facing=north,speed=90": {
+      "model": "moreroad:block/b14_90"
+    },
+    "facing=east,speed=90": {
+      "model": "moreroad:block/b14_90",
+      "y": 90
+    },
+    "facing=south,speed=90": {
+      "model": "moreroad:block/b14_90",
+      "y": 180
+    },
+    "facing=west,speed=90": {
+      "model": "moreroad:block/b14_90",
+      "y": 270
+    },
+    "facing=north,speed=100": {
+      "model": "moreroad:block/b14_100"
+    },
+    "facing=east,speed=100": {
+      "model": "moreroad:block/b14_100",
+      "y": 90
+    },
+    "facing=south,speed=100": {
+      "model": "moreroad:block/b14_100",
+      "y": 180
+    },
+    "facing=west,speed=100": {
+      "model": "moreroad:block/b14_100",
+      "y": 270
+    },
+    "facing=north,speed=110": {
+      "model": "moreroad:block/b14_110"
+    },
+    "facing=east,speed=110": {
+      "model": "moreroad:block/b14_110",
+      "y": 90
+    },
+    "facing=south,speed=110": {
+      "model": "moreroad:block/b14_110",
+      "y": 180
+    },
+    "facing=west,speed=110": {
+      "model": "moreroad:block/b14_110",
+      "y": 270
+    },
+    "facing=north,speed=130": {
+      "model": "moreroad:block/b14_130"
+    },
+    "facing=east,speed=130": {
+      "model": "moreroad:block/b14_130",
+      "y": 90
+    },
+    "facing=south,speed=130": {
+      "model": "moreroad:block/b14_130",
+      "y": 180
+    },
+    "facing=west,speed=130": {
+      "model": "moreroad:block/b14_130",
       "y": 270
     }
   }

@@ -7,6 +7,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.xelpy.moreroad.block.custom.B14Speed;
+import net.xelpy.moreroad.block.custom.B14_5Block;
 import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
@@ -86,6 +88,17 @@ public final class MoreRoadNetworking {
                 UpdateD61APayload.TYPE,
                 UpdateD61APayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateD61A
+        );
+
+        /*
+         * --------------------------------------------------------
+         * B14 unifié
+         * --------------------------------------------------------
+         */
+        registrar.playToServer(
+                UpdateB14Payload.TYPE,
+                UpdateB14Payload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateB14
         );
     }
 
@@ -473,6 +486,61 @@ public final class MoreRoadNetworking {
         BlockState finalState = level.getBlockState(pos);
         level.sendBlockUpdated(pos, finalState, finalState, Block.UPDATE_ALL);
     }
+
+    /*
+     * ============================================================
+     * B14 UNIFIÉ
+     * ============================================================
+     */
+
+    private static void handleUpdateB14(
+            UpdateB14Payload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+
+        if (
+                player
+                        .blockPosition()
+                        .distManhattan(pos)
+                        > MAX_EDIT_DISTANCE
+        ) {
+            return;
+        }
+
+        BlockState currentState = level.getBlockState(pos);
+
+        if (!(currentState.getBlock() instanceof B14_5Block)) {
+            return;
+        }
+
+        B14Speed speed = payload.speed();
+
+        BlockState newState = currentState.setValue(
+                B14_5Block.SPEED,
+                speed
+        );
+
+        if (!newState.equals(currentState)) {
+            level.setBlock(
+                    pos,
+                    newState,
+                    Block.UPDATE_ALL
+            );
+        }
+    }
+
 
     /*
      * ============================================================

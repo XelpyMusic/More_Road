@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "moreroad:block/b14_40"
+    "layer0": "moreroad:item/b14_40"
   }
 }

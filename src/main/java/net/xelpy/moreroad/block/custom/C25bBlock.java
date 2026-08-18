@@ -14,10 +14,27 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class C25bBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<C25bBlock> CODEC = simpleCodec(C25bBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 7, 16, 23.4, 10);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 6, 16, 23.4, 9);
-    private static final VoxelShape SHAPE_EAST = Block.box(6, 0, 0, 9, 23.4, 16);
-    private static final VoxelShape SHAPE_WEST = Block.box(7, 0, 0, 10, 23.4, 16);
+
+    /*
+     * Hitbox recalée sur le nouveau modèle Blockbench C25b :
+     * X : -2.80 -> 18.80
+     * Y :  0.00 -> 31.48875
+     * Z :  6.37750 -> 10.00
+     *
+     * Les variantes EAST / SOUTH / WEST correspondent à la rotation Y
+     * appliquée par le blockstate autour du centre du bloc.
+     */
+    private static final VoxelShape SHAPE_NORTH =
+            Block.box(-2.80, 0.00, 6.37750, 18.80, 31.48875, 10.00);
+
+    private static final VoxelShape SHAPE_EAST =
+            Block.box(6.37750, 0.00, -2.80, 10.00, 31.48875, 18.80);
+
+    private static final VoxelShape SHAPE_SOUTH =
+            Block.box(-2.80, 0.00, 6.00, 18.80, 31.48875, 9.62250);
+
+    private static final VoxelShape SHAPE_WEST =
+            Block.box(6.00, 0.00, -2.80, 9.62250, 31.48875, 18.80);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
@@ -26,11 +43,20 @@ public class C25bBlock extends HorizontalDirectionalBlock {
 
     public C25bBlock(Properties pProperties) {
         super(pProperties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.registerDefaultState(
+                this.stateDefinition
+                        .any()
+                        .setValue(FACING, Direction.NORTH)
+        );
     }
 
     @Override
-    protected VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+    protected VoxelShape getShape(
+            BlockState pState,
+            BlockGetter pLevel,
+            BlockPos pPos,
+            CollisionContext pContext
+    ) {
         return switch (pState.getValue(FACING)) {
             case SOUTH -> SHAPE_SOUTH;
             case EAST -> SHAPE_EAST;
@@ -41,11 +67,17 @@ public class C25bBlock extends HorizontalDirectionalBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext pContext) {
-        return this.defaultBlockState().setValue(FACING, pContext.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState()
+                .setValue(
+                        FACING,
+                        pContext.getHorizontalDirection().getOpposite()
+                );
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+    protected void createBlockStateDefinition(
+            StateDefinition.Builder<Block, BlockState> pBuilder
+    ) {
         pBuilder.add(FACING);
     }
 }
