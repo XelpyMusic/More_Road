@@ -104,6 +104,38 @@ public class D21A2Block
                 result = Shapes.or(result, panelShape);
             }
 
+            if (
+                    blockEntity.getCartoucheType() != null
+                            && blockEntity.getCartoucheType().isVisible()
+            ) {
+                double cartoucheBottomY = CartoucheLayout.getD21BottomY(panels);
+
+                CartoucheLayout.PoleAnchor poleAnchor =
+                        CartoucheLayout.findNearestPoleAnchor(
+                                level,
+                                pos,
+                                facing,
+                                cartoucheBottomY
+                        );
+
+                result = Shapes.or(
+                        result,
+                        CartoucheLayout.getSupportShape(
+                                facing,
+                                poleAnchor,
+                                cartoucheBottomY
+                        )
+                );
+
+                result = Shapes.or(
+                        result,
+                        CartoucheLayout.getCartoucheShape(
+                                facing,
+                                cartoucheBottomY
+                        )
+                );
+            }
+
             return result;
         }
 
@@ -206,7 +238,9 @@ public class D21A2Block
         if (level.isClientSide()) {
             D21AClientHooks.openEditorTwoLines(
                     pos,
-                    blockEntity.getPanels()
+                    blockEntity.getPanels(),
+                    blockEntity.getCartoucheType(),
+                    blockEntity.getCartoucheText()
             );
         }
 

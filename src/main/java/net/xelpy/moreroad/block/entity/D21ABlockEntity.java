@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21A2Block;
 import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
@@ -21,6 +22,9 @@ public class D21ABlockEntity extends BlockEntity {
 
     private final D21APanelData[] panels =
             new D21APanelData[MAX_PANELS];
+
+    private CartoucheType cartoucheType = CartoucheType.NONE;
+    private String cartoucheText = "";
 
     public D21ABlockEntity(
             BlockPos pos,
@@ -75,6 +79,32 @@ public class D21ABlockEntity extends BlockEntity {
         return this.panels.clone();
     }
 
+    public CartoucheType getCartoucheType() {
+        return this.cartoucheType;
+    }
+
+    public void setCartoucheType(CartoucheType cartoucheType) {
+        this.cartoucheType =
+                cartoucheType == null
+                        ? CartoucheType.NONE
+                        : cartoucheType;
+
+        setChanged();
+    }
+
+    public String getCartoucheText() {
+        return this.cartoucheText;
+    }
+
+    public void setCartoucheText(String cartoucheText) {
+        this.cartoucheText =
+                cartoucheText == null
+                        ? ""
+                        : cartoucheText;
+
+        setChanged();
+    }
+
     public void setPanel(
             int index,
             D21APanelData panel
@@ -122,6 +152,11 @@ public class D21ABlockEntity extends BlockEntity {
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+
+        this.cartoucheType = CartoucheType.fromSerializedName(
+                input.getStringOr("cartouche_type", "none")
+        );
+        this.cartoucheText = input.getStringOr("cartouche_text", "");
 
         String legacyDestination =
                 input.getStringOr(
@@ -259,6 +294,12 @@ public class D21ABlockEntity extends BlockEntity {
     @Override
     public void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
+
+        output.putString(
+                "cartouche_type",
+                this.cartoucheType.getSerializedName()
+        );
+        output.putString("cartouche_text", this.cartoucheText);
 
         for (int i = 0; i < MAX_PANELS; i++) {
             D21APanelData panel = this.panels[i];

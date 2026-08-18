@@ -5,17 +5,25 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.xelpy.moreroad.MoreRoad;
+import net.xelpy.moreroad.block.MoreRoadBlocks;
+import net.xelpy.moreroad.block.custom.CartoucheLayout;
+import net.xelpy.moreroad.block.custom.CartoucheModelBlock;
 import net.xelpy.moreroad.block.custom.EB10Block;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 
@@ -31,6 +39,9 @@ public class EB10BlockEntityRenderer
                             "caracteres_l1"
                     )
             );
+
+    private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT =
+            BlockDisplayContext.create();
 
     /*
      * Le grand modèle EB10/EB20 est centré à X = 8.
@@ -61,9 +72,12 @@ public class EB10BlockEntityRenderer
      */
     private static final float MAX_TEXT_WORLD_WIDTH = 1.28F;
 
+    private final BlockModelResolver blockResolver;
+
     public EB10BlockEntityRenderer(
             BlockEntityRendererProvider.Context context
     ) {
+        this.blockResolver = context.blockModelResolver();
     }
 
     @Override
@@ -90,9 +104,67 @@ public class EB10BlockEntityRenderer
         renderState.line1 = blockEntity.getLine1();
         renderState.line2 = blockEntity.getLine2();
 
-        renderState.facing = blockEntity
-                .getBlockState()
-                .getValue(EB10Block.FACING);
+        BlockState blockState = blockEntity.getBlockState();
+
+        renderState.facing = blockState.getValue(EB10Block.FACING);
+        renderState.cartoucheType = blockEntity.getCartoucheType();
+        renderState.cartoucheText = blockEntity.getCartoucheText();
+
+        BlockState cartoucheModelState =
+                MoreRoadBlocks.CARTOUCHE_MODEL.get()
+                        .defaultBlockState()
+                        .setValue(
+                                CartoucheModelBlock.FACING,
+                                renderState.facing
+                        )
+                        .setValue(
+                                CartoucheModelBlock.TYPE,
+                                renderState.cartoucheType
+                        );
+
+        this.blockResolver.update(
+                renderState.cartoucheModel,
+                cartoucheModelState,
+                BLOCK_DISPLAY_CONTEXT
+        );
+
+        BlockState cartoucheSupportModelState =
+                MoreRoadBlocks.CARTOUCHE_SUPPORT_MODEL.get()
+                        .defaultBlockState()
+                        .setValue(
+                                HorizontalDirectionalBlock.FACING,
+                                renderState.facing
+                        );
+
+        this.blockResolver.update(
+                renderState.cartoucheSupportModel,
+                cartoucheSupportModelState,
+                BLOCK_DISPLAY_CONTEXT
+        );
+
+        if (
+                renderState.cartoucheType != null
+                        && renderState.cartoucheType.isVisible()
+        ) {
+            double cartoucheBottomY =
+                    CartoucheLayout.getEBBottomY();
+
+            CartoucheLayout.PoleAnchor anchor =
+                    CartoucheLayout.findNearestPoleAnchor(
+                            blockEntity.getLevel(),
+                            blockEntity.getBlockPos(),
+                            renderState.facing,
+                            cartoucheBottomY
+                    );
+
+            renderState.cartoucheSupportOffsetX = anchor.offsetX();
+            renderState.cartoucheSupportOffsetZ = anchor.offsetZ();
+            renderState.cartoucheSupportPoleTopY = anchor.poleTopY();
+        } else {
+            renderState.cartoucheSupportOffsetX = 0.0D;
+            renderState.cartoucheSupportOffsetZ = 0.0D;
+            renderState.cartoucheSupportPoleTopY = 1.0D;
+        }
     }
 
     @Override
@@ -102,6 +174,12 @@ public class EB10BlockEntityRenderer
             SubmitNodeCollector collector,
             CameraRenderState cameraState
     ) {
+        submitCartouche(
+                renderState,
+                poseStack,
+                collector
+        );
+
         String line1 = cleanText(renderState.line1);
         String line2 = cleanText(renderState.line2);
 
@@ -142,6 +220,112 @@ public class EB10BlockEntityRenderer
                     collector
             );
         }
+    }
+
+    private static void submitCartouche(
+            EB10RenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        if (
+                renderState.cartoucheType == null
+                        || !renderState.cartoucheType.isVisible()
+        ) {
+            return;
+        }
+
+        float highestPanelTopY =
+                (float) CartoucheLayout.getEBTopY();
+
+        float yOffset =
+                (float) CartoucheLayout.getEBBottomY();
+
+        submitCartoucheSupport(
+                renderState,
+                highestPanelTopY,
+                yOffset,
+                poseStack,
+                collector
+        );
+
+        poseStack.pushPose();
+        poseStack.translate(
+                0.5F,
+                yOffset,
+                0.5F
+        );
+        poseStack.scale(
+                CartoucheLayout.MODEL_SCALE,
+                CartoucheLayout.MODEL_SCALE,
+                CartoucheLayout.MODEL_SCALE
+        );
+        poseStack.translate(-0.5F, 0.0F, -0.5F);
+
+        renderState.cartoucheModel.submit(
+                poseStack,
+                collector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+
+        poseStack.popPose();
+
+        CartoucheTextRenderer.submit(
+                renderState.cartoucheText,
+                renderState.cartoucheType,
+                yOffset,
+                CartoucheLayout.MODEL_SCALE,
+                renderState.facing,
+                renderState.lightCoords,
+                poseStack,
+                collector
+        );
+    }
+
+    private static void submitCartoucheSupport(
+            EB10RenderState renderState,
+            float highestPanelTopY,
+            float cartoucheBottomY,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        CartoucheLayout.PoleAnchor anchor =
+                new CartoucheLayout.PoleAnchor(
+                        renderState.cartoucheSupportOffsetX,
+                        renderState.cartoucheSupportOffsetZ,
+                        renderState.cartoucheSupportPoleTopY
+                );
+
+        float supportBottomY =
+                (float) CartoucheLayout.getSupportBottomY(anchor);
+
+        float supportTopY =
+                (float) CartoucheLayout.getSupportTopY(cartoucheBottomY);
+
+        float supportHeight = supportTopY - supportBottomY;
+
+        if (supportHeight <= 0.0F) {
+            return;
+        }
+
+        poseStack.pushPose();
+        poseStack.translate(
+                (float) anchor.offsetX(),
+                supportBottomY,
+                (float) anchor.offsetZ()
+        );
+        poseStack.scale(1.0F, supportHeight, 1.0F);
+
+        renderState.cartoucheSupportModel.submit(
+                poseStack,
+                collector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+
+        poseStack.popPose();
     }
 
     private static void submitLine(

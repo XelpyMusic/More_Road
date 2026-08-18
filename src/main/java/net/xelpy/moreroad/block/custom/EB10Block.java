@@ -108,8 +108,40 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
 
         VoxelShape panelShape = getPanelShape(facing, eb20);
         VoxelShape poleShape = getPoleShape(facing);
+        VoxelShape result = Shapes.or(poleShape, panelShape);
 
-        return Shapes.or(poleShape, panelShape);
+        if (level.getBlockEntity(pos) instanceof EB10BlockEntity blockEntity
+                && blockEntity.getCartoucheType() != null
+                && blockEntity.getCartoucheType().isVisible()) {
+            double cartoucheBottomY = CartoucheLayout.getEBBottomY();
+
+            CartoucheLayout.PoleAnchor poleAnchor =
+                    CartoucheLayout.findNearestPoleAnchor(
+                            level,
+                            pos,
+                            facing,
+                            cartoucheBottomY
+                    );
+
+            result = Shapes.or(
+                    result,
+                    CartoucheLayout.getSupportShape(
+                            facing,
+                            poleAnchor,
+                            cartoucheBottomY
+                    )
+            );
+
+            result = Shapes.or(
+                    result,
+                    CartoucheLayout.getCartoucheShape(
+                            facing,
+                            cartoucheBottomY
+                    )
+            );
+        }
+
+        return result;
     }
 
     private static VoxelShape getPanelShape(Direction facing, boolean eb20) {
@@ -200,7 +232,9 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
                     pos,
                     blockEntity.getLine1(),
                     blockEntity.getLine2(),
-                    state.getValue(EB20)
+                    state.getValue(EB20),
+                    blockEntity.getCartoucheType(),
+                    blockEntity.getCartoucheText()
             );
         }
 

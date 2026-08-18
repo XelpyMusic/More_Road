@@ -25,7 +25,7 @@ public final class D21APanelLayout {
     private static final double SIMPLE_HEIGHT = 7.16D / 16.0D;
     private static final double DOUBLE_HEIGHT = 8.88D / 16.0D;
 
-    private static final double SIMPLE_BASE_CENTER = 11.40D / 16.0D;
+    private static final double SIMPLE_BASE_CENTER = 11.38D / 16.0D;
     private static final double DOUBLE_BASE_CENTER = 10.52D / 16.0D;
 
     private static final double SIMPLE_GAP =
@@ -85,6 +85,17 @@ public final class D21APanelLayout {
             return 0.0D;
         }
 
+        /*
+         * V48 :
+         * On conserve les modèles simples recentrés de la V47, mais on
+         * restaure le centrage vertical de la pile autour de sa position
+         * historique.
+         *
+         * La V46 avait ancré toutes les piles depuis le haut. Cela alignait
+         * leur sommet, mais faisait descendre fortement les ensembles de
+         * plusieurs panneaux. Avec les géométries gauche/droite maintenant
+         * normalisées en V47, cet ancrage n'est plus nécessaire.
+         */
         int enabledCount = 0;
         double stackCenter = 0.0D;
         double totalHeight = 0.0D;
@@ -198,29 +209,28 @@ public final class D21APanelLayout {
      * HITBOXES DES PLAQUES
      * ============================================================ */
 
-    private static final VoxelShape SIMPLE_LEFT_NORTH =
-            Block.box(-6.96, 7.80, 6.00, 24.96, 14.96, 8.00);
+    /*
+     * V47 : les deux modèles D21A simples sont maintenant physiquement
+     * recentrés sur X = 8 et partagent exactement la même hauteur.
+     *
+     * NORTH :
+     * X = -7.96 -> 23.96
+     * Y =  7.80 -> 14.96
+     * Z =  6.00 ->  8.00
+     *
+     * La hitbox ne dépend donc plus du côté de la flèche.
+     */
+    private static final VoxelShape SIMPLE_NORTH =
+            Block.box(-7.96, 7.80, 6.00, 23.96, 14.96, 8.00);
 
-    private static final VoxelShape SIMPLE_LEFT_EAST =
-            Block.box(8.00, 7.80, -6.96, 10.00, 14.96, 24.96);
+    private static final VoxelShape SIMPLE_EAST =
+            Block.box(8.00, 7.80, -7.96, 10.00, 14.96, 23.96);
 
-    private static final VoxelShape SIMPLE_LEFT_SOUTH =
-            Block.box(-8.96, 7.80, 8.00, 22.96, 14.96, 10.00);
+    private static final VoxelShape SIMPLE_SOUTH =
+            Block.box(-7.96, 7.80, 8.00, 23.96, 14.96, 10.00);
 
-    private static final VoxelShape SIMPLE_LEFT_WEST =
-            Block.box(6.00, 7.80, -8.96, 8.00, 14.96, 22.96);
-
-    private static final VoxelShape SIMPLE_RIGHT_NORTH =
-            Block.box(-9.96, 7.84, 6.00, 21.96, 15.00, 8.00);
-
-    private static final VoxelShape SIMPLE_RIGHT_EAST =
-            Block.box(8.00, 7.84, -9.96, 10.00, 15.00, 21.96);
-
-    private static final VoxelShape SIMPLE_RIGHT_SOUTH =
-            Block.box(-5.96, 7.84, 8.00, 25.96, 15.00, 10.00);
-
-    private static final VoxelShape SIMPLE_RIGHT_WEST =
-            Block.box(6.00, 7.84, -5.96, 8.00, 15.00, 25.96);
+    private static final VoxelShape SIMPLE_WEST =
+            Block.box(6.00, 7.80, -7.96, 8.00, 14.96, 23.96);
 
     private static final VoxelShape DOUBLE_NORTH =
             Block.box(-7.96, 6.08, 6.00, 23.96, 14.96, 8.00);
@@ -248,20 +258,11 @@ public final class D21APanelLayout {
             };
         }
 
-        if (arrowRight) {
-            return switch (facing) {
-                case EAST -> SIMPLE_RIGHT_EAST;
-                case SOUTH -> SIMPLE_RIGHT_SOUTH;
-                case WEST -> SIMPLE_RIGHT_WEST;
-                default -> SIMPLE_RIGHT_NORTH;
-            };
-        }
-
         return switch (facing) {
-            case EAST -> SIMPLE_LEFT_EAST;
-            case SOUTH -> SIMPLE_LEFT_SOUTH;
-            case WEST -> SIMPLE_LEFT_WEST;
-            default -> SIMPLE_LEFT_NORTH;
+            case EAST -> SIMPLE_EAST;
+            case SOUTH -> SIMPLE_SOUTH;
+            case WEST -> SIMPLE_WEST;
+            default -> SIMPLE_NORTH;
         };
     }
 }

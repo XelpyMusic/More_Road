@@ -7,12 +7,15 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.xelpy.moreroad.MoreRoad;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 
 public record UpdateEB10TextPayload(
         BlockPos pos,
         String line1,
         String line2,
-        boolean eb20
+        boolean eb20,
+        CartoucheType cartoucheType,
+        String cartoucheText
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateEB10TextPayload> TYPE =
@@ -23,28 +26,62 @@ public record UpdateEB10TextPayload(
                     )
             );
 
-
     public static final StreamCodec<ByteBuf, UpdateEB10TextPayload> STREAM_CODEC =
-            StreamCodec.composite(
+            new StreamCodec<>() {
+                @Override
+                public UpdateEB10TextPayload decode(ByteBuf buffer) {
+                    return new UpdateEB10TextPayload(
+                            BlockPos.STREAM_CODEC.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.BOOL.decode(buffer),
+                            CartoucheType.fromSerializedName(
+                                    ByteBufCodecs.STRING_UTF8.decode(buffer)
+                            ),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer)
+                    );
+                }
 
-                    BlockPos.STREAM_CODEC,
-                    UpdateEB10TextPayload::pos,
+                @Override
+                public void encode(
+                        ByteBuf buffer,
+                        UpdateEB10TextPayload payload
+                ) {
+                    BlockPos.STREAM_CODEC.encode(buffer, payload.pos());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line1());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line2());
+                    ByteBufCodecs.BOOL.encode(buffer, payload.eb20());
+                    ByteBufCodecs.STRING_UTF8.encode(
+                            buffer,
+                            normalizeCartoucheType(payload.cartoucheType())
+                                    .getSerializedName()
+                    );
+                    ByteBufCodecs.STRING_UTF8.encode(
+                            buffer,
+                            normalizeText(payload.cartoucheText())
+                    );
+                }
+            };
 
-                    ByteBufCodecs.STRING_UTF8,
-                    UpdateEB10TextPayload::line1,
-
-                    ByteBufCodecs.STRING_UTF8,
-                    UpdateEB10TextPayload::line2,
-
-                    ByteBufCodecs.BOOL,
-                    UpdateEB10TextPayload::eb20,
-
-                    UpdateEB10TextPayload::new
-            );
-
+    public UpdateEB10TextPayload {
+        cartoucheType = normalizeCartoucheType(cartoucheType);
+        cartoucheText = normalizeText(cartoucheText);
+    }
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    private static CartoucheType normalizeCartoucheType(
+            CartoucheType cartoucheType
+    ) {
+        return cartoucheType == null
+                ? CartoucheType.NONE
+                : cartoucheType;
+    }
+
+    private static String normalizeText(String text) {
+        return text == null ? "" : text;
     }
 }

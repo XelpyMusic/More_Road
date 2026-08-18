@@ -3,6 +3,7 @@ package net.xelpy.moreroad.client.renderer;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.Direction;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 
@@ -34,6 +35,19 @@ public class D21ARenderState extends BlockEntityRenderState {
 
     public final boolean[] doubleLines =
             new boolean[D21ABlockEntity.MAX_PANELS];
+
+    public CartoucheType cartoucheType = CartoucheType.NONE;
+    public String cartoucheText = "";
+
+    public final BlockModelRenderState cartoucheModel =
+            new BlockModelRenderState();
+
+    public final BlockModelRenderState cartoucheSupportModel =
+            new BlockModelRenderState();
+
+    public double cartoucheSupportOffsetX = 0.0D;
+    public double cartoucheSupportOffsetZ = 0.0D;
+    public double cartoucheSupportPoleTopY = 1.0D;
 
     public final BlockModelRenderState[] panelModels = {
             new BlockModelRenderState(),

@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
@@ -25,11 +26,14 @@ public class D21A2EditScreen extends Screen {
     private D21AType selectedType = D21AType.WHITE;
     private boolean arrowRight = false;
     private boolean autorouteLogo = false;
+    private CartoucheType cartoucheType = CartoucheType.NONE;
+    private String cartoucheText = "";
 
     private EditBox line1Field;
     private EditBox line2Field;
     private EditBox distance1Field;
     private EditBox distance2Field;
+    private EditBox cartoucheTextField;
 
     private final Button[] panelButtons =
             new Button[D21ABlockEntity.MAX_PANELS];
@@ -41,10 +45,13 @@ public class D21A2EditScreen extends Screen {
     private Button blueButton;
     private Button autorouteLogoButton;
     private Button directionButton;
+    private Button cartoucheButton;
 
     public D21A2EditScreen(
             BlockPos blockPos,
-            D21APanelData[] currentPanels
+            D21APanelData[] currentPanels,
+            CartoucheType currentCartoucheType,
+            String currentCartoucheText
     ) {
         super(
                 Component.literal(
@@ -53,6 +60,14 @@ public class D21A2EditScreen extends Screen {
         );
 
         this.blockPos = blockPos.immutable();
+        this.cartoucheType =
+                currentCartoucheType == null
+                        ? CartoucheType.NONE
+                        : currentCartoucheType;
+        this.cartoucheText =
+                currentCartoucheText == null
+                        ? ""
+                        : currentCartoucheText;
 
         for (int i = 0; i < D21ABlockEntity.MAX_PANELS; i++) {
             D21APanelData panel =
@@ -303,6 +318,42 @@ public class D21A2EditScreen extends Screen {
         this.addRenderableWidget(this.directionButton);
 
         /* ========================================================
+         * CARTOUCHE E41 A E45
+         * ======================================================== */
+
+        this.cartoucheButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.cartoucheType = this.cartoucheType.next();
+                                    updateCartoucheButton();
+                                }
+                        )
+                        .bounds(
+                                centerX - 150,
+                                centerY + 70,
+                                300,
+                                20
+                        )
+                        .build();
+
+        this.addRenderableWidget(this.cartoucheButton);
+
+        this.cartoucheTextField =
+                new EditBox(
+                        this.font,
+                        centerX - 150,
+                        centerY + 100,
+                        300,
+                        20,
+                        Component.literal("Texte du cartouche (ex. D 240)")
+                );
+
+        this.cartoucheTextField.setMaxLength(24);
+        this.cartoucheTextField.setValue(this.cartoucheText);
+        this.addRenderableWidget(this.cartoucheTextField);
+
+        /* ========================================================
          * VALIDER / ANNULER
          * ======================================================== */
 
@@ -313,7 +364,7 @@ public class D21A2EditScreen extends Screen {
                         )
                         .bounds(
                                 centerX - 150,
-                                centerY + 80,
+                                centerY + 130,
                                 145,
                                 20
                         )
@@ -327,7 +378,7 @@ public class D21A2EditScreen extends Screen {
                         )
                         .bounds(
                                 centerX + 5,
-                                centerY + 80,
+                                centerY + 130,
                                 145,
                                 20
                         )
@@ -335,6 +386,7 @@ public class D21A2EditScreen extends Screen {
         );
 
         loadSelectedPanelIntoWidgets();
+        updateCartoucheButton();
         this.setInitialFocus(this.line1Field);
     }
 
@@ -350,6 +402,7 @@ public class D21A2EditScreen extends Screen {
         storeSelectedPanelFromWidgets();
         this.selectedPanelIndex = newIndex;
         loadSelectedPanelIntoWidgets();
+        updateCartoucheButton();
         this.setInitialFocus(this.line1Field);
     }
 
@@ -544,6 +597,26 @@ public class D21A2EditScreen extends Screen {
         );
     }
 
+    private void updateCartoucheButton() {
+        if (this.cartoucheButton == null) {
+            return;
+        }
+
+        this.cartoucheButton.setMessage(
+                Component.literal(
+                        "Cartouche : "
+                                + this.cartoucheType.getDisplayName()
+                                + (this.cartoucheType.isVisible()
+                                ? " | texte ci-dessous"
+                                : "")
+                )
+        );
+
+        if (this.cartoucheTextField != null) {
+            this.cartoucheTextField.active = this.cartoucheType.isVisible();
+        }
+    }
+
     private void save() {
         storeSelectedPanelFromWidgets();
 
@@ -553,7 +626,9 @@ public class D21A2EditScreen extends Screen {
                         this.panels[0],
                         this.panels[1],
                         this.panels[2],
-                        this.panels[3]
+                        this.panels[3],
+                        this.cartoucheType,
+                        this.cartoucheTextField.getValue()
                 )
         );
 

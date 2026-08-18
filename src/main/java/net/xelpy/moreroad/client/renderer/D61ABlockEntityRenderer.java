@@ -17,10 +17,13 @@ import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.MoreRoadBlocks;
+import net.xelpy.moreroad.block.custom.CartoucheLayout;
+import net.xelpy.moreroad.block.custom.CartoucheModelBlock;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D61AArrowDirection;
 import net.xelpy.moreroad.block.custom.D61AArrowModelBlock;
@@ -154,6 +157,40 @@ public class D61ABlockEntityRenderer
 
         BlockState blockState = blockEntity.getBlockState();
         renderState.facing = blockState.getValue(D61ABlock.FACING);
+        renderState.cartoucheType = blockEntity.getCartoucheType();
+        renderState.cartoucheText = blockEntity.getCartoucheText();
+
+        BlockState cartoucheModelState =
+                MoreRoadBlocks.CARTOUCHE_MODEL.get()
+                        .defaultBlockState()
+                        .setValue(
+                                CartoucheModelBlock.FACING,
+                                renderState.facing
+                        )
+                        .setValue(
+                                CartoucheModelBlock.TYPE,
+                                renderState.cartoucheType
+                        );
+
+        this.blockResolver.update(
+                renderState.cartoucheModel,
+                cartoucheModelState,
+                BLOCK_DISPLAY_CONTEXT
+        );
+
+        BlockState cartoucheSupportModelState =
+                MoreRoadBlocks.CARTOUCHE_SUPPORT_MODEL.get()
+                        .defaultBlockState()
+                        .setValue(
+                                HorizontalDirectionalBlock.FACING,
+                                renderState.facing
+                        );
+
+        this.blockResolver.update(
+                renderState.cartoucheSupportModel,
+                cartoucheSupportModelState,
+                BLOCK_DISPLAY_CONTEXT
+        );
 
         for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
             D61APanelData panel = blockEntity.getPanel(i);
@@ -210,6 +247,33 @@ public class D61ABlockEntityRenderer
                 );
             }
         }
+
+        if (
+                renderState.cartoucheType != null
+                        && renderState.cartoucheType.isVisible()
+        ) {
+            double cartoucheBottomY =
+                    CartoucheLayout.getD61BottomY(
+                            renderState.enabled,
+                            renderState.doubleLines
+                    );
+
+            CartoucheLayout.PoleAnchor anchor =
+                    CartoucheLayout.findNearestPoleAnchor(
+                            blockEntity.getLevel(),
+                            blockEntity.getBlockPos(),
+                            renderState.facing,
+                            cartoucheBottomY
+                    );
+
+            renderState.cartoucheSupportOffsetX = anchor.offsetX();
+            renderState.cartoucheSupportOffsetZ = anchor.offsetZ();
+            renderState.cartoucheSupportPoleTopY = anchor.poleTopY();
+        } else {
+            renderState.cartoucheSupportOffsetX = 0.0D;
+            renderState.cartoucheSupportOffsetZ = 0.0D;
+            renderState.cartoucheSupportPoleTopY = 1.0D;
+        }
     }
 
     @Override
@@ -230,6 +294,12 @@ public class D61ABlockEntityRenderer
         if (enabledCount <= 0) {
             return;
         }
+
+        submitCartouche(
+                renderState,
+                poseStack,
+                collector
+        );
 
         for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
             if (!renderState.enabled[i]) {
@@ -285,6 +355,114 @@ public class D61ABlockEntityRenderer
                     collector
             );
         }
+    }
+
+    private static void submitCartouche(
+            D61ARenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        if (
+                renderState.cartoucheType == null
+                        || !renderState.cartoucheType.isVisible()
+        ) {
+            return;
+        }
+
+        float highestPanelTopY =
+                (float) CartoucheLayout.getD61HighestTopY(
+                        renderState.enabled,
+                        renderState.doubleLines
+                );
+
+        float yOffset =
+                (float) CartoucheLayout.getD61BottomY(
+                        renderState.enabled,
+                        renderState.doubleLines
+                );
+
+        submitCartoucheSupport(
+                renderState,
+                highestPanelTopY,
+                yOffset,
+                poseStack,
+                collector
+        );
+
+        poseStack.pushPose();
+        poseStack.translate(0.5F, yOffset, 0.5F);
+        poseStack.scale(
+                CartoucheLayout.MODEL_SCALE,
+                CartoucheLayout.MODEL_SCALE,
+                CartoucheLayout.MODEL_SCALE
+        );
+        poseStack.translate(-0.5F, 0.0F, -0.5F);
+
+        renderState.cartoucheModel.submit(
+                poseStack,
+                collector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+
+        poseStack.popPose();
+
+        CartoucheTextRenderer.submit(
+                renderState.cartoucheText,
+                renderState.cartoucheType,
+                yOffset,
+                CartoucheLayout.MODEL_SCALE,
+                renderState.facing,
+                renderState.lightCoords,
+                poseStack,
+                collector
+        );
+    }
+
+    private static void submitCartoucheSupport(
+            D61ARenderState renderState,
+            float highestPanelTopY,
+            float cartoucheBottomY,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        CartoucheLayout.PoleAnchor anchor =
+                new CartoucheLayout.PoleAnchor(
+                        renderState.cartoucheSupportOffsetX,
+                        renderState.cartoucheSupportOffsetZ,
+                        renderState.cartoucheSupportPoleTopY
+                );
+
+        float supportBottomY =
+                (float) CartoucheLayout.getSupportBottomY(anchor);
+
+        float supportTopY =
+                (float) CartoucheLayout.getSupportTopY(cartoucheBottomY);
+
+        float supportHeight = supportTopY - supportBottomY;
+
+        if (supportHeight <= 0.0F) {
+            return;
+        }
+
+        poseStack.pushPose();
+        poseStack.translate(
+                (float) anchor.offsetX(),
+                supportBottomY,
+                (float) anchor.offsetZ()
+        );
+        poseStack.scale(1.0F, supportHeight, 1.0F);
+
+        renderState.cartoucheSupportModel.submit(
+                poseStack,
+                collector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+
+        poseStack.popPose();
     }
 
     private static void submitArrow(

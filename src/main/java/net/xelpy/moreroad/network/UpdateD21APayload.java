@@ -7,6 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.xelpy.moreroad.MoreRoad;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
 
@@ -15,7 +16,9 @@ public record UpdateD21APayload(
         D21APanelData panel0,
         D21APanelData panel1,
         D21APanelData panel2,
-        D21APanelData panel3
+        D21APanelData panel3,
+        CartoucheType cartoucheType,
+        String cartoucheText
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateD21APayload> TYPE =
@@ -37,7 +40,11 @@ public record UpdateD21APayload(
                             decodePanel(buffer),
                             decodePanel(buffer),
                             decodePanel(buffer),
-                            decodePanel(buffer)
+                            decodePanel(buffer),
+                            CartoucheType.fromSerializedName(
+                                    ByteBufCodecs.STRING_UTF8.decode(buffer)
+                            ),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer)
                     );
                 }
 
@@ -55,6 +62,14 @@ public record UpdateD21APayload(
                     encodePanel(buffer, payload.panel1());
                     encodePanel(buffer, payload.panel2());
                     encodePanel(buffer, payload.panel3());
+                    ByteBufCodecs.STRING_UTF8.encode(
+                            buffer,
+                            payload.cartoucheType().getSerializedName()
+                    );
+                    ByteBufCodecs.STRING_UTF8.encode(
+                            buffer,
+                            payload.cartoucheText()
+                    );
                 }
             };
 
@@ -63,6 +78,49 @@ public record UpdateD21APayload(
         panel1 = normalize(panel1, false);
         panel2 = normalize(panel2, false);
         panel3 = normalize(panel3, false);
+        cartoucheType = cartoucheType == null
+                ? CartoucheType.NONE
+                : cartoucheType;
+        cartoucheText = cartoucheText == null
+                ? ""
+                : cartoucheText;
+    }
+
+    public UpdateD21APayload(
+            BlockPos pos,
+            D21APanelData panel0,
+            D21APanelData panel1,
+            D21APanelData panel2,
+            D21APanelData panel3
+    ) {
+        this(
+                pos,
+                panel0,
+                panel1,
+                panel2,
+                panel3,
+                CartoucheType.NONE,
+                ""
+        );
+    }
+
+    public UpdateD21APayload(
+            BlockPos pos,
+            D21APanelData panel0,
+            D21APanelData panel1,
+            D21APanelData panel2,
+            D21APanelData panel3,
+            CartoucheType cartoucheType
+    ) {
+        this(
+                pos,
+                panel0,
+                panel1,
+                panel2,
+                panel3,
+                cartoucheType,
+                ""
+        );
     }
 
     public D21APanelData panel(int index) {

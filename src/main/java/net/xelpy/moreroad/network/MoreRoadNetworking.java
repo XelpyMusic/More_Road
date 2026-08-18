@@ -32,6 +32,8 @@ public final class MoreRoadNetworking {
 
     private static final int MAX_D21A_DISTANCE_LENGTH = 8;
 
+    private static final int MAX_CARTOUCHE_TEXT_LENGTH = 24;
+
     private static final int MAX_EDIT_DISTANCE = 8;
 
 
@@ -182,6 +184,16 @@ public final class MoreRoadNetworking {
         blockEntity.setText(
                 line1,
                 line2
+        );
+
+        blockEntity.setCartoucheType(
+                payload.cartoucheType()
+        );
+        blockEntity.setCartoucheText(
+                cleanText(
+                        payload.cartoucheText(),
+                        MAX_CARTOUCHE_TEXT_LENGTH
+                )
         );
 
 
@@ -342,6 +354,13 @@ public final class MoreRoadNetworking {
         }
 
         blockEntity.setPanels(panels);
+        blockEntity.setCartoucheType(payload.cartoucheType());
+        blockEntity.setCartoucheText(
+                cleanText(
+                        payload.cartoucheText(),
+                        MAX_CARTOUCHE_TEXT_LENGTH
+                )
+        );
 
         /*
          * Les propriétés TYPE / ARROW_RIGHT restent synchronisées avec le
@@ -464,6 +483,13 @@ public final class MoreRoadNetworking {
         }
 
         blockEntity.setPanels(panels);
+        blockEntity.setCartoucheType(payload.cartoucheType());
+        blockEntity.setCartoucheText(
+                cleanText(
+                        payload.cartoucheText(),
+                        MAX_CARTOUCHE_TEXT_LENGTH
+                )
+        );
 
         BlockState currentState = level.getBlockState(pos);
         D61APanelData firstPanel = panels[0];

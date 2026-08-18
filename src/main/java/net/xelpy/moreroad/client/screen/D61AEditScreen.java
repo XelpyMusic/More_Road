@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D61AArrowDirection;
 import net.xelpy.moreroad.block.custom.D61AArrowPosition;
@@ -30,11 +31,14 @@ public class D61AEditScreen extends Screen {
     private boolean arrowEnabled = false;
     private D61AArrowPosition arrowPosition = D61AArrowPosition.RIGHT;
     private D61AArrowDirection arrowDirection = D61AArrowDirection.UP;
+    private CartoucheType cartoucheType = CartoucheType.NONE;
+    private String cartoucheText = "";
 
     private EditBox line1Field;
     private EditBox line2Field;
     private EditBox distance1Field;
     private EditBox distance2Field;
+    private EditBox cartoucheTextField;
 
     private final Button[] panelButtons =
             new Button[D61ABlockEntity.MAX_PANELS];
@@ -50,14 +54,25 @@ public class D61AEditScreen extends Screen {
     private Button autorouteLogoButton;
     private Button arrowEnabledButton;
     private Button arrowPositionButton;
+    private Button cartoucheButton;
 
     public D61AEditScreen(
             BlockPos blockPos,
-            D61APanelData[] currentPanels
+            D61APanelData[] currentPanels,
+            CartoucheType currentCartoucheType,
+            String currentCartoucheText
     ) {
         super(Component.literal("Ensemble directionnel D61A"));
 
         this.blockPos = blockPos.immutable();
+        this.cartoucheType =
+                currentCartoucheType == null
+                        ? CartoucheType.NONE
+                        : currentCartoucheType;
+        this.cartoucheText =
+                currentCartoucheText == null
+                        ? ""
+                        : currentCartoucheText;
 
         for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
             D61APanelData panel =
@@ -279,12 +294,35 @@ public class D61AEditScreen extends Screen {
             this.addRenderableWidget(this.directionButtons[i]);
         }
 
+        this.cartoucheButton = Button.builder(
+                        Component.empty(),
+                        button -> {
+                            this.cartoucheType = this.cartoucheType.next();
+                            updateCartoucheButton();
+                        }
+                )
+                .bounds(centerX - 150, centerY + 85, 300, 20)
+                .build();
+        this.addRenderableWidget(this.cartoucheButton);
+
+        this.cartoucheTextField = new EditBox(
+                this.font,
+                centerX - 150,
+                centerY + 115,
+                300,
+                20,
+                Component.literal("Texte du cartouche (ex. D 240)")
+        );
+        this.cartoucheTextField.setMaxLength(24);
+        this.cartoucheTextField.setValue(this.cartoucheText);
+        this.addRenderableWidget(this.cartoucheTextField);
+
         this.addRenderableWidget(
                 Button.builder(
                                 Component.literal("Valider"),
                                 button -> save()
                         )
-                        .bounds(centerX - 150, centerY + 90, 145, 20)
+                        .bounds(centerX - 150, centerY + 145, 145, 20)
                         .build()
         );
 
@@ -293,11 +331,12 @@ public class D61AEditScreen extends Screen {
                                 Component.literal("Annuler"),
                                 button -> this.onClose()
                         )
-                        .bounds(centerX + 5, centerY + 90, 145, 20)
+                        .bounds(centerX + 5, centerY + 145, 145, 20)
                         .build()
         );
 
         loadSelectedPanelIntoWidgets();
+        updateCartoucheButton();
         this.setInitialFocus(this.line1Field);
     }
 
@@ -313,6 +352,7 @@ public class D61AEditScreen extends Screen {
         storeSelectedPanelFromWidgets();
         this.selectedPanelIndex = newIndex;
         loadSelectedPanelIntoWidgets();
+        updateCartoucheButton();
         this.setInitialFocus(this.line1Field);
     }
 
@@ -536,6 +576,26 @@ public class D61AEditScreen extends Screen {
         }
     }
 
+    private void updateCartoucheButton() {
+        if (this.cartoucheButton == null) {
+            return;
+        }
+
+        this.cartoucheButton.setMessage(
+                Component.literal(
+                        "Cartouche : "
+                                + this.cartoucheType.getDisplayName()
+                                + (this.cartoucheType.isVisible()
+                                ? " | texte ci-dessous"
+                                : "")
+                )
+        );
+
+        if (this.cartoucheTextField != null) {
+            this.cartoucheTextField.active = this.cartoucheType.isVisible();
+        }
+    }
+
     private void save() {
         storeSelectedPanelFromWidgets();
 
@@ -545,7 +605,9 @@ public class D61AEditScreen extends Screen {
                         this.panels[0],
                         this.panels[1],
                         this.panels[2],
-                        this.panels[3]
+                        this.panels[3],
+                        this.cartoucheType,
+                        this.cartoucheTextField.getValue()
                 )
         );
 

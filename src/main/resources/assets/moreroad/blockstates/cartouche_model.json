@@ -1,0 +1,94 @@
+{
+  "variants": {
+    "facing=north,type=none": {
+      "model": "moreroad:block/cartouche_empty"
+    },
+    "facing=north,type=e41_45": {
+      "model": "moreroad:block/e41_45"
+    },
+    "facing=north,type=e42": {
+      "model": "moreroad:block/e42"
+    },
+    "facing=north,type=e43": {
+      "model": "moreroad:block/e43"
+    },
+    "facing=north,type=e44": {
+      "model": "moreroad:block/e44"
+    },
+    "facing=north,type=e47": {
+      "model": "moreroad:block/e47"
+    },
+    "facing=east,type=none": {
+      "model": "moreroad:block/cartouche_empty",
+      "y": 90
+    },
+    "facing=east,type=e41_45": {
+      "model": "moreroad:block/e41_45",
+      "y": 90
+    },
+    "facing=east,type=e42": {
+      "model": "moreroad:block/e42",
+      "y": 90
+    },
+    "facing=east,type=e43": {
+      "model": "moreroad:block/e43",
+      "y": 90
+    },
+    "facing=east,type=e44": {
+      "model": "moreroad:block/e44",
+      "y": 90
+    },
+    "facing=east,type=e47": {
+      "model": "moreroad:block/e47",
+      "y": 90
+    },
+    "facing=south,type=none": {
+      "model": "moreroad:block/cartouche_empty",
+      "y": 180
+    },
+    "facing=south,type=e41_45": {
+      "model": "moreroad:block/e41_45",
+      "y": 180
+    },
+    "facing=south,type=e42": {
+      "model": "moreroad:block/e42",
+      "y": 180
+    },
+    "facing=south,type=e43": {
+      "model": "moreroad:block/e43",
+      "y": 180
+    },
+    "facing=south,type=e44": {
+      "model": "moreroad:block/e44",
+      "y": 180
+    },
+    "facing=south,type=e47": {
+      "model": "moreroad:block/e47",
+      "y": 180
+    },
+    "facing=west,type=none": {
+      "model": "moreroad:block/cartouche_empty",
+      "y": 270
+    },
+    "facing=west,type=e41_45": {
+      "model": "moreroad:block/e41_45",
+      "y": 270
+    },
+    "facing=west,type=e42": {
+      "model": "moreroad:block/e42",
+      "y": 270
+    },
+    "facing=west,type=e43": {
+      "model": "moreroad:block/e43",
+      "y": 270
+    },
+    "facing=west,type=e44": {
+      "model": "moreroad:block/e44",
+      "y": 270
+    },
+    "facing=west,type=e47": {
+      "model": "moreroad:block/e47",
+      "y": 270
+    }
+  }
+}

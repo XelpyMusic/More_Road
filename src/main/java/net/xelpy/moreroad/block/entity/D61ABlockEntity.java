@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D61A2Block;
 import net.xelpy.moreroad.block.custom.D61AArrowDirection;
@@ -22,6 +23,9 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
 
     private final D61APanelData[] panels =
             new D61APanelData[MAX_PANELS];
+
+    private CartoucheType cartoucheType = CartoucheType.NONE;
+    private String cartoucheText = "";
 
     public D61ABlockEntity(BlockPos pos, BlockState state) {
         super(MoreRoadBlockEntities.D61A.get(), pos, state);
@@ -64,6 +68,32 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
         return this.panels.clone();
     }
 
+    public CartoucheType getCartoucheType() {
+        return this.cartoucheType;
+    }
+
+    public void setCartoucheType(CartoucheType cartoucheType) {
+        this.cartoucheType =
+                cartoucheType == null
+                        ? CartoucheType.NONE
+                        : cartoucheType;
+
+        setChanged();
+    }
+
+    public String getCartoucheText() {
+        return this.cartoucheText;
+    }
+
+    public void setCartoucheText(String cartoucheText) {
+        this.cartoucheText =
+                cartoucheText == null
+                        ? ""
+                        : cartoucheText;
+
+        setChanged();
+    }
+
     public void setPanels(D61APanelData[] newPanels) {
         for (int i = 0; i < MAX_PANELS; i++) {
             D61APanelData panel =
@@ -82,6 +112,11 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+
+        this.cartoucheType = CartoucheType.fromSerializedName(
+                input.getStringOr("cartouche_type", "none")
+        );
+        this.cartoucheText = input.getStringOr("cartouche_text", "");
 
         String legacyDestination = input.getStringOr("destination", "");
         String legacyDistance = input.getStringOr("distance", "");
@@ -157,6 +192,12 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
     @Override
     public void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
+
+        output.putString(
+                "cartouche_type",
+                this.cartoucheType.getSerializedName()
+        );
+        output.putString("cartouche_text", this.cartoucheText);
 
         for (int i = 0; i < MAX_PANELS; i++) {
             D61APanelData panel = sanitizePanel(this.panels[i]);

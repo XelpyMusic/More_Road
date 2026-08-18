@@ -17,10 +17,13 @@ import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.MoreRoadBlocks;
+import net.xelpy.moreroad.block.custom.CartoucheLayout;
+import net.xelpy.moreroad.block.custom.CartoucheModelBlock;
 import net.xelpy.moreroad.block.custom.D21A2Block;
 import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
@@ -51,16 +54,34 @@ public class D21ABlockEntityRenderer
 
     private static final float TEXT_Z = 0.128F;
 
-    private static final float LEFT_DISTANCE_X = -0.28F;
-    private static final float RIGHT_DISTANCE_X = 1.22F;
+    /*
+     * V49 : les kilométrages des D21A simples utilisent maintenant les
+     * mêmes colonnes latérales que les variantes 2 lignes afin que toutes
+     * les valeurs restent visuellement alignées d'un panneau à l'autre.
+     */
+    private static final float LEFT_DISTANCE_X = -0.1625F;
+    private static final float RIGHT_DISTANCE_X = 1.055F;
 
-    private static final float LEFT_DESTINATION_RIGHT_EDGE = 1.34F;
-    private static final float RIGHT_DESTINATION_LEFT_EDGE = -0.26F;
+    /*
+     * V52 : correction du sens du réglage précédent. Sur les D21A simples
+     * orientés vers la gauche, la destination doit au contraire être décalée
+     * vers la droite. Les ancres sont maintenant identiques à celles des
+     * variantes D21A2 afin d'obtenir une colonne cohérente.
+     */
+    private static final float LEFT_DESTINATION_RIGHT_EDGE = 1.43F;
 
-    private static final float LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 0.96F;
-    private static final float RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.12F;
+    /*
+     * V50 : le texte destination des D21A simples orientés vers la droite
+     * est légèrement ramené vers la gauche pour s'aligner visuellement avec
+     * les autres panneaux du même ensemble.
+     */
+    private static final float RIGHT_DESTINATION_LEFT_EDGE = -0.43F;
+
+    private static final float LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 1.00F;
+    private static final float RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.00F;
 
     private static final float DISTANCE_MAX_WIDTH = 0.28F;
+
 
     /* ============================================================
      * D21A - 1 LIGNE
@@ -168,6 +189,40 @@ public class D21ABlockEntityRenderer
         BlockState blockState = blockEntity.getBlockState();
 
         renderState.facing = blockState.getValue(D21ABlock.FACING);
+        renderState.cartoucheType = blockEntity.getCartoucheType();
+        renderState.cartoucheText = blockEntity.getCartoucheText();
+
+        BlockState cartoucheModelState =
+                MoreRoadBlocks.CARTOUCHE_MODEL.get()
+                        .defaultBlockState()
+                        .setValue(
+                                CartoucheModelBlock.FACING,
+                                renderState.facing
+                        )
+                        .setValue(
+                                CartoucheModelBlock.TYPE,
+                                renderState.cartoucheType
+                        );
+
+        this.blockResolver.update(
+                renderState.cartoucheModel,
+                cartoucheModelState,
+                BLOCK_DISPLAY_CONTEXT
+        );
+
+        BlockState cartoucheSupportModelState =
+                MoreRoadBlocks.CARTOUCHE_SUPPORT_MODEL.get()
+                        .defaultBlockState()
+                        .setValue(
+                                HorizontalDirectionalBlock.FACING,
+                                renderState.facing
+                        );
+
+        this.blockResolver.update(
+                renderState.cartoucheSupportModel,
+                cartoucheSupportModelState,
+                BLOCK_DISPLAY_CONTEXT
+        );
 
         for (int i = 0; i < D21ABlockEntity.MAX_PANELS; i++) {
             D21APanelData panel = blockEntity.getPanel(i);
@@ -214,6 +269,33 @@ public class D21ABlockEntityRenderer
                     BLOCK_DISPLAY_CONTEXT
             );
         }
+
+        if (
+                renderState.cartoucheType != null
+                        && renderState.cartoucheType.isVisible()
+        ) {
+            double cartoucheBottomY =
+                    CartoucheLayout.getD21BottomY(
+                            renderState.enabled,
+                            renderState.doubleLines
+                    );
+
+            CartoucheLayout.PoleAnchor anchor =
+                    CartoucheLayout.findNearestPoleAnchor(
+                            blockEntity.getLevel(),
+                            blockEntity.getBlockPos(),
+                            renderState.facing,
+                            cartoucheBottomY
+                    );
+
+            renderState.cartoucheSupportOffsetX = anchor.offsetX();
+            renderState.cartoucheSupportOffsetZ = anchor.offsetZ();
+            renderState.cartoucheSupportPoleTopY = anchor.poleTopY();
+        } else {
+            renderState.cartoucheSupportOffsetX = 0.0D;
+            renderState.cartoucheSupportOffsetZ = 0.0D;
+            renderState.cartoucheSupportPoleTopY = 1.0D;
+        }
     }
 
     @Override
@@ -234,6 +316,12 @@ public class D21ABlockEntityRenderer
         if (enabledCount <= 0) {
             return;
         }
+
+        submitCartouche(
+                renderState,
+                poseStack,
+                collector
+        );
 
         for (int i = 0; i < D21ABlockEntity.MAX_PANELS; i++) {
             if (!renderState.enabled[i]) {
@@ -276,6 +364,114 @@ public class D21ABlockEntityRenderer
             );
 
         }
+    }
+
+    private static void submitCartouche(
+            D21ARenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        if (
+                renderState.cartoucheType == null
+                        || !renderState.cartoucheType.isVisible()
+        ) {
+            return;
+        }
+
+        float highestPanelTopY =
+                (float) CartoucheLayout.getD21HighestTopY(
+                        renderState.enabled,
+                        renderState.doubleLines
+                );
+
+        float yOffset =
+                (float) CartoucheLayout.getD21BottomY(
+                        renderState.enabled,
+                        renderState.doubleLines
+                );
+
+        submitCartoucheSupport(
+                renderState,
+                highestPanelTopY,
+                yOffset,
+                poseStack,
+                collector
+        );
+
+        poseStack.pushPose();
+        poseStack.translate(0.5F, yOffset, 0.5F);
+        poseStack.scale(
+                CartoucheLayout.MODEL_SCALE,
+                CartoucheLayout.MODEL_SCALE,
+                CartoucheLayout.MODEL_SCALE
+        );
+        poseStack.translate(-0.5F, 0.0F, -0.5F);
+
+        renderState.cartoucheModel.submit(
+                poseStack,
+                collector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+
+        poseStack.popPose();
+
+        CartoucheTextRenderer.submit(
+                renderState.cartoucheText,
+                renderState.cartoucheType,
+                yOffset,
+                CartoucheLayout.MODEL_SCALE,
+                renderState.facing,
+                renderState.lightCoords,
+                poseStack,
+                collector
+        );
+    }
+
+    private static void submitCartoucheSupport(
+            D21ARenderState renderState,
+            float highestPanelTopY,
+            float cartoucheBottomY,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        CartoucheLayout.PoleAnchor anchor =
+                new CartoucheLayout.PoleAnchor(
+                        renderState.cartoucheSupportOffsetX,
+                        renderState.cartoucheSupportOffsetZ,
+                        renderState.cartoucheSupportPoleTopY
+                );
+
+        float supportBottomY =
+                (float) CartoucheLayout.getSupportBottomY(anchor);
+
+        float supportTopY =
+                (float) CartoucheLayout.getSupportTopY(cartoucheBottomY);
+
+        float supportHeight = supportTopY - supportBottomY;
+
+        if (supportHeight <= 0.0F) {
+            return;
+        }
+
+        poseStack.pushPose();
+        poseStack.translate(
+                (float) anchor.offsetX(),
+                supportBottomY,
+                (float) anchor.offsetZ()
+        );
+        poseStack.scale(1.0F, supportHeight, 1.0F);
+
+        renderState.cartoucheSupportModel.submit(
+                poseStack,
+                collector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+
+        poseStack.popPose();
     }
 
     private static void submitPanelText(
@@ -371,6 +567,11 @@ public class D21ABlockEntityRenderer
                             : SINGLE_DESTINATION_MAX_WIDTH_WITH_DISTANCE;
         }
 
+        /*
+         * V48 : les deux modèles D21A simples sont désormais réellement
+         * centrés sur X = 8. Le texte utilise donc directement le repère
+         * commun du panneau, sans compensation gauche/droite.
+         */
         float textY = SINGLE_TEXT_Y + yOffset;
 
         if (arrowRight) {

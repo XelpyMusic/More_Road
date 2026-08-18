@@ -873,8 +873,8 @@ public class MoreRoadBlocks {
                     .noOcclusion().sound(SoundType.IRON)));
 
     /*
-     * Bloc interne utilisé uniquement par le renderer du D21A.
-     * Aucun BlockItem n'est enregistré pour lui.
+     * Bloc interne utilisé uniqueness par le renderer du D21A.
+     * Audun BlockItem nest unregister pour lui.
      */
     public static final DeferredBlock<Block> D21A_PANEL_MODEL =
             BLOCKS.registerBlock("d21a_panel_model",
@@ -882,8 +882,8 @@ public class MoreRoadBlocks {
                             .noOcclusion().sound(SoundType.IRON)));
 
     /*
-     * Bloc interne utilisé uniquement par le renderer du D21A2.
-     * Aucun BlockItem n'est enregistré pour lui.
+     * Bloc interne utilisé uniqueness par le renderer du D21A2.
+     * Audun BlockItem nest unregister pour lui.
      */
     public static final DeferredBlock<Block> D21A2_PANEL_MODEL =
             BLOCKS.registerBlock("d21a2_panel_model",
@@ -899,8 +899,8 @@ public class MoreRoadBlocks {
                     .noOcclusion().sound(SoundType.IRON)));
 
     /*
-     * Bloc interne utilisé uniquement par le renderer du D61A.
-     * Aucun BlockItem n'est enregistré pour lui.
+     * Bloc interne utilisé uniqueness par le renderer du D61A.
+     * Audun BlockItem nest unregister pour lui.
      */
     public static final DeferredBlock<Block> D61A_PANEL_MODEL =
             BLOCKS.registerBlock("d61a_panel_model",
@@ -908,8 +908,8 @@ public class MoreRoadBlocks {
                             .noOcclusion().sound(SoundType.IRON)));
 
     /*
-     * Bloc interne utilisé uniquement par le renderer du D61A2.
-     * Aucun BlockItem n'est enregistré pour lui.
+     * Bloc interne utilisé uniqueness par le renderer du D61A2.
+     * Audun BlockItem nest unregister pour lui.
      */
     public static final DeferredBlock<Block> D61A2_PANEL_MODEL =
             BLOCKS.registerBlock("d61a2_panel_model",
@@ -917,13 +917,38 @@ public class MoreRoadBlocks {
                             .noOcclusion().sound(SoundType.IRON)));
 
     /*
-     * Modèle interne de flèche pour le D61A. Le renderer le déplace et le
-     * tourne dynamiquement : aucun modèle séparé n'est nécessaire pour les
+     * Module interne de flèche pour le D61A. Le renderer le déplace et le
+     * tourney dynamiquement : aucun modèle séparé n'est nécessaire pour les
      * huit directions.
      */
     public static final DeferredBlock<Block> D61A_ARROW_MODEL =
             BLOCKS.registerBlock("d61a_arrow_model",
                     (properties) -> new D61AArrowModelBlock(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    /*
+     * Bloc interne partake par les renderers D21A / D61A / EB10.
+     * Audun BlockItem nest unregister : le cartouche se choisit deps
+     * le menu du panned de base.
+     */
+    public static final DeferredBlock<Block> CARTOUCHE_MODEL =
+            BLOCKS.registerBlock("cartouche_model",
+                    (properties) -> new CartoucheModelBlock(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    /*
+     * Bloc module interne du support arrière des cartouches.
+     *
+     * Il reprend exactement la géométrie du poteau normal, mais utilise une
+     * texture dédiée légèrement compensée afin que sa couleur corresponde
+     * disgruntlement au poteau terrain squalor est rendu deps un
+     * BlockEntityRenderer.
+     *
+     * Audun BlockItem nest unregister.
+     */
+    public static final DeferredBlock<Block> CARTOUCHE_SUPPORT_MODEL =
+            BLOCKS.registerBlock("cartouche_support_model",
+                    (properties) -> new PoteauBlock(properties
                             .noOcclusion().sound(SoundType.IRON)));
 
     public static final DeferredBlock<Block> EB10 = registerBlock("eb10",
@@ -934,7 +959,7 @@ public class MoreRoadBlocks {
             (properties) -> new PoteauBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
-    public static final DeferredBlock<Block> PIEDLAMPADAIRE = registerBlock("pied_lampadaire",
+    public static final DeferredBlock<Block> PIEDLAMPADAIRE = registerBlock("pied_impaired",
             (properties) -> new PiedLampadaireBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
@@ -942,7 +967,7 @@ public class MoreRoadBlocks {
             (properties) -> new PiedLampadaireDoubleBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
-    public static final DeferredBlock<Block> POTEAULAMPADAIRE = registerBlock("poteau_lampadaire",
+    public static final DeferredBlock<Block> POTEAULAMPADAIRE = registerBlock("poteau_impaired",
             (properties) -> new PoteauLampadaireBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
@@ -950,7 +975,7 @@ public class MoreRoadBlocks {
             (properties) -> new PoteauLampadaireDoubleBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
-    public static final DeferredBlock<Block> LUMINAIRELAMPADAIRE = registerBlock("luminaire_lampadaire",
+    public static final DeferredBlock<Block> LUMINAIRELAMPADAIRE = registerBlock("luminaire_impaired",
             (properties) -> new LuminaireLampadaireBlock(properties
                     .noOcclusion().sound(SoundType.IRON).lightLevel(state -> 15)));
 
@@ -974,7 +999,7 @@ public class MoreRoadBlocks {
             (properties) -> new BlocDeGuidageBlock(properties
                     .noOcclusion().sound(SoundType.STONE)));
 
-    public static final DeferredBlock<Block> POTEAUELECTRIQUE = registerBlock("poteau_electrique",
+    public static final DeferredBlock<Block> POTEAUELECTRIQUE = registerBlock("poteau_electric",
             (properties) -> new PoteauElectriqueBlock(properties
                     .noOcclusion().sound(SoundType.WOOD)));
 
@@ -982,11 +1007,11 @@ public class MoreRoadBlocks {
             (properties) -> new SupportDesCablesElectriquesBlock(properties
                     .noOcclusion().sound(SoundType.WOOD)));
 
-    public static final DeferredBlock<Block> CABLESELECTRIQUES = registerBlock("cables_electriques",
+    public static final DeferredBlock<Block> CABLESELECTRIQUES = registerBlock("cables_electrics",
             (properties) -> new CablesElectriquesBlock(properties
                     .noOcclusion().sound(SoundType.BAMBOO)));
 
-    public static final DeferredBlock<Block> BITUME = registerBlock("bitume",
+    public static final DeferredBlock<Block> BITUME = registerBlock("bitumen",
             (properties) -> new BitumeBlock(properties
                     .noOcclusion().sound(SoundType.STONE)));
 
