@@ -24,7 +24,7 @@ public final class MoreRoadNetworking {
 
     private static final int MAX_EB10_LINE_LENGTH = 32;
 
-    private static final int MAX_D21A_DESTINATION_LENGTH = 48;
+    private static final int MAX_D21A_LINE_LENGTH = 48;
 
     private static final int MAX_D21A_DISTANCE_LENGTH = 8;
 
@@ -282,26 +282,41 @@ public final class MoreRoadNetworking {
         for (int i = 0; i < D21ABlockEntity.MAX_PANELS; i++) {
             D21APanelData requested = payload.panel(i);
 
-            String destination =
+            String line1 =
                     cleanText(
-                            requested.destination(),
-                            MAX_D21A_DESTINATION_LENGTH
+                            requested.line1(),
+                            MAX_D21A_LINE_LENGTH
                     );
 
-            String distance =
+            String line2 =
                     cleanText(
-                            requested.distance(),
+                            requested.line2(),
+                            MAX_D21A_LINE_LENGTH
+                    );
+
+            String distance1 =
+                    cleanText(
+                            requested.distance1(),
+                            MAX_D21A_DISTANCE_LENGTH
+                    );
+
+            String distance2 =
+                    cleanText(
+                            requested.distance2(),
                             MAX_D21A_DISTANCE_LENGTH
                     );
 
             panels[i] =
                     new D21APanelData(
                             requested.enabled(),
-                            destination,
-                            distance,
+                            line1,
+                            line2,
+                            distance1,
+                            distance2,
                             requested.type(),
                             requested.arrowRight(),
-                            requested.autorouteLogo()
+                            requested.autorouteLogo(),
+                            requested.doubleLine()
                     );
         }
 

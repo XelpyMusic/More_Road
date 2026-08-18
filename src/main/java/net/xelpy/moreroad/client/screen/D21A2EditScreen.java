@@ -11,7 +11,7 @@ import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.network.UpdateD21APayload;
 
-public class D21AEditScreen extends Screen {
+public class D21A2EditScreen extends Screen {
 
     private final BlockPos blockPos;
 
@@ -21,24 +21,28 @@ public class D21AEditScreen extends Screen {
     private int selectedPanelIndex = 0;
 
     private boolean panelEnabled = true;
+    private boolean doubleLine = false;
     private D21AType selectedType = D21AType.WHITE;
     private boolean arrowRight = false;
     private boolean autorouteLogo = false;
 
-    private EditBox destinationField;
-    private EditBox distanceField;
+    private EditBox line1Field;
+    private EditBox line2Field;
+    private EditBox distance1Field;
+    private EditBox distance2Field;
 
     private final Button[] panelButtons =
             new Button[D21ABlockEntity.MAX_PANELS];
 
     private Button enabledButton;
+    private Button formatButton;
     private Button whiteButton;
     private Button greenButton;
     private Button blueButton;
     private Button autorouteLogoButton;
     private Button directionButton;
 
-    public D21AEditScreen(
+    public D21A2EditScreen(
             BlockPos blockPos,
             D21APanelData[] currentPanels
     ) {
@@ -85,7 +89,7 @@ public class D21AEditScreen extends Screen {
                         + tabGap * (D21ABlockEntity.MAX_PANELS - 1);
 
         int tabsStartX = centerX - tabsTotalWidth / 2;
-        int tabsY = centerY - 145;
+        int tabsY = centerY - 175;
 
         for (int i = 0; i < D21ABlockEntity.MAX_PANELS; i++) {
             final int panelIndex = i;
@@ -103,13 +107,11 @@ public class D21AEditScreen extends Screen {
                             )
                             .build();
 
-            this.addRenderableWidget(
-                    this.panelButtons[i]
-            );
+            this.addRenderableWidget(this.panelButtons[i]);
         }
 
         /* ========================================================
-         * ACTIF / INACTIF
+         * ACTIF / FORMAT
          * ======================================================== */
 
         this.enabledButton =
@@ -123,55 +125,93 @@ public class D21AEditScreen extends Screen {
                         )
                         .bounds(
                                 centerX - 150,
+                                centerY - 145,
+                                300,
+                                20
+                        )
+                        .build();
+
+        this.addRenderableWidget(this.enabledButton);
+
+        this.formatButton =
+                Button.builder(
+                                Component.empty(),
+                                button -> {
+                                    this.doubleLine = !this.doubleLine;
+                                    updateFormatButton();
+                                    updateFieldVisibility();
+                                    updatePanelButtons();
+                                }
+                        )
+                        .bounds(
+                                centerX - 150,
                                 centerY - 115,
                                 300,
                                 20
                         )
                         .build();
 
-        this.addRenderableWidget(
-                this.enabledButton
-        );
+        this.addRenderableWidget(this.formatButton);
 
         /* ========================================================
-         * DESTINATION
+         * LIGNE 1 + DISTANCE 1
          * ======================================================== */
 
-        this.destinationField =
+        this.line1Field =
                 new EditBox(
                         this.font,
                         centerX - 150,
                         centerY - 85,
-                        300,
+                        230,
                         20,
-                        Component.literal("Destination")
+                        Component.literal("Destination ligne 1")
                 );
 
-        this.destinationField.setMaxLength(48);
+        this.line1Field.setMaxLength(48);
+        this.addRenderableWidget(this.line1Field);
 
-        this.addRenderableWidget(
-                this.destinationField
-        );
-
-        /* ========================================================
-         * DISTANCE
-         * ======================================================== */
-
-        this.distanceField =
+        this.distance1Field =
                 new EditBox(
                         this.font,
-                        centerX - 60,
-                        centerY - 55,
-                        120,
+                        centerX + 90,
+                        centerY - 85,
+                        60,
                         20,
-                        Component.literal("Distance")
+                        Component.literal("Distance ligne 1")
                 );
 
-        this.distanceField.setMaxLength(8);
+        this.distance1Field.setMaxLength(8);
+        this.addRenderableWidget(this.distance1Field);
 
-        this.addRenderableWidget(
-                this.distanceField
-        );
+        /* ========================================================
+         * LIGNE 2 + DISTANCE 2
+         * ======================================================== */
+
+        this.line2Field =
+                new EditBox(
+                        this.font,
+                        centerX - 150,
+                        centerY - 55,
+                        230,
+                        20,
+                        Component.literal("Destination ligne 2")
+                );
+
+        this.line2Field.setMaxLength(48);
+        this.addRenderableWidget(this.line2Field);
+
+        this.distance2Field =
+                new EditBox(
+                        this.font,
+                        centerX + 90,
+                        centerY - 55,
+                        60,
+                        20,
+                        Component.literal("Distance ligne 2")
+                );
+
+        this.distance2Field.setMaxLength(8);
+        this.addRenderableWidget(this.distance2Field);
 
         /* ========================================================
          * COULEURS
@@ -190,9 +230,7 @@ public class D21AEditScreen extends Screen {
                         )
                         .build();
 
-        this.addRenderableWidget(
-                this.whiteButton
-        );
+        this.addRenderableWidget(this.whiteButton);
 
         this.greenButton =
                 Button.builder(
@@ -207,9 +245,7 @@ public class D21AEditScreen extends Screen {
                         )
                         .build();
 
-        this.addRenderableWidget(
-                this.greenButton
-        );
+        this.addRenderableWidget(this.greenButton);
 
         this.blueButton =
                 Button.builder(
@@ -224,17 +260,11 @@ public class D21AEditScreen extends Screen {
                         )
                         .build();
 
-        this.addRenderableWidget(
-                this.blueButton
-        );
+        this.addRenderableWidget(this.blueButton);
 
         /* ========================================================
-         * LOGO AUTOROUTE
-         * ========================================================
-         *
-         * Visible uniquement sur les panneaux verts et bleus.
-         * Le passage en blanc désactive automatiquement le logo.
-         */
+         * LOGO AUTOROUTE / DIRECTION
+         * ======================================================== */
 
         this.autorouteLogoButton =
                 Button.builder(
@@ -252,13 +282,7 @@ public class D21AEditScreen extends Screen {
                         )
                         .build();
 
-        this.addRenderableWidget(
-                this.autorouteLogoButton
-        );
-
-        /* ========================================================
-         * DIRECTION
-         * ======================================================== */
+        this.addRenderableWidget(this.autorouteLogoButton);
 
         this.directionButton =
                 Button.builder(
@@ -276,9 +300,7 @@ public class D21AEditScreen extends Screen {
                         )
                         .build();
 
-        this.addRenderableWidget(
-                this.directionButton
-        );
+        this.addRenderableWidget(this.directionButton);
 
         /* ========================================================
          * VALIDER / ANNULER
@@ -313,10 +335,7 @@ public class D21AEditScreen extends Screen {
         );
 
         loadSelectedPanelIntoWidgets();
-
-        this.setInitialFocus(
-                this.destinationField
-        );
+        this.setInitialFocus(this.line1Field);
     }
 
     private void selectPanel(int newIndex) {
@@ -331,10 +350,7 @@ public class D21AEditScreen extends Screen {
         storeSelectedPanelFromWidgets();
         this.selectedPanelIndex = newIndex;
         loadSelectedPanelIntoWidgets();
-
-        this.setInitialFocus(
-                this.destinationField
-        );
+        this.setInitialFocus(this.line1Field);
     }
 
     private void selectType(D21AType type) {
@@ -353,8 +369,10 @@ public class D21AEditScreen extends Screen {
 
     private void storeSelectedPanelFromWidgets() {
         if (
-                this.destinationField == null
-                        || this.distanceField == null
+                this.line1Field == null
+                        || this.line2Field == null
+                        || this.distance1Field == null
+                        || this.distance2Field == null
         ) {
             return;
         }
@@ -362,13 +380,14 @@ public class D21AEditScreen extends Screen {
         this.panels[this.selectedPanelIndex] =
                 new D21APanelData(
                         this.panelEnabled,
-                        this.destinationField.getValue(),
-                        "",
-                        this.distanceField.getValue(),
-                        "",
+                        this.line1Field.getValue(),
+                        this.line2Field.getValue(),
+                        this.distance1Field.getValue(),
+                        this.distance2Field.getValue(),
                         this.selectedType,
                         this.arrowRight,
-                        this.autorouteLogo
+                        this.autorouteLogo,
+                        this.doubleLine
                 );
     }
 
@@ -377,6 +396,7 @@ public class D21AEditScreen extends Screen {
                 this.panels[this.selectedPanelIndex];
 
         this.panelEnabled = panel.enabled();
+        this.doubleLine = panel.doubleLine();
         this.selectedType = panel.type();
         this.arrowRight = panel.arrowRight();
         this.autorouteLogo = panel.autorouteLogo();
@@ -385,19 +405,26 @@ public class D21AEditScreen extends Screen {
             this.autorouteLogo = false;
         }
 
-        this.destinationField.setValue(
-                panel.line1()
-        );
-
-        this.distanceField.setValue(
-                panel.distance()
-        );
+        this.line1Field.setValue(panel.line1());
+        this.line2Field.setValue(panel.line2());
+        this.distance1Field.setValue(panel.distance1());
+        this.distance2Field.setValue(panel.distance2());
 
         updateEnabledButton();
+        updateFormatButton();
+        updateFieldVisibility();
         updateTypeButtons();
         updateAutorouteLogoButton();
         updateDirectionButton();
         updatePanelButtons();
+    }
+
+    private void updateFieldVisibility() {
+        this.line2Field.visible = this.doubleLine;
+        this.line2Field.active = this.doubleLine;
+
+        this.distance2Field.visible = this.doubleLine;
+        this.distance2Field.active = this.doubleLine;
     }
 
     private void updatePanelButtons() {
@@ -411,12 +438,19 @@ public class D21AEditScreen extends Screen {
                             ? this.panelEnabled
                             : this.panels[i].enabled();
 
+            boolean isDouble =
+                    i == this.selectedPanelIndex
+                            ? this.doubleLine
+                            : this.panels[i].doubleLine();
+
             String label =
                     "P" + (i + 1)
-                            + (enabled ? " ON" : " OFF");
+                            + " "
+                            + (isDouble ? "2L" : "1L")
+                            + (enabled ? "" : " OFF");
 
             if (i == this.selectedPanelIndex) {
-                label = "[ " + label + " ]";
+                label = "[" + label + "]";
             }
 
             this.panelButtons[i].setMessage(
@@ -431,6 +465,16 @@ public class D21AEditScreen extends Screen {
                         this.panelEnabled
                                 ? "Panneau actif : Oui"
                                 : "Panneau actif : Non"
+                )
+        );
+    }
+
+    private void updateFormatButton() {
+        this.formatButton.setMessage(
+                Component.literal(
+                        this.doubleLine
+                                ? "[ Format : Double - 2 lignes ]"
+                                : "Format : Simple - 1 ligne"
                 )
         );
     }

@@ -8,10 +8,16 @@ import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 
 public class D21ARenderState extends BlockEntityRenderState {
 
-    public final String[] destinations =
+    public final String[] line1 =
             new String[D21ABlockEntity.MAX_PANELS];
 
-    public final String[] distances =
+    public final String[] line2 =
+            new String[D21ABlockEntity.MAX_PANELS];
+
+    public final String[] distance1 =
+            new String[D21ABlockEntity.MAX_PANELS];
+
+    public final String[] distance2 =
             new String[D21ABlockEntity.MAX_PANELS];
 
     public final D21AType[] panelTypes =
@@ -24,6 +30,9 @@ public class D21ARenderState extends BlockEntityRenderState {
             new boolean[D21ABlockEntity.MAX_PANELS];
 
     public final boolean[] enabled =
+            new boolean[D21ABlockEntity.MAX_PANELS];
+
+    public final boolean[] doubleLines =
             new boolean[D21ABlockEntity.MAX_PANELS];
 
     public final BlockModelRenderState[] panelModels = {

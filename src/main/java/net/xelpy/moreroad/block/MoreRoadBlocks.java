@@ -868,6 +868,10 @@ public class MoreRoadBlocks {
             (properties) -> new D21ABlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> D21A2 = registerBlock("d21a2",
+            (properties) -> new D21A2Block(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
     /*
      * Bloc interne utilisé uniquement par le renderer du D21A.
      * Aucun BlockItem n'est enregistré pour lui.
@@ -875,6 +879,15 @@ public class MoreRoadBlocks {
     public static final DeferredBlock<Block> D21A_PANEL_MODEL =
             BLOCKS.registerBlock("d21a_panel_model",
                     (properties) -> new D21APanelModelBlock(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    /*
+     * Bloc interne utilisé uniquement par le renderer du D21A2.
+     * Aucun BlockItem n'est enregistré pour lui.
+     */
+    public static final DeferredBlock<Block> D21A2_PANEL_MODEL =
+            BLOCKS.registerBlock("d21a2_panel_model",
+                    (properties) -> new D21A2PanelModelBlock(properties
                             .noOcclusion().sound(SoundType.IRON)));
 
     public static final DeferredBlock<Block> EB10 = registerBlock("eb10",

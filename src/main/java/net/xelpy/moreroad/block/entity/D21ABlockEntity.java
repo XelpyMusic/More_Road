@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.xelpy.moreroad.block.custom.D21A2Block;
 import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
@@ -40,18 +41,25 @@ public class D21ABlockEntity extends BlockEntity {
                 state.hasProperty(D21ABlock.ARROW_RIGHT)
                         && state.getValue(D21ABlock.ARROW_RIGHT);
 
+        boolean defaultDoubleLine =
+                state.getBlock() instanceof D21A2Block;
+
         this.panels[0] =
                 new D21APanelData(
                         true,
                         "",
                         "",
+                        "",
+                        "",
                         legacyType,
                         legacyArrowRight,
-                        false
+                        false,
+                        defaultDoubleLine
                 );
 
         for (int i = 1; i < MAX_PANELS; i++) {
-            this.panels[i] = D21APanelData.disabled();
+            this.panels[i] =
+                    D21APanelData.disabled(defaultDoubleLine);
         }
     }
 
@@ -115,9 +123,6 @@ public class D21ABlockEntity extends BlockEntity {
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
 
-        /*
-         * Compatibilité avec l'ancien D21A à panneau unique.
-         */
         String legacyDestination =
                 input.getStringOr(
                         "destination",
@@ -139,17 +144,20 @@ public class D21ABlockEntity extends BlockEntity {
                 this.getBlockState().hasProperty(D21ABlock.ARROW_RIGHT)
                         && this.getBlockState().getValue(D21ABlock.ARROW_RIGHT);
 
+        boolean blockDefaultDoubleLine =
+                this.getBlockState().getBlock() instanceof D21A2Block;
+
         for (int i = 0; i < MAX_PANELS; i++) {
             String prefix = "panel_" + i + "_";
 
             boolean defaultEnabled = i == 0;
 
-            String defaultDestination =
+            String defaultLine1 =
                     i == 0
                             ? legacyDestination
                             : "";
 
-            String defaultDistance =
+            String defaultDistance1 =
                     i == 0
                             ? legacyDistance
                             : "";
@@ -169,16 +177,37 @@ public class D21ABlockEntity extends BlockEntity {
                             defaultEnabled
                     );
 
-            String destination =
+            String line1 =
                     input.getStringOr(
-                            prefix + "destination",
-                            defaultDestination
+                            prefix + "line1",
+                            input.getStringOr(
+                                    prefix + "destination",
+                                    defaultLine1
+                            )
                     );
 
-            String distance =
+            String line2 =
+                    input.getStringOr(
+                            prefix + "line2",
+                            ""
+                    );
+
+            String oldDistance =
                     input.getStringOr(
                             prefix + "distance",
-                            defaultDistance
+                            defaultDistance1
+                    );
+
+            String distance1 =
+                    input.getStringOr(
+                            prefix + "distance1",
+                            oldDistance
+                    );
+
+            String distance2 =
+                    input.getStringOr(
+                            prefix + "distance2",
+                            ""
                     );
 
             D21AType type =
@@ -201,14 +230,28 @@ public class D21ABlockEntity extends BlockEntity {
                             false
                     );
 
+            /*
+             * Compatibilité : les anciens blocs D21A restent simples et
+             * les anciens blocs D21A2 restent doubles tant qu'aucune valeur
+             * par panneau n'a encore été enregistrée.
+             */
+            boolean doubleLine =
+                    input.getBooleanOr(
+                            prefix + "double_line",
+                            blockDefaultDoubleLine
+                    );
+
             this.panels[i] =
                     new D21APanelData(
                             enabled,
-                            destination,
-                            distance,
+                            line1,
+                            line2,
+                            distance1,
+                            distance2,
                             type,
                             arrowRight,
-                            autorouteLogo
+                            autorouteLogo,
+                            doubleLine
                     );
         }
     }
@@ -227,8 +270,28 @@ public class D21ABlockEntity extends BlockEntity {
             );
 
             output.putString(
+                    prefix + "line1",
+                    panel.line1()
+            );
+
+            output.putString(
+                    prefix + "line2",
+                    panel.line2()
+            );
+
+            output.putString(
                     prefix + "destination",
-                    panel.destination()
+                    panel.line1()
+            );
+
+            output.putString(
+                    prefix + "distance1",
+                    panel.distance1()
+            );
+
+            output.putString(
+                    prefix + "distance2",
+                    panel.distance2()
             );
 
             output.putString(
@@ -250,15 +313,16 @@ public class D21ABlockEntity extends BlockEntity {
                     prefix + "autoroute_logo",
                     panel.autorouteLogo()
             );
+
+            output.putBoolean(
+                    prefix + "double_line",
+                    panel.doubleLine()
+            );
         }
 
-        /*
-         * On garde aussi les deux anciennes clés pour une compatibilité
-         * maximale avec les mondes / outils utilisant encore l'ancien format.
-         */
         output.putString(
                 "destination",
-                this.panels[0].destination()
+                this.panels[0].line1()
         );
 
         output.putString(

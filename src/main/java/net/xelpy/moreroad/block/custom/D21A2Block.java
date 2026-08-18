@@ -14,8 +14,6 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -23,29 +21,19 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.client.D21AClientHooks;
 
-public class D21ABlock
+public class D21A2Block
         extends HorizontalDirectionalBlock
         implements EntityBlock {
 
-    public static final MapCodec<D21ABlock> CODEC =
-            simpleCodec(D21ABlock::new);
+    public static final MapCodec<D21A2Block> CODEC =
+            simpleCodec(D21A2Block::new);
 
     /*
-     * Ces deux propriétés restent présentes pour la compatibilité avec les
-     * anciens mondes. Les réglages complets sont stockés dans la BlockEntity.
+     * Espacement historique des ensembles composés uniquement de D21A2.
+     * D21APanelLayout le conserve automatiquement pour un poteau 100 %
+     * double, tout en calculant un espacement adapté pour les mélanges.
      */
-    public static final EnumProperty<D21AType> TYPE =
-            EnumProperty.create("type", D21AType.class);
-
-    public static final BooleanProperty ARROW_RIGHT =
-            BooleanProperty.create("arrow_right");
-
-    /*
-     * Espacement historique des ensembles composés uniquement de D21A
-     * simples. D21APanelLayout le conserve automatiquement quand tous les
-     * panneaux du poteau sont au format 1 ligne.
-     */
-    public static final double PANEL_VERTICAL_STEP = 0.52D;
+    public static final double PANEL_VERTICAL_STEP = 0.64D;
 
     private static final VoxelShape POLE_NORTH =
             Block.box(7.0, 0.0, 8.0, 9.0, 16.0, 10.0);
@@ -64,15 +52,15 @@ public class D21ABlock
         return CODEC;
     }
 
-    public D21ABlock(Properties properties) {
+    public D21A2Block(Properties properties) {
         super(properties);
 
         this.registerDefaultState(
                 this.stateDefinition
                         .any()
                         .setValue(FACING, Direction.NORTH)
-                        .setValue(TYPE, D21AType.WHITE)
-                        .setValue(ARROW_RIGHT, false)
+                        .setValue(D21ABlock.TYPE, D21AType.WHITE)
+                        .setValue(D21ABlock.ARROW_RIGHT, false)
         );
     }
 
@@ -120,15 +108,14 @@ public class D21ABlock
         }
 
         /*
-         * Fallback pendant le chargement de la BlockEntity : le bloc D21A
-         * reste visuellement et physiquement un panneau simple.
+         * Fallback pendant le chargement : un bloc D21A2 neuf reste double.
          */
         return Shapes.or(
                 result,
                 D21APanelLayout.getPanelShape(
                         facing,
-                        state.getValue(ARROW_RIGHT),
-                        false
+                        state.getValue(D21ABlock.ARROW_RIGHT),
+                        true
                 )
         );
     }
@@ -215,7 +202,7 @@ public class D21ABlock
         }
 
         if (level.isClientSide()) {
-            D21AClientHooks.openEditor(
+            D21AClientHooks.openEditorTwoLines(
                     pos,
                     blockEntity.getPanels()
             );
@@ -230,8 +217,8 @@ public class D21ABlock
     ) {
         builder.add(
                 FACING,
-                TYPE,
-                ARROW_RIGHT
+                D21ABlock.TYPE,
+                D21ABlock.ARROW_RIGHT
         );
     }
 }

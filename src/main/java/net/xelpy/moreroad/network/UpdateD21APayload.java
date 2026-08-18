@@ -104,12 +104,22 @@ public record UpdateD21APayload(
 
         ByteBufCodecs.STRING_UTF8.encode(
                 buffer,
-                panel.destination()
+                panel.line1()
         );
 
         ByteBufCodecs.STRING_UTF8.encode(
                 buffer,
-                panel.distance()
+                panel.line2()
+        );
+
+        ByteBufCodecs.STRING_UTF8.encode(
+                buffer,
+                panel.distance1()
+        );
+
+        ByteBufCodecs.STRING_UTF8.encode(
+                buffer,
+                panel.distance2()
         );
 
         ByteBufCodecs.STRING_UTF8.encode(
@@ -126,16 +136,27 @@ public record UpdateD21APayload(
                 buffer,
                 panel.autorouteLogo()
         );
+
+        ByteBufCodecs.BOOL.encode(
+                buffer,
+                panel.doubleLine()
+        );
     }
 
     private static D21APanelData decodePanel(ByteBuf buffer) {
         boolean enabled =
                 ByteBufCodecs.BOOL.decode(buffer);
 
-        String destination =
+        String line1 =
                 ByteBufCodecs.STRING_UTF8.decode(buffer);
 
-        String distance =
+        String line2 =
+                ByteBufCodecs.STRING_UTF8.decode(buffer);
+
+        String distance1 =
+                ByteBufCodecs.STRING_UTF8.decode(buffer);
+
+        String distance2 =
                 ByteBufCodecs.STRING_UTF8.decode(buffer);
 
         D21AType type =
@@ -149,13 +170,19 @@ public record UpdateD21APayload(
         boolean autorouteLogo =
                 ByteBufCodecs.BOOL.decode(buffer);
 
+        boolean doubleLine =
+                ByteBufCodecs.BOOL.decode(buffer);
+
         return new D21APanelData(
                 enabled,
-                destination,
-                distance,
+                line1,
+                line2,
+                distance1,
+                distance2,
                 type,
                 arrowRight,
-                autorouteLogo
+                autorouteLogo,
+                doubleLine
         );
     }
 

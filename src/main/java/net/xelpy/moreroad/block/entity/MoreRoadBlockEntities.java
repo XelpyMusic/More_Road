@@ -56,7 +56,8 @@ public class MoreRoadBlockEntities {
                     () -> new BlockEntityType<>(
                             D21ABlockEntity::new,
                             false,
-                            MoreRoadBlocks.D21A.get()
+                            MoreRoadBlocks.D21A.get(),
+                            MoreRoadBlocks.D21A2.get()
                     )
             );
 
