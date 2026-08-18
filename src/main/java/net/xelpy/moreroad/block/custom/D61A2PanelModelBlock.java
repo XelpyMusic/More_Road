@@ -20,6 +20,7 @@ public class D61A2PanelModelBlock extends HorizontalDirectionalBlock {
                         .any()
                         .setValue(FACING, Direction.NORTH)
                         .setValue(D61APanelModelBlock.TYPE, D21AType.WHITE)
+                        .setValue(D61APanelModelBlock.AUTOROUTE_LOGO, false)
         );
     }
 
@@ -34,7 +35,8 @@ public class D61A2PanelModelBlock extends HorizontalDirectionalBlock {
     ) {
         builder.add(
                 FACING,
-                D61APanelModelBlock.TYPE
+                D61APanelModelBlock.TYPE,
+                D61APanelModelBlock.AUTOROUTE_LOGO
         );
     }
 }

@@ -69,10 +69,10 @@ public class D61A2Block
         VoxelShape result = getPoleShape(facing);
 
         if (level.getBlockEntity(pos) instanceof D61ABlockEntity blockEntity) {
-            D21APanelData[] panels = blockEntity.getPanels();
+            D61APanelData[] panels = blockEntity.getPanels();
 
             for (int i = 0; i < panels.length; i++) {
-                D21APanelData panel = panels[i];
+                D61APanelData panel = panels[i];
 
                 if (!panel.enabled()) {
                     continue;

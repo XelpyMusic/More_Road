@@ -1,0 +1,23 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "0": "moreroad:block/fleche_blanche",
+    "particle": "moreroad:block/fleche_blanche"
+  },
+  "elements": [
+    {
+      "from": [2.0, 0.0, 7.99],
+      "to": [14.0, 16.0, 8.01],
+      "faces": {
+        "north": {
+          "uv": [0.0, 0.0, 16.0, 16.0],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [16.0, 0.0, 0.0, 16.0],
+          "texture": "#0"
+        }
+      }
+    }
+  ]
+}

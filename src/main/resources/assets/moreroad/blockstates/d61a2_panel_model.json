@@ -1,18 +1,30 @@
 {
   "variants": {
-    "facing=north,type=white": { "model": "moreroad:block/d61a2_white" },
-    "facing=east,type=white": { "model": "moreroad:block/d61a2_white", "y": 90 },
-    "facing=south,type=white": { "model": "moreroad:block/d61a2_white", "y": 180 },
-    "facing=west,type=white": { "model": "moreroad:block/d61a2_white", "y": 270 },
+    "autoroute_logo=false,facing=north,type=white": { "model": "moreroad:block/d61a2_white" },
+    "autoroute_logo=false,facing=east,type=white": { "model": "moreroad:block/d61a2_white", "y": 90 },
+    "autoroute_logo=false,facing=south,type=white": { "model": "moreroad:block/d61a2_white", "y": 180 },
+    "autoroute_logo=false,facing=west,type=white": { "model": "moreroad:block/d61a2_white", "y": 270 },
+    "autoroute_logo=true,facing=north,type=white": { "model": "moreroad:block/d61a2_white" },
+    "autoroute_logo=true,facing=east,type=white": { "model": "moreroad:block/d61a2_white", "y": 90 },
+    "autoroute_logo=true,facing=south,type=white": { "model": "moreroad:block/d61a2_white", "y": 180 },
+    "autoroute_logo=true,facing=west,type=white": { "model": "moreroad:block/d61a2_white", "y": 270 },
 
-    "facing=north,type=green": { "model": "moreroad:block/d61a2_green" },
-    "facing=east,type=green": { "model": "moreroad:block/d61a2_green", "y": 90 },
-    "facing=south,type=green": { "model": "moreroad:block/d61a2_green", "y": 180 },
-    "facing=west,type=green": { "model": "moreroad:block/d61a2_green", "y": 270 },
+    "autoroute_logo=false,facing=north,type=green": { "model": "moreroad:block/d61a2_green" },
+    "autoroute_logo=false,facing=east,type=green": { "model": "moreroad:block/d61a2_green", "y": 90 },
+    "autoroute_logo=false,facing=south,type=green": { "model": "moreroad:block/d61a2_green", "y": 180 },
+    "autoroute_logo=false,facing=west,type=green": { "model": "moreroad:block/d61a2_green", "y": 270 },
+    "autoroute_logo=true,facing=north,type=green": { "model": "moreroad:block/d61a2_green_autoroute" },
+    "autoroute_logo=true,facing=east,type=green": { "model": "moreroad:block/d61a2_green_autoroute", "y": 90 },
+    "autoroute_logo=true,facing=south,type=green": { "model": "moreroad:block/d61a2_green_autoroute", "y": 180 },
+    "autoroute_logo=true,facing=west,type=green": { "model": "moreroad:block/d61a2_green_autoroute", "y": 270 },
 
-    "facing=north,type=blue": { "model": "moreroad:block/d61a2_white" },
-    "facing=east,type=blue": { "model": "moreroad:block/d61a2_white", "y": 90 },
-    "facing=south,type=blue": { "model": "moreroad:block/d61a2_white", "y": 180 },
-    "facing=west,type=blue": { "model": "moreroad:block/d61a2_white", "y": 270 }
+    "autoroute_logo=false,facing=north,type=blue": { "model": "moreroad:block/d61a2_blue" },
+    "autoroute_logo=false,facing=east,type=blue": { "model": "moreroad:block/d61a2_blue", "y": 90 },
+    "autoroute_logo=false,facing=south,type=blue": { "model": "moreroad:block/d61a2_blue", "y": 180 },
+    "autoroute_logo=false,facing=west,type=blue": { "model": "moreroad:block/d61a2_blue", "y": 270 },
+    "autoroute_logo=true,facing=north,type=blue": { "model": "moreroad:block/d61a2_blue_autoroute" },
+    "autoroute_logo=true,facing=east,type=blue": { "model": "moreroad:block/d61a2_blue_autoroute", "y": 90 },
+    "autoroute_logo=true,facing=south,type=blue": { "model": "moreroad:block/d61a2_blue_autoroute", "y": 180 },
+    "autoroute_logo=true,facing=west,type=blue": { "model": "moreroad:block/d61a2_blue_autoroute", "y": 270 }
   }
 }

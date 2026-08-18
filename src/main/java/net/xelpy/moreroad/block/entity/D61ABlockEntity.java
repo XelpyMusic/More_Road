@@ -9,80 +9,71 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D61A2Block;
+import net.xelpy.moreroad.block.custom.D61AArrowDirection;
+import net.xelpy.moreroad.block.custom.D61AArrowPosition;
 import net.xelpy.moreroad.block.custom.D61ABlock;
+import net.xelpy.moreroad.block.custom.D61APanelData;
 
 public class D61ABlockEntity extends net.minecraft.world.level.block.entity.BlockEntity {
 
     public static final int MAX_PANELS = 4;
 
-    private final D21APanelData[] panels =
-            new D21APanelData[MAX_PANELS];
+    private final D61APanelData[] panels =
+            new D61APanelData[MAX_PANELS];
 
-    public D61ABlockEntity(
-            BlockPos pos,
-            BlockState state
-    ) {
-        super(
-                MoreRoadBlockEntities.D61A.get(),
-                pos,
-                state
-        );
+    public D61ABlockEntity(BlockPos pos, BlockState state) {
+        super(MoreRoadBlockEntities.D61A.get(), pos, state);
 
         D21AType legacyType =
                 state.hasProperty(D61ABlock.TYPE)
                         ? sanitizeType(state.getValue(D61ABlock.TYPE))
                         : D21AType.WHITE;
 
-        boolean defaultDoubleLine =
-                state.getBlock() instanceof D61A2Block;
+        boolean defaultDoubleLine = state.getBlock() instanceof D61A2Block;
 
-        this.panels[0] =
-                new D21APanelData(
-                        true,
-                        "",
-                        "",
-                        "",
-                        "",
-                        legacyType,
-                        false,
-                        false,
-                        defaultDoubleLine
-                );
+        this.panels[0] = new D61APanelData(
+                true,
+                "",
+                "",
+                "",
+                "",
+                legacyType,
+                defaultDoubleLine,
+                false,
+                D61AArrowPosition.RIGHT,
+                D61AArrowDirection.UP,
+                false
+        );
 
         for (int i = 1; i < MAX_PANELS; i++) {
-            this.panels[i] =
-                    D21APanelData.disabled(defaultDoubleLine);
+            this.panels[i] = D61APanelData.disabled(defaultDoubleLine);
         }
     }
 
-    public D21APanelData getPanel(int index) {
+    public D61APanelData getPanel(int index) {
         if (index < 0 || index >= MAX_PANELS) {
-            return D21APanelData.disabled();
+            return D61APanelData.disabled();
         }
 
         return this.panels[index];
     }
 
-    public D21APanelData[] getPanels() {
+    public D61APanelData[] getPanels() {
         return this.panels.clone();
     }
 
-    public void setPanels(D21APanelData[] newPanels) {
+    public void setPanels(D61APanelData[] newPanels) {
         for (int i = 0; i < MAX_PANELS; i++) {
-            D21APanelData panel =
+            D61APanelData panel =
                     newPanels != null && i < newPanels.length
                             ? newPanels[i]
                             : null;
 
-            this.panels[i] =
-                    sanitizePanel(
-                            panel == null
-                                    ? D21APanelData.disabled()
-                                    : panel
-                    );
+            this.panels[i] = sanitizePanel(
+                    panel == null ? D61APanelData.disabled() : panel
+            );
         }
 
         setChanged();
@@ -92,17 +83,8 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
 
-        String legacyDestination =
-                input.getStringOr(
-                        "destination",
-                        ""
-                );
-
-        String legacyDistance =
-                input.getStringOr(
-                        "distance",
-                        ""
-                );
+        String legacyDestination = input.getStringOr("destination", "");
+        String legacyDistance = input.getStringOr("distance", "");
 
         D21AType legacyType =
                 this.getBlockState().hasProperty(D61ABlock.TYPE)
@@ -120,73 +102,55 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
             String defaultDistance1 = i == 0 ? legacyDistance : "";
             D21AType defaultType = i == 0 ? legacyType : D21AType.WHITE;
 
-            boolean enabled =
-                    input.getBooleanOr(
-                            prefix + "enabled",
-                            defaultEnabled
-                    );
-
-            String line1 =
-                    input.getStringOr(
-                            prefix + "line1",
+            boolean enabled = input.getBooleanOr(prefix + "enabled", defaultEnabled);
+            String line1 = input.getStringOr(
+                    prefix + "line1",
+                    input.getStringOr(prefix + "destination", defaultLine1)
+            );
+            String line2 = input.getStringOr(prefix + "line2", "");
+            String oldDistance = input.getStringOr(prefix + "distance", defaultDistance1);
+            String distance1 = input.getStringOr(prefix + "distance1", oldDistance);
+            String distance2 = input.getStringOr(prefix + "distance2", "");
+            D21AType type = parseType(
+                    input.getStringOr(prefix + "type", defaultType.getSerializedName())
+            );
+            boolean doubleLine = input.getBooleanOr(
+                    prefix + "double_line",
+                    blockDefaultDoubleLine
+            );
+            boolean arrowEnabled = input.getBooleanOr(prefix + "arrow_enabled", false);
+            D61AArrowPosition arrowPosition =
+                    D61AArrowPosition.fromSerializedName(
                             input.getStringOr(
-                                    prefix + "destination",
-                                    defaultLine1
+                                    prefix + "arrow_position",
+                                    D61AArrowPosition.RIGHT.getSerializedName()
                             )
                     );
-
-            String line2 =
-                    input.getStringOr(
-                            prefix + "line2",
-                            ""
-                    );
-
-            String oldDistance =
-                    input.getStringOr(
-                            prefix + "distance",
-                            defaultDistance1
-                    );
-
-            String distance1 =
-                    input.getStringOr(
-                            prefix + "distance1",
-                            oldDistance
-                    );
-
-            String distance2 =
-                    input.getStringOr(
-                            prefix + "distance2",
-                            ""
-                    );
-
-            D21AType type =
-                    parseType(
+            D61AArrowDirection arrowDirection =
+                    D61AArrowDirection.fromSerializedName(
                             input.getStringOr(
-                                    prefix + "type",
-                                    defaultType.getSerializedName()
+                                    prefix + "arrow_direction",
+                                    D61AArrowDirection.UP.getSerializedName()
                             )
                     );
+            boolean autorouteLogo =
+                    input.getBooleanOr(prefix + "autoroute_logo", false);
 
-            boolean doubleLine =
-                    input.getBooleanOr(
-                            prefix + "double_line",
-                            blockDefaultDoubleLine
-                    );
-
-            this.panels[i] =
-                    sanitizePanel(
-                            new D21APanelData(
-                                    enabled,
-                                    line1,
-                                    line2,
-                                    distance1,
-                                    distance2,
-                                    type,
-                                    false,
-                                    false,
-                                    doubleLine
-                            )
-                    );
+            this.panels[i] = sanitizePanel(
+                    new D61APanelData(
+                            enabled,
+                            line1,
+                            line2,
+                            distance1,
+                            distance2,
+                            type,
+                            doubleLine,
+                            arrowEnabled,
+                            arrowPosition,
+                            arrowDirection,
+                            autorouteLogo
+                    )
+            );
         }
     }
 
@@ -195,7 +159,7 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
         super.saveAdditional(output);
 
         for (int i = 0; i < MAX_PANELS; i++) {
-            D21APanelData panel = sanitizePanel(this.panels[i]);
+            D61APanelData panel = sanitizePanel(this.panels[i]);
             String prefix = "panel_" + i + "_";
 
             output.putBoolean(prefix + "enabled", panel.enabled());
@@ -207,6 +171,10 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
             output.putString(prefix + "distance", panel.distance());
             output.putString(prefix + "type", panel.type().getSerializedName());
             output.putBoolean(prefix + "double_line", panel.doubleLine());
+            output.putBoolean(prefix + "arrow_enabled", panel.arrowEnabled());
+            output.putString(prefix + "arrow_position", panel.arrowPosition().getSerializedName());
+            output.putString(prefix + "arrow_direction", panel.arrowDirection().getSerializedName());
+            output.putBoolean(prefix + "autoroute_logo", panel.autorouteLogo());
         }
 
         output.putString("destination", this.panels[0].line1());
@@ -223,33 +191,45 @@ public class D61ABlockEntity extends net.minecraft.world.level.block.entity.Bloc
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    private static D21APanelData sanitizePanel(D21APanelData panel) {
+    private static D61APanelData sanitizePanel(D61APanelData panel) {
         if (panel == null) {
-            return D21APanelData.disabled();
+            return D61APanelData.disabled();
         }
 
-        return new D21APanelData(
+        D21AType type = sanitizeType(panel.type());
+
+        return new D61APanelData(
                 panel.enabled(),
                 panel.line1(),
                 panel.line2(),
                 panel.distance1(),
                 panel.distance2(),
-                sanitizeType(panel.type()),
-                false,
-                false,
-                panel.doubleLine()
+                type,
+                panel.doubleLine(),
+                panel.arrowEnabled(),
+                panel.arrowPosition(),
+                panel.arrowDirection(),
+                type != D21AType.WHITE && panel.autorouteLogo()
         );
     }
 
     private static D21AType sanitizeType(D21AType type) {
-        return type == D21AType.GREEN
-                ? D21AType.GREEN
-                : D21AType.WHITE;
+        if (type == D21AType.GREEN) {
+            return D21AType.GREEN;
+        }
+        if (type == D21AType.BLUE) {
+            return D21AType.BLUE;
+        }
+        return D21AType.WHITE;
     }
 
     private static D21AType parseType(String value) {
-        return "green".equals(value)
-                ? D21AType.GREEN
-                : D21AType.WHITE;
+        if ("green".equals(value)) {
+            return D21AType.GREEN;
+        }
+        if ("blue".equals(value)) {
+            return D21AType.BLUE;
+        }
+        return D21AType.WHITE;
     }
 }

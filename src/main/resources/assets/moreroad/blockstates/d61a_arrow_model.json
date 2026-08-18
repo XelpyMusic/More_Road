@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "black=false": {
+      "model": "moreroad:block/d61a_arrow_white"
+    },
+    "black=true": {
+      "model": "moreroad:block/d61a_arrow_black"
+    }
+  }
+}

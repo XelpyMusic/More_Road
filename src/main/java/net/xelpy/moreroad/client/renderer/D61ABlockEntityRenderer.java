@@ -21,9 +21,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.MoreRoadBlocks;
-import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.D61AArrowDirection;
+import net.xelpy.moreroad.block.custom.D61AArrowModelBlock;
+import net.xelpy.moreroad.block.custom.D61AArrowPosition;
 import net.xelpy.moreroad.block.custom.D61ABlock;
+import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.D61APanelLayout;
 import net.xelpy.moreroad.block.custom.D61APanelModelBlock;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
@@ -45,24 +48,31 @@ public class D61ABlockEntityRenderer
             BlockDisplayContext.create();
 
     private static final float TEXT_Z = 0.128F;
+    private static final float ARROW_Z = 0.130F;
 
     private static final float SIMPLE_LINE_Y = 0.765F;
     private static final float DOUBLE_LINE_Y_TOP = 0.720F;
     private static final float DOUBLE_LINE_Y_BOTTOM = 0.540F;
     private static final float DOUBLE_LINE_Y_SINGLE = 0.630F;
 
-    /*
-     * Le D61A simple est plus large que l'ancien modèle : on profite de
-     * toute la zone utile avec une petite marge au bord.
-     */
     private static final float SIMPLE_DESTINATION_LEFT_EDGE = -0.43F;
     private static final float SIMPLE_DISTANCE_RIGHT_EDGE = 1.43F;
 
-    /*
-     * Le D61A double conserve exactement ses réglages actuels.
-     */
     private static final float DOUBLE_DESTINATION_LEFT_EDGE = -0.42F;
     private static final float DOUBLE_DISTANCE_RIGHT_EDGE = 1.42F;
+
+    /*
+     * Avec une flèche à gauche, le texte commence juste après le PNG.
+     * Avec une flèche à droite, le texte conserve sa marge gauche normale
+     * mais sa largeur maximale s'arrête avant la flèche.
+     */
+    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW = -0.12F;
+    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW = -0.10F;
+
+    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = -0.12F;
+    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = -0.08F;
+    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW = 0.16F;
+    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW = 0.20F;
 
     private static final float SINGLE_DESTINATION_BASE_SCALE = 0.0165F;
     private static final float SINGLE_DISTANCE_BASE_SCALE = 0.0160F;
@@ -71,7 +81,47 @@ public class D61ABlockEntityRenderer
 
     private static final float DESTINATION_MAX_WIDTH_WITH_DISTANCE = 1.42F;
     private static final float DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE = 1.70F;
+
+    /*
+     * Flèche OU kilométrage : lorsqu'une flèche est active, aucun kilométrage
+     * n'est rendu. La destination dispose donc de toute la place restante
+     * jusqu'à la zone occupée par le PNG.
+     */
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW = 1.53F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW = 1.55F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW = 1.52F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW = 1.54F;
+
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO = 1.28F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO = 1.18F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW = 1.08F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW = 1.02F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW = 1.12F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW = 0.98F;
+
     private static final float DISTANCE_MAX_WIDTH = 0.26F;
+
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_AND_DISTANCE = 0.96F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_NO_DISTANCE = 1.28F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_AND_DISTANCE = 0.90F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_NO_DISTANCE = 1.18F;
+
+
+    /*
+     * Les nouveaux modèles internes sont de simples plans qui utilisent
+     * directement fleche_blanche.png / fleche_noir.png. Le PNG est vertical
+     * et son ratio 3:4 est respecté par le plan 12 x 16 pixels.
+     */
+    private static final float SIMPLE_ARROW_LEFT_X = -0.32F;
+    private static final float SIMPLE_ARROW_RIGHT_X = 1.32F;
+    private static final float DOUBLE_ARROW_LEFT_X = -0.30F;
+    private static final float DOUBLE_ARROW_RIGHT_X = 1.30F;
+
+    private static final float SIMPLE_ARROW_Y = 0.794F;
+    private static final float DOUBLE_ARROW_Y = 0.669F;
+
+    private static final float SIMPLE_ARROW_SCALE = 0.24F;
+    private static final float DOUBLE_ARROW_SCALE = 0.34F;
 
     private final BlockModelResolver blockResolver;
 
@@ -106,17 +156,21 @@ public class D61ABlockEntityRenderer
         renderState.facing = blockState.getValue(D61ABlock.FACING);
 
         for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
-            D21APanelData panel = blockEntity.getPanel(i);
+            D61APanelData panel = blockEntity.getPanel(i);
 
             renderState.enabled[i] = panel.enabled();
             renderState.line1[i] = panel.line1();
             renderState.line2[i] = panel.line2();
             renderState.distance1[i] = panel.distance1();
             renderState.distance2[i] = panel.distance2();
-            renderState.panelTypes[i] = panel.type() == D21AType.GREEN
-                    ? D21AType.GREEN
-                    : D21AType.WHITE;
+            renderState.panelTypes[i] = sanitizeType(panel.type());
             renderState.doubleLines[i] = panel.doubleLine();
+            renderState.autorouteLogos[i] =
+                    renderState.panelTypes[i] != D21AType.WHITE
+                            && panel.autorouteLogo();
+            renderState.arrowEnabled[i] = panel.arrowEnabled();
+            renderState.arrowPositions[i] = panel.arrowPosition();
+            renderState.arrowDirections[i] = panel.arrowDirection();
 
             if (!panel.enabled()) {
                 continue;
@@ -128,13 +182,33 @@ public class D61ABlockEntityRenderer
                             : MoreRoadBlocks.D61A_PANEL_MODEL.get())
                             .defaultBlockState()
                             .setValue(D61APanelModelBlock.FACING, renderState.facing)
-                            .setValue(D61APanelModelBlock.TYPE, renderState.panelTypes[i]);
+                            .setValue(D61APanelModelBlock.TYPE, renderState.panelTypes[i])
+                            .setValue(
+                                    D61APanelModelBlock.AUTOROUTE_LOGO,
+                                    renderState.autorouteLogos[i]
+                            );
 
             this.blockResolver.update(
                     renderState.panelModels[i],
                     panelModelState,
                     BLOCK_DISPLAY_CONTEXT
             );
+
+            if (panel.arrowEnabled()) {
+                BlockState arrowModelState =
+                        MoreRoadBlocks.D61A_ARROW_MODEL.get()
+                                .defaultBlockState()
+                                .setValue(
+                                        D61AArrowModelBlock.BLACK,
+                                        renderState.panelTypes[i] == D21AType.WHITE
+                                );
+
+                this.blockResolver.update(
+                        renderState.arrowModels[i],
+                        arrowModelState,
+                        BLOCK_DISPLAY_CONTEXT
+                );
+            }
         }
     }
 
@@ -182,13 +256,29 @@ public class D61ABlockEntityRenderer
 
             poseStack.popPose();
 
+            if (renderState.arrowEnabled[i]) {
+                submitArrow(
+                        renderState.arrowModels[i],
+                        renderState.arrowPositions[i],
+                        renderState.arrowDirections[i],
+                        renderState.doubleLines[i],
+                        yOffset,
+                        renderState,
+                        poseStack,
+                        collector
+                );
+            }
+
             submitPanelText(
                     cleanText(renderState.line1[i]),
                     cleanText(renderState.line2[i]),
                     cleanText(renderState.distance1[i]),
                     cleanText(renderState.distance2[i]),
                     renderState.panelTypes[i],
+                    renderState.autorouteLogos[i],
                     renderState.doubleLines[i],
+                    renderState.arrowEnabled[i],
+                    renderState.arrowPositions[i],
                     yOffset,
                     renderState,
                     poseStack,
@@ -197,13 +287,97 @@ public class D61ABlockEntityRenderer
         }
     }
 
+    private static void submitArrow(
+            net.minecraft.client.renderer.block.BlockModelRenderState arrowModel,
+            D61AArrowPosition position,
+            D61AArrowDirection direction,
+            boolean doubleLine,
+            float yOffset,
+            D61ARenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        if (position == null) {
+            position = D61AArrowPosition.RIGHT;
+        }
+
+        if (direction == null) {
+            direction = D61AArrowDirection.UP;
+        }
+
+        float arrowX;
+
+        if (doubleLine) {
+            arrowX = position == D61AArrowPosition.LEFT
+                    ? DOUBLE_ARROW_LEFT_X
+                    : DOUBLE_ARROW_RIGHT_X;
+        } else {
+            arrowX = position == D61AArrowPosition.LEFT
+                    ? SIMPLE_ARROW_LEFT_X
+                    : SIMPLE_ARROW_RIGHT_X;
+        }
+
+        float arrowY =
+                (doubleLine ? DOUBLE_ARROW_Y : SIMPLE_ARROW_Y)
+                        + yOffset;
+
+        float scale =
+                doubleLine
+                        ? DOUBLE_ARROW_SCALE
+                        : SIMPLE_ARROW_SCALE;
+
+        poseStack.pushPose();
+
+        /*
+         * Centre du panneau, puis rotation selon l'orientation du bloc.
+         */
+        poseStack.translate(0.5F, arrowY, 0.5F);
+
+        poseStack.mulPose(
+                Axis.YP.rotationDegrees(
+                        getFacingRotation(renderState.facing)
+                )
+        );
+
+        /*
+         * Le modèle PNG est centré en X/Y autour de 0.5.
+         */
+        poseStack.translate(
+                arrowX - 0.5F,
+                0.0F,
+                ARROW_Z
+        );
+
+        poseStack.mulPose(
+                Axis.ZP.rotationDegrees(
+                        direction.modelRotationDegrees()
+                )
+        );
+
+        poseStack.scale(scale, scale, scale);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+
+        arrowModel.submit(
+                poseStack,
+                collector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0
+        );
+
+        poseStack.popPose();
+    }
+
     private static void submitPanelText(
             String line1,
             String line2,
             String distance1,
             String distance2,
             D21AType panelType,
+            boolean autorouteLogo,
             boolean doubleLine,
+            boolean arrowEnabled,
+            D61AArrowPosition arrowPosition,
             float yOffset,
             D61ARenderState renderState,
             PoseStack poseStack,
@@ -218,9 +392,9 @@ public class D61ABlockEntityRenderer
             return;
         }
 
-        int textColor = panelType == D21AType.GREEN
-                ? 0xFFFFFFFF
-                : 0xFF000000;
+        int textColor = panelType == D21AType.WHITE
+                ? 0xFF000000
+                : 0xFFFFFFFF;
 
         if (doubleLine) {
             submitTwoLinePanelText(
@@ -229,6 +403,9 @@ public class D61ABlockEntityRenderer
                     distance1,
                     distance2,
                     textColor,
+                    autorouteLogo,
+                    arrowEnabled,
+                    arrowPosition,
                     yOffset,
                     renderState,
                     poseStack,
@@ -243,6 +420,9 @@ public class D61ABlockEntityRenderer
                 line1,
                 distance,
                 textColor,
+                autorouteLogo,
+                arrowEnabled,
+                arrowPosition,
                 yOffset,
                 renderState,
                 poseStack,
@@ -254,21 +434,57 @@ public class D61ABlockEntityRenderer
             String destination,
             String distance,
             int textColor,
+            boolean autorouteLogo,
+            boolean arrowEnabled,
+            D61AArrowPosition arrowPosition,
             float yOffset,
             D61ARenderState renderState,
             PoseStack poseStack,
             SubmitNodeCollector collector
     ) {
-        float destinationMaxWidth = distance.isBlank()
-                ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE
-                : DESTINATION_MAX_WIDTH_WITH_DISTANCE;
+        boolean leftArrow =
+                arrowEnabled
+                        && arrowPosition == D61AArrowPosition.LEFT;
+
+        boolean rightArrow =
+                arrowEnabled
+                        && arrowPosition == D61AArrowPosition.RIGHT;
+
+        boolean showAutorouteLogo = autorouteLogo;
+
+        float destinationLeftEdge;
+        float destinationMaxWidth;
+
+        if (showAutorouteLogo && leftArrow) {
+            destinationLeftEdge = SIMPLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW;
+            destinationMaxWidth = SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW;
+        } else if (showAutorouteLogo && rightArrow) {
+            destinationLeftEdge = SIMPLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO;
+            destinationMaxWidth = SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW;
+        } else if (showAutorouteLogo) {
+            destinationLeftEdge = SIMPLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO;
+            destinationMaxWidth = distance.isBlank()
+                    ? SIMPLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_NO_DISTANCE
+                    : SIMPLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_AND_DISTANCE;
+        } else if (leftArrow) {
+            destinationLeftEdge = SIMPLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW;
+            destinationMaxWidth = SIMPLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW;
+        } else if (rightArrow) {
+            destinationLeftEdge = SIMPLE_DESTINATION_LEFT_EDGE;
+            destinationMaxWidth = SIMPLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW;
+        } else {
+            destinationLeftEdge = SIMPLE_DESTINATION_LEFT_EDGE;
+            destinationMaxWidth = distance.isBlank()
+                    ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE
+                    : DESTINATION_MAX_WIDTH_WITH_DISTANCE;
+        }
 
         float textY = SIMPLE_LINE_Y + yOffset;
 
         if (!destination.isBlank()) {
             submitAnchoredText(
                     destination,
-                    SIMPLE_DESTINATION_LEFT_EDGE,
+                    destinationLeftEdge,
                     textY,
                     SINGLE_DESTINATION_BASE_SCALE,
                     destinationMaxWidth,
@@ -280,7 +496,11 @@ public class D61ABlockEntityRenderer
             );
         }
 
-        if (!distance.isBlank()) {
+        /*
+         * Flèche OU kilométrage : la distance reste mémorisée dans le BE
+         * mais n'est pas affichée tant que la flèche est activée.
+         */
+        if (!arrowEnabled && !distance.isBlank()) {
             submitAnchoredText(
                     distance,
                     SIMPLE_DISTANCE_RIGHT_EDGE,
@@ -302,6 +522,9 @@ public class D61ABlockEntityRenderer
             String distance1,
             String distance2,
             int textColor,
+            boolean autorouteLogo,
+            boolean arrowEnabled,
+            D61AArrowPosition arrowPosition,
             float yOffset,
             D61ARenderState renderState,
             PoseStack poseStack,
@@ -310,16 +533,65 @@ public class D61ABlockEntityRenderer
         boolean hasTop = !line1.isBlank();
         boolean hasBottom = !line2.isBlank();
 
-        float line1Y = (hasTop && hasBottom ? DOUBLE_LINE_Y_TOP : DOUBLE_LINE_Y_SINGLE) + yOffset;
-        float line2Y = (hasTop && hasBottom ? DOUBLE_LINE_Y_BOTTOM : DOUBLE_LINE_Y_SINGLE) + yOffset;
+        boolean leftArrow =
+                arrowEnabled
+                        && arrowPosition == D61AArrowPosition.LEFT;
+
+        boolean rightArrow =
+                arrowEnabled
+                        && arrowPosition == D61AArrowPosition.RIGHT;
+
+        boolean showAutorouteLogo = autorouteLogo;
+
+        float destinationLeftEdge;
+        float arrowDestinationMaxWidth;
+
+        if (showAutorouteLogo && leftArrow) {
+            destinationLeftEdge = DOUBLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW;
+            arrowDestinationMaxWidth = DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW;
+        } else if (showAutorouteLogo && rightArrow) {
+            destinationLeftEdge = DOUBLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO;
+            arrowDestinationMaxWidth = DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW;
+        } else if (showAutorouteLogo) {
+            destinationLeftEdge = DOUBLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO;
+            arrowDestinationMaxWidth = DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO;
+        } else if (leftArrow) {
+            destinationLeftEdge = DOUBLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW;
+            arrowDestinationMaxWidth = DOUBLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW;
+        } else {
+            destinationLeftEdge = DOUBLE_DESTINATION_LEFT_EDGE;
+            arrowDestinationMaxWidth = DOUBLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW;
+        }
+
+        float line1Y =
+                (hasTop && hasBottom
+                        ? DOUBLE_LINE_Y_TOP
+                        : DOUBLE_LINE_Y_SINGLE)
+                        + yOffset;
+
+        float line2Y =
+                (hasTop && hasBottom
+                        ? DOUBLE_LINE_Y_BOTTOM
+                        : DOUBLE_LINE_Y_SINGLE)
+                        + yOffset;
 
         if (hasTop) {
+            float maxWidth = arrowEnabled
+                    ? arrowDestinationMaxWidth
+                    : (showAutorouteLogo
+                    ? (distance1.isBlank()
+                    ? DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_NO_DISTANCE
+                    : DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_AND_DISTANCE)
+                    : (distance1.isBlank()
+                    ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE
+                    : DESTINATION_MAX_WIDTH_WITH_DISTANCE));
+
             submitAnchoredText(
                     line1,
-                    DOUBLE_DESTINATION_LEFT_EDGE,
+                    destinationLeftEdge,
                     line1Y,
                     DOUBLE_DESTINATION_BASE_SCALE,
-                    distance1.isBlank() ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE : DESTINATION_MAX_WIDTH_WITH_DISTANCE,
+                    maxWidth,
                     TextAnchor.LEFT,
                     textColor,
                     renderState,
@@ -328,7 +600,7 @@ public class D61ABlockEntityRenderer
             );
         }
 
-        if (!distance1.isBlank()) {
+        if (!arrowEnabled && !distance1.isBlank()) {
             submitAnchoredText(
                     distance1,
                     DOUBLE_DISTANCE_RIGHT_EDGE,
@@ -344,12 +616,22 @@ public class D61ABlockEntityRenderer
         }
 
         if (hasBottom) {
+            float maxWidth = arrowEnabled
+                    ? arrowDestinationMaxWidth
+                    : (showAutorouteLogo
+                    ? (distance2.isBlank()
+                    ? DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_NO_DISTANCE
+                    : DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO_AND_DISTANCE)
+                    : (distance2.isBlank()
+                    ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE
+                    : DESTINATION_MAX_WIDTH_WITH_DISTANCE));
+
             submitAnchoredText(
                     line2,
-                    DOUBLE_DESTINATION_LEFT_EDGE,
+                    destinationLeftEdge,
                     line2Y,
                     DOUBLE_DESTINATION_BASE_SCALE,
-                    distance2.isBlank() ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE : DESTINATION_MAX_WIDTH_WITH_DISTANCE,
+                    maxWidth,
                     TextAnchor.LEFT,
                     textColor,
                     renderState,
@@ -358,7 +640,7 @@ public class D61ABlockEntityRenderer
             );
         }
 
-        if (!distance2.isBlank()) {
+        if (!arrowEnabled && !distance2.isBlank()) {
             submitAnchoredText(
                     distance2,
                     DOUBLE_DISTANCE_RIGHT_EDGE,
@@ -415,15 +697,12 @@ public class D61ABlockEntityRenderer
 
         poseStack.translate(0.5F, worldY, 0.5F);
 
-        float rotation = switch (renderState.facing) {
-            case SOUTH -> 0F;
-            case WEST -> -90F;
-            case NORTH -> 180F;
-            case EAST -> 90F;
-            default -> 0F;
-        };
+        poseStack.mulPose(
+                Axis.YP.rotationDegrees(
+                        getFacingRotation(renderState.facing)
+                )
+        );
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(rotation));
         poseStack.translate(anchorX - 0.5F, 0F, TEXT_Z);
         poseStack.scale(scale, -scale, scale);
 
@@ -449,6 +728,26 @@ public class D61ABlockEntityRenderer
         );
 
         poseStack.popPose();
+    }
+
+    private static float getFacingRotation(net.minecraft.core.Direction facing) {
+        return switch (facing) {
+            case SOUTH -> 0F;
+            case WEST -> -90F;
+            case NORTH -> 180F;
+            case EAST -> 90F;
+            default -> 0F;
+        };
+    }
+
+    private static D21AType sanitizeType(D21AType type) {
+        if (type == D21AType.GREEN) {
+            return D21AType.GREEN;
+        }
+        if (type == D21AType.BLUE) {
+            return D21AType.BLUE;
+        }
+        return D21AType.WHITE;
     }
 
     private static String cleanText(String text) {

@@ -7,51 +7,44 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.xelpy.moreroad.MoreRoad;
-import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.D61AArrowDirection;
+import net.xelpy.moreroad.block.custom.D61AArrowPosition;
+import net.xelpy.moreroad.block.custom.D61APanelData;
 
 public record UpdateD61APayload(
         BlockPos pos,
-        D21APanelData panel0,
-        D21APanelData panel1,
-        D21APanelData panel2,
-        D21APanelData panel3
+        D61APanelData panel0,
+        D61APanelData panel1,
+        D61APanelData panel2,
+        D61APanelData panel3
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateD61APayload> TYPE =
-            new Type<>(
-                    Identifier.fromNamespaceAndPath(
-                            MoreRoad.MODID,
-                            "update_d61a"
-                    )
-            );
+            new Type<>(Identifier.fromNamespaceAndPath(MoreRoad.MODID, "update_d61a"));
 
-    public static final StreamCodec<ByteBuf, UpdateD61APayload>
-            STREAM_CODEC = new StreamCodec<>() {
+    public static final StreamCodec<ByteBuf, UpdateD61APayload> STREAM_CODEC =
+            new StreamCodec<>() {
+                @Override
+                public UpdateD61APayload decode(ByteBuf buffer) {
+                    return new UpdateD61APayload(
+                            BlockPos.STREAM_CODEC.decode(buffer),
+                            decodePanel(buffer),
+                            decodePanel(buffer),
+                            decodePanel(buffer),
+                            decodePanel(buffer)
+                    );
+                }
 
-        @Override
-        public UpdateD61APayload decode(ByteBuf buffer) {
-            return new UpdateD61APayload(
-                    BlockPos.STREAM_CODEC.decode(buffer),
-                    decodePanel(buffer),
-                    decodePanel(buffer),
-                    decodePanel(buffer),
-                    decodePanel(buffer)
-            );
-        }
-
-        @Override
-        public void encode(
-                ByteBuf buffer,
-                UpdateD61APayload payload
-        ) {
-            BlockPos.STREAM_CODEC.encode(buffer, payload.pos());
-            encodePanel(buffer, payload.panel0());
-            encodePanel(buffer, payload.panel1());
-            encodePanel(buffer, payload.panel2());
-            encodePanel(buffer, payload.panel3());
-        }
-    };
+                @Override
+                public void encode(ByteBuf buffer, UpdateD61APayload payload) {
+                    BlockPos.STREAM_CODEC.encode(buffer, payload.pos());
+                    encodePanel(buffer, payload.panel0());
+                    encodePanel(buffer, payload.panel1());
+                    encodePanel(buffer, payload.panel2());
+                    encodePanel(buffer, payload.panel3());
+                }
+            };
 
     public UpdateD61APayload {
         panel0 = normalize(panel0, true);
@@ -60,13 +53,13 @@ public record UpdateD61APayload(
         panel3 = normalize(panel3, false);
     }
 
-    public D21APanelData panel(int index) {
+    public D61APanelData panel(int index) {
         return switch (index) {
             case 0 -> this.panel0;
             case 1 -> this.panel1;
             case 2 -> this.panel2;
             case 3 -> this.panel3;
-            default -> D21APanelData.disabled();
+            default -> D61APanelData.disabled();
         };
     }
 
@@ -75,24 +68,15 @@ public record UpdateD61APayload(
         return TYPE;
     }
 
-    private static D21APanelData normalize(
-            D21APanelData panel,
-            boolean first
-    ) {
+    private static D61APanelData normalize(D61APanelData panel, boolean first) {
         if (panel != null) {
             return sanitizePanel(panel);
         }
-
-        return first
-                ? D21APanelData.firstPanelDefault()
-                : D21APanelData.disabled();
+        return first ? D61APanelData.firstPanelDefault() : D61APanelData.disabled();
     }
 
-    private static void encodePanel(
-            ByteBuf buffer,
-            D21APanelData panel
-    ) {
-        D21APanelData sanitized = sanitizePanel(panel);
+    private static void encodePanel(ByteBuf buffer, D61APanelData panel) {
+        D61APanelData sanitized = sanitizePanel(panel);
 
         ByteBufCodecs.BOOL.encode(buffer, sanitized.enabled());
         ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.line1());
@@ -100,54 +84,74 @@ public record UpdateD61APayload(
         ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.distance1());
         ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.distance2());
         ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.type().getSerializedName());
-        ByteBufCodecs.BOOL.encode(buffer, false);
-        ByteBufCodecs.BOOL.encode(buffer, false);
         ByteBufCodecs.BOOL.encode(buffer, sanitized.doubleLine());
+        ByteBufCodecs.BOOL.encode(buffer, sanitized.arrowEnabled());
+        ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.arrowPosition().getSerializedName());
+        ByteBufCodecs.STRING_UTF8.encode(buffer, sanitized.arrowDirection().getSerializedName());
+        ByteBufCodecs.BOOL.encode(buffer, sanitized.autorouteLogo());
     }
 
-    private static D21APanelData decodePanel(ByteBuf buffer) {
+    private static D61APanelData decodePanel(ByteBuf buffer) {
         boolean enabled = ByteBufCodecs.BOOL.decode(buffer);
         String line1 = ByteBufCodecs.STRING_UTF8.decode(buffer);
         String line2 = ByteBufCodecs.STRING_UTF8.decode(buffer);
         String distance1 = ByteBufCodecs.STRING_UTF8.decode(buffer);
         String distance2 = ByteBufCodecs.STRING_UTF8.decode(buffer);
         D21AType type = parseType(ByteBufCodecs.STRING_UTF8.decode(buffer));
-        ByteBufCodecs.BOOL.decode(buffer);
-        ByteBufCodecs.BOOL.decode(buffer);
         boolean doubleLine = ByteBufCodecs.BOOL.decode(buffer);
+        boolean arrowEnabled = ByteBufCodecs.BOOL.decode(buffer);
+        D61AArrowPosition arrowPosition =
+                D61AArrowPosition.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer));
+        D61AArrowDirection arrowDirection =
+                D61AArrowDirection.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer));
+        boolean autorouteLogo = ByteBufCodecs.BOOL.decode(buffer);
 
         return sanitizePanel(
-                new D21APanelData(
+                new D61APanelData(
                         enabled,
                         line1,
                         line2,
                         distance1,
                         distance2,
                         type,
-                        false,
-                        false,
-                        doubleLine
+                        doubleLine,
+                        arrowEnabled,
+                        arrowPosition,
+                        arrowDirection,
+                        autorouteLogo
                 )
         );
     }
 
-    private static D21APanelData sanitizePanel(D21APanelData panel) {
-        return new D21APanelData(
+    private static D61APanelData sanitizePanel(D61APanelData panel) {
+        D21AType type = switch (panel.type()) {
+            case GREEN -> D21AType.GREEN;
+            case BLUE -> D21AType.BLUE;
+            default -> D21AType.WHITE;
+        };
+
+        return new D61APanelData(
                 panel.enabled(),
                 panel.line1(),
                 panel.line2(),
                 panel.distance1(),
                 panel.distance2(),
-                panel.type() == D21AType.GREEN ? D21AType.GREEN : D21AType.WHITE,
-                false,
-                false,
-                panel.doubleLine()
+                type,
+                panel.doubleLine(),
+                panel.arrowEnabled(),
+                panel.arrowPosition(),
+                panel.arrowDirection(),
+                type != D21AType.WHITE && panel.autorouteLogo()
         );
     }
 
     private static D21AType parseType(String value) {
-        return "green".equals(value)
-                ? D21AType.GREEN
-                : D21AType.WHITE;
+        if ("green".equals(value)) {
+            return D21AType.GREEN;
+        }
+        if ("blue".equals(value)) {
+            return D21AType.BLUE;
+        }
+        return D21AType.WHITE;
     }
 }

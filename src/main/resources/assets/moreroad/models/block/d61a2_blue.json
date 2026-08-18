@@ -1,0 +1,7 @@
+{
+  "parent": "moreroad:block/d61a2_base",
+  "textures": {
+    "2": "moreroad:block/d61a2_blue",
+    "particle": "moreroad:block/d61a2_blue"
+  }
+}

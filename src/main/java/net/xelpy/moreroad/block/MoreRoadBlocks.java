@@ -916,6 +916,16 @@ public class MoreRoadBlocks {
                     (properties) -> new D61A2PanelModelBlock(properties
                             .noOcclusion().sound(SoundType.IRON)));
 
+    /*
+     * Modèle interne de flèche pour le D61A. Le renderer le déplace et le
+     * tourne dynamiquement : aucun modèle séparé n'est nécessaire pour les
+     * huit directions.
+     */
+    public static final DeferredBlock<Block> D61A_ARROW_MODEL =
+            BLOCKS.registerBlock("d61a_arrow_model",
+                    (properties) -> new D61AArrowModelBlock(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
     public static final DeferredBlock<Block> EB10 = registerBlock("eb10",
             (properties) -> new EB10Block(properties
                     .noOcclusion().sound(SoundType.IRON)));

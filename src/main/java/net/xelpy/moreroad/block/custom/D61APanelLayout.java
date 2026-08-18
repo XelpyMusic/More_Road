@@ -73,7 +73,7 @@ public final class D61APanelLayout {
             Block.box(6.00000, 6.48259, -7.92040, 8.00000, 14.92040, 23.92040);
 
     public static double getPanelYOffset(
-            D21APanelData[] panels,
+            D61APanelData[] panels,
             int targetIndex
     ) {
         if (
@@ -90,7 +90,7 @@ public final class D61APanelLayout {
         boolean[] doubleLines = new boolean[panels.length];
 
         for (int i = 0; i < panels.length; i++) {
-            D21APanelData panel = panels[i];
+            D61APanelData panel = panels[i];
 
             if (panel == null) {
                 continue;
