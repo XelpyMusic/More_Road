@@ -32,6 +32,37 @@ import java.util.EnumSet;
 /**
  * Renderer 2D du panneau D42b.
  *
+ * V92 : agrandissement maîtrisé des noms longs.
+ *
+ * - les textes longs restent réduits uniformément, sans écrasement ;
+ * - la zone droite est élargie et légèrement remontée pour autoriser un rendu plus grand ;
+ * - la sécurité vis-à-vis de la flèche est conservée ;
+ * - les réglages validés du rond, du "150 m" et des espacements sont conservés.
+ *
+ * V91 : correction de la lisibilité des noms longs et des zones latérales.
+ *
+ * - les noms longs sont désormais réduits de façon uniforme, sans écrasement ;
+ * - les zones gauche et droite sont recentrées pour ne plus empiéter sur les flèches ;
+ * - les réglages validés du rond, du "150 m" et des espacements sont conservés.
+ *
+ * V90 : compromis visuel pour les noms longs.
+ *
+ * - on n'écrase plus brutalement les textes longs ;
+ * - on commence par utiliser davantage la largeur réellement disponible ;
+ * - si un nom reste trop long, on réduit d'abord sa taille de façon
+ *   homogène ;
+ * - une légère compression horizontale n'intervient qu'en dernier recours ;
+ * - les réglages validés du rond, du "150 m" et des espacements sont conservés.
+ *
+ * V89 : gestion renforcée des noms de villes longs sans déplacer les
+ * positions validées en V88.
+ *
+ * - la hauteur des lettres reste identique à celle des noms courts ;
+ * - lorsqu'un nom dépasse sa zone, seule sa largeur est comprimée ;
+ * - les cartouches colorés suivent exactement la largeur réellement rendue ;
+ * - les zones de sécurité, l'espacement des lignes, le rond et le "150 m"
+ *   conservent les réglages validés en V88.
+ *
  * V88 : correction finale du rendu du rond et du métrage.
  *
  * - le PNG du rond est désormais rendu sans inversion visuelle (flip X compensé) ;
@@ -169,6 +200,9 @@ public class D42bBlockEntityRenderer
         float line2Y(float spacingPixels) {
             return this.line1Y + spacingPixels;
         }
+    }
+
+    private record TextScale(float scaleX, float scaleY) {
     }
 
     public D42bBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -364,36 +398,37 @@ public class D42bBlockEntityRenderer
             /* Haut-gauche : déplacé nettement vers le coin haut-gauche. */
             case UP_LEFT -> new LabelZone(
                     TextAnchor.RIGHT,
-                    445.0F,
+                    455.0F,
                     265.0F,
-                    420.0F
+                    440.0F
             );
 
             /* Haut-droite : déplacé vers le coin haut-droit. */
             case UP_RIGHT -> new LabelZone(
                     TextAnchor.LEFT,
-                    1070.0F,
+                    1045.0F,
                     265.0F,
-                    420.0F
+                    440.0F
             );
 
-            /* Gauche : plus loin du rond et un peu plus bas. */
+            /* Gauche : reculé pour ne plus toucher la flèche. */
             case LEFT -> new LabelZone(
                     TextAnchor.RIGHT,
-                    350.0F,
+                    320.0F,
                     560.0F,
                     330.0F
             );
 
-            /* Droite : plus loin du rond et remonté pour dégager la flèche. */
+            /* Droite : élargie et légèrement remontée pour grossir les noms longs
+             * sans retoucher la flèche. */
             case RIGHT -> new LabelZone(
                     TextAnchor.LEFT,
-                    1150.0F,
-                    520.0F,
-                    330.0F
+                    1160.0F,
+                    500.0F,
+                    340.0F
             );
 
-            /* Bas-gauche : zone gardée large et plus basse. */
+            /* Bas-gauche : zone large conservée. */
             case DOWN_LEFT -> new LabelZone(
                     TextAnchor.RIGHT,
                     390.0F,
@@ -401,7 +436,7 @@ public class D42bBlockEntityRenderer
                     400.0F
             );
 
-            /* Bas-droite : déplacé à droite et légèrement vers le bas. */
+            /* Bas-droite : zone ramenée aux marges sûres. */
             case DOWN_RIGHT -> new LabelZone(
                     TextAnchor.LEFT,
                     1100.0F,
@@ -440,13 +475,16 @@ public class D42bBlockEntityRenderer
                 0.01F,
                 maxWorldWidth - horizontalPadding
         );
-        float scale = Math.min(
-                TEXT_BASE_SCALE,
-                availableTextWidth / textWidth
-        );
+        /*
+         * V91 : pour préserver la lisibilité, un nom trop long est réduit
+         * uniformément. On n'applique plus de compression horizontale.
+         */
+        TextScale textScale = fitLabelScale(textWidth, availableTextWidth);
+        float scaleX = textScale.scaleX();
+        float scaleY = textScale.scaleY();
 
-        float worldWidth = textWidth * scale;
-        float worldHeight = font.lineHeight * scale;
+        float worldWidth = textWidth * scaleX;
+        float worldHeight = font.lineHeight * scaleY;
 
         float x = canvasX(anchorCanvasX);
         float y = canvasY(centerCanvasY);
@@ -507,7 +545,8 @@ public class D42bBlockEntityRenderer
         submitText(
                 text,
                 textWidth,
-                scale,
+                scaleX,
+                scaleY,
                 textX,
                 textY,
                 textAnchor,
@@ -516,6 +555,23 @@ public class D42bBlockEntityRenderer
                 poseStack,
                 collector
         );
+    }
+
+
+    private static TextScale fitLabelScale(
+            int textWidth,
+            float availableTextWidth
+    ) {
+        if (textWidth <= 0) {
+            return new TextScale(TEXT_BASE_SCALE, TEXT_BASE_SCALE);
+        }
+
+        float uniformScale = Math.min(
+                TEXT_BASE_SCALE,
+                availableTextWidth / textWidth
+        );
+
+        return new TextScale(uniformScale, uniformScale);
     }
 
     private static void submitDistance(
@@ -550,6 +606,7 @@ public class D42bBlockEntityRenderer
                 text,
                 textWidth,
                 scale,
+                scale,
                 x,
                 y,
                 TextAnchor.CENTER,
@@ -563,7 +620,8 @@ public class D42bBlockEntityRenderer
     private static void submitText(
             FormattedCharSequence text,
             int textWidth,
-            float scale,
+            float scaleX,
+            float scaleY,
             float x,
             float y,
             TextAnchor anchor,
@@ -580,7 +638,7 @@ public class D42bBlockEntityRenderer
                 Axis.YP.rotationDegrees(getFacingRotation(state.facing))
         );
         poseStack.translate(x - 0.5F, 0.0F, FACE_Z_TEXT);
-        poseStack.scale(scale, -scale, scale);
+        poseStack.scale(scaleX, -scaleY, scaleY);
 
         float textX = switch (anchor) {
             case LEFT -> 0.0F;
