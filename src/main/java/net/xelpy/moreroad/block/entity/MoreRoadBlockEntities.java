@@ -73,6 +73,23 @@ public class MoreRoadBlockEntities {
                     )
             );
 
+    /*
+     * ============================================================
+     * D42b
+     * ============================================================
+     */
+
+    public static final Supplier<BlockEntityType<D42bBlockEntity>>
+            D42B =
+            BLOCK_ENTITY_TYPES.register(
+                    "d42b",
+                    () -> new BlockEntityType<>(
+                            D42bBlockEntity::new,
+                            false,
+                            MoreRoadBlocks.D42B.get()
+                    )
+            );
+
 
     /*
      * ============================================================

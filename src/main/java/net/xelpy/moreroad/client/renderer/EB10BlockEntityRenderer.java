@@ -28,7 +28,6 @@ import net.xelpy.moreroad.block.custom.EB10Block;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 
-import java.util.Locale;
 
 public class EB10BlockEntityRenderer
         implements BlockEntityRenderer<EB10BlockEntity, EB10RenderState> {
@@ -442,7 +441,6 @@ public class EB10BlockEntityRenderer
         }
 
         return text
-                .strip()
-                .toUpperCase(Locale.ROOT);
+                .strip();
     }
 }

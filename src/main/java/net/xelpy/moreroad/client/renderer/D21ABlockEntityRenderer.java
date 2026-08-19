@@ -33,7 +33,6 @@ import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 
-import java.util.Locale;
 
 public class D21ABlockEntityRenderer
         implements BlockEntityRenderer<D21ABlockEntity, D21ARenderState> {
@@ -974,7 +973,6 @@ public class D21ABlockEntityRenderer
         }
 
         return text
-                .strip()
-                .toUpperCase(Locale.ROOT);
+                .strip();
     }
 }

@@ -7,6 +7,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.entity.MoreRoadBlockEntities;
 import net.xelpy.moreroad.client.renderer.D21ABlockEntityRenderer;
+import net.xelpy.moreroad.client.renderer.D42bBlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.D61ABlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.EB10BlockEntityRenderer;
 
@@ -31,6 +32,11 @@ public final class MoreRoadClientEvents {
         event.registerBlockEntityRenderer(
                 MoreRoadBlockEntities.D21A.get(),
                 D21ABlockEntityRenderer::new
+        );
+
+        event.registerBlockEntityRenderer(
+                MoreRoadBlockEntities.D42B.get(),
+                D42bBlockEntityRenderer::new
         );
 
         event.registerBlockEntityRenderer(

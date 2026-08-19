@@ -14,7 +14,6 @@ import net.minecraft.util.FormattedCharSequence;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 
-import java.util.Locale;
 
 /**
  * Rendu commun du texte libre affiché sur les cartouches E41 à E47.
@@ -175,7 +174,6 @@ public final class CartoucheTextRenderer {
         }
 
         return text
-                .strip()
-                .toUpperCase(Locale.ROOT);
+                .strip();
     }
 }

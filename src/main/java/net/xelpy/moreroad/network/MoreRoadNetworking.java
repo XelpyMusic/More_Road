@@ -12,9 +12,11 @@ import net.xelpy.moreroad.block.custom.B14_5Block;
 import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.D42bBranchData;
 import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.EB10Block;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
+import net.xelpy.moreroad.block.entity.D42bBlockEntity;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 
@@ -31,6 +33,10 @@ public final class MoreRoadNetworking {
     private static final int MAX_D21A_LINE_LENGTH = 48;
 
     private static final int MAX_D21A_DISTANCE_LENGTH = 8;
+
+    private static final int MAX_D42B_LINE_LENGTH = 48;
+
+    private static final int MAX_D42B_DISTANCE_LENGTH = 16;
 
     private static final int MAX_CARTOUCHE_TEXT_LENGTH = 24;
 
@@ -84,6 +90,12 @@ public final class MoreRoadNetworking {
                 UpdateD21APayload.TYPE,
                 UpdateD21APayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateD21A
+        );
+
+        registrar.playToServer(
+                UpdateD42bPayload.TYPE,
+                UpdateD42bPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateD42b
         );
 
         registrar.playToServer(
@@ -412,6 +424,73 @@ public final class MoreRoadNetworking {
         );
     }
 
+
+
+    /*
+     * ============================================================
+     * D42b
+     * ============================================================
+     */
+
+    private static void handleUpdateD42b(
+            UpdateD42bPayload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+
+        if (player.blockPosition().distManhattan(pos) > MAX_EDIT_DISTANCE) {
+            return;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof D42bBlockEntity blockEntity)) {
+            return;
+        }
+
+        D42bBranchData[] branches =
+                new D42bBranchData[D42bBlockEntity.MAX_BRANCHES];
+
+        for (int i = 0; i < D42bBlockEntity.MAX_BRANCHES; i++) {
+            D42bBranchData requested = payload.branch(i);
+
+            branches[i] = new D42bBranchData(
+                    requested.enabled(),
+                    requested.angleDegrees(),
+                    cleanText(requested.line1(), MAX_D42B_LINE_LENGTH),
+                    cleanText(requested.line2(), MAX_D42B_LINE_LENGTH),
+                    requested.line1Font(),
+                    requested.line2Font(),
+                    requested.line1Color(),
+                    requested.line2Color()
+            );
+        }
+
+        blockEntity.setBranches(branches);
+        blockEntity.setDistanceText(
+                cleanText(
+                        payload.distanceText(),
+                        MAX_D42B_DISTANCE_LENGTH
+                )
+        );
+
+        BlockState state = level.getBlockState(pos);
+        level.sendBlockUpdated(
+                pos,
+                state,
+                state,
+                Block.UPDATE_ALL
+        );
+    }
 
 
     /*

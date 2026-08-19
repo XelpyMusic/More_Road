@@ -873,6 +873,78 @@ public class MoreRoadBlocks {
                     .noOcclusion().sound(SoundType.IRON)));
 
     /*
+     * D42b - panneau diagrammatique de giratoire personnalisable.
+     */
+    public static final DeferredBlock<Block> D42B = registerBlock("d42b",
+            (properties) -> new D42bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    /* Double poteau spécifique au D42b, fourni par l'utilisateur. */
+    public static final DeferredBlock<Block> POTEAU_D42B = registerBlock("poteau_d42b_block",
+            (properties) -> new PoteauD42bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    /*
+     * Primitives internes du renderer D42b. Aucun BlockItem n'est enregistré.
+     * Le même carré est redimensionné/rotaté pour construire le giratoire,
+     * les flèches et les encarts sans pixel-art.
+     */
+    public static final DeferredBlock<Block> D42B_BLACK_MODEL =
+            BLOCKS.registerBlock("d42b_black_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_GREEN_MODEL =
+            BLOCKS.registerBlock("d42b_green_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_BLUE_MODEL =
+            BLOCKS.registerBlock("d42b_blue_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_CIRCLE_MODEL =
+            BLOCKS.registerBlock("d42b_circle_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_ARROW_UP_MODEL =
+            BLOCKS.registerBlock("d42b_arrow_up_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_ARROW_UP_RIGHT_MODEL =
+            BLOCKS.registerBlock("d42b_arrow_up_right_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_ARROW_UP_LEFT_MODEL =
+            BLOCKS.registerBlock("d42b_arrow_up_left_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_ARROW_RIGHT_MODEL =
+            BLOCKS.registerBlock("d42b_arrow_right_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_ARROW_LEFT_MODEL =
+            BLOCKS.registerBlock("d42b_arrow_left_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_ARROW_DOWN_LEFT_MODEL =
+            BLOCKS.registerBlock("d42b_arrow_down_left_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> D42B_ARROW_DOWN_RIGHT_MODEL =
+            BLOCKS.registerBlock("d42b_arrow_down_right_model",
+                    (properties) -> new Block(properties
+                            .noOcclusion().sound(SoundType.IRON)));
+
+    /*
      * Bloc interne utilisé uniquement par le renderer du D21A.
      * Aucun BlockItem n'est enregistré pour lui.
      */
