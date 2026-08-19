@@ -10,6 +10,7 @@ import net.xelpy.moreroad.client.renderer.D21ABlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.D42bBlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.D61ABlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.EB10BlockEntityRenderer;
+import net.xelpy.moreroad.client.renderer.E31BlockEntityRenderer;
 
 @EventBusSubscriber(
         modid = MoreRoad.MODID,
@@ -24,6 +25,11 @@ public final class MoreRoadClientEvents {
     public static void registerRenderers(
             EntityRenderersEvent.RegisterRenderers event
     ) {
+        event.registerBlockEntityRenderer(
+                MoreRoadBlockEntities.E31.get(),
+                E31BlockEntityRenderer::new
+        );
+
         event.registerBlockEntityRenderer(
                 MoreRoadBlockEntities.EB10.get(),
                 EB10BlockEntityRenderer::new

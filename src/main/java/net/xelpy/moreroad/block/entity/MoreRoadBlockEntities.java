@@ -45,6 +45,25 @@ public class MoreRoadBlockEntities {
 
     /*
      * ============================================================
+     * E31a / E31b
+     * ============================================================
+     */
+
+    public static final Supplier<BlockEntityType<E31BlockEntity>>
+            E31 =
+            BLOCK_ENTITY_TYPES.register(
+                    "e31",
+                    () -> new BlockEntityType<>(
+                            E31BlockEntity::new,
+                            false,
+                            MoreRoadBlocks.E31A.get(),
+                            MoreRoadBlocks.E31B.get()
+                    )
+            );
+
+
+    /*
+     * ============================================================
      * D21A
      * ============================================================
      */

@@ -864,6 +864,14 @@ public class MoreRoadBlocks {
             (properties) -> new CE50Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> E31A = registerBlock("e31a",
+            (properties) -> new E31aBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> E31B = registerBlock("e31b",
+            (properties) -> new E31bBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
     public static final DeferredBlock<Block> D21A = registerBlock("d21a",
             (properties) -> new D21ABlock(properties
                     .noOcclusion().sound(SoundType.IRON)));

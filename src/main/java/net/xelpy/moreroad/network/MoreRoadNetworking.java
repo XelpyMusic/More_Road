@@ -19,6 +19,7 @@ import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.block.entity.D42bBlockEntity;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
+import net.xelpy.moreroad.block.entity.E31BlockEntity;
 
 public final class MoreRoadNetworking {
 
@@ -29,6 +30,8 @@ public final class MoreRoadNetworking {
      */
 
     private static final int MAX_EB10_LINE_LENGTH = 32;
+
+    private static final int MAX_E31_TEXT_LENGTH = 48;
 
     private static final int MAX_D21A_LINE_LENGTH = 48;
 
@@ -77,6 +80,19 @@ public final class MoreRoadNetworking {
                 UpdateEB10TextPayload.TYPE,
                 UpdateEB10TextPayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateEB10Text
+        );
+
+
+        /*
+         * --------------------------------------------------------
+         * E31a / E31b
+         * --------------------------------------------------------
+         */
+
+        registrar.playToServer(
+                UpdateE31TextPayload.TYPE,
+                UpdateE31TextPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateE31Text
         );
 
 
@@ -278,6 +294,51 @@ public final class MoreRoadNetworking {
                 pos,
                 finalState,
                 finalState,
+                Block.UPDATE_ALL
+        );
+    }
+
+
+    /*
+     * ============================================================
+     * E31a / E31b
+     * ============================================================
+     */
+
+    private static void handleUpdateE31Text(
+            UpdateE31TextPayload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+
+        if (player.blockPosition().distManhattan(pos) > MAX_EDIT_DISTANCE) {
+            return;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof E31BlockEntity blockEntity)) {
+            return;
+        }
+
+        blockEntity.setText(
+                cleanText(payload.text(), MAX_E31_TEXT_LENGTH)
+        );
+
+        BlockState state = level.getBlockState(pos);
+        level.sendBlockUpdated(
+                pos,
+                state,
+                state,
                 Block.UPDATE_ALL
         );
     }

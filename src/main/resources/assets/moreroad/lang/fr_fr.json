@@ -279,5 +279,7 @@
   "block.moreroad.d61a2": "D61A double",
   "block.moreroad.j4b": "J4b",
   "block.moreroad.d42b": "D42b - Giratoire",
-  "block.moreroad.poteau_d42b_block": "Poteaux D42b"
+  "block.moreroad.poteau_d42b_block": "Poteaux D42b",
+  "block.moreroad.e31a": "E31a — Lieu-dit",
+  "block.moreroad.e31b": "E31b — Nom des cours d'eau"
 }
