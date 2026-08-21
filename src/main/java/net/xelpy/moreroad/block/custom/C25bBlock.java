@@ -25,16 +25,16 @@ public class C25bBlock extends HorizontalDirectionalBlock {
      * appliquée par le blockstate autour du centre du bloc.
      */
     private static final VoxelShape SHAPE_NORTH =
-            Block.box(-2.80, 0.00, 6.37750, 18.80, 31.48875, 10.00);
+            Block.box(-2.8, 0.0, 5.3775, 18.8, 31.48875, 9.0);
 
     private static final VoxelShape SHAPE_EAST =
-            Block.box(6.37750, 0.00, -2.80, 10.00, 31.48875, 18.80);
+            Block.box(7.3775, 0.0, -2.8, 11.0, 31.48875, 18.8);
 
     private static final VoxelShape SHAPE_SOUTH =
-            Block.box(-2.80, 0.00, 6.00, 18.80, 31.48875, 9.62250);
+            Block.box(-2.8, 0.0, 7.0, 18.8, 31.48875, 10.6225);
 
     private static final VoxelShape SHAPE_WEST =
-            Block.box(6.00, 0.00, -2.80, 9.62250, 31.48875, 18.80);
+            Block.box(5.0, 0.0, -2.8, 8.6225, 31.48875, 18.8);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

@@ -13,11 +13,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class GlissiereDeSecuriteBlock extends HorizontalDirectionalBlock {
+    /* V101 : hitbox ajustée aux dimensions exactes du modèle. */
     public static final MapCodec<GlissiereDeSecuriteBlock> CODEC = simpleCodec(GlissiereDeSecuriteBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 6, 16, 13, 9);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 7, 16, 13, 10);
-    private static final VoxelShape SHAPE_EAST = Block.box(7, 0, 0, 10, 13, 16);
-    private static final VoxelShape SHAPE_WEST = Block.box(6, 0, 0, 9, 13, 16);
+    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 6.275, 16, 13.10636, 9);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 7, 16, 13.10636, 9.725);
+    private static final VoxelShape SHAPE_EAST = Block.box(7, 0, 0, 9.725, 13.10636, 16);
+    private static final VoxelShape SHAPE_WEST = Block.box(6.275, 0, 0, 9, 13.10636, 16);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

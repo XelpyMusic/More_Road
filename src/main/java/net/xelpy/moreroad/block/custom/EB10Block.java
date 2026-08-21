@@ -45,40 +45,40 @@ public class EB10Block extends HorizontalDirectionalBlock implements EntityBlock
      * EB20 : X -8 -> 24, Y 3.65 -> 15, Z 5.8 -> 8
      */
     private static final VoxelShape EB10_PANEL_NORTH =
-            Block.box(-8.0, 3.65, 6.0, 24.0, 15.0, 8.0);
+            Block.box(-8.0, 3.65, 5.0, 24.0, 15.0, 7.0);
 
     private static final VoxelShape EB10_PANEL_SOUTH =
-            Block.box(-8.0, 3.65, 8.0, 24.0, 15.0, 10.0);
+            Block.box(-8.0, 3.65, 9.0, 24.0, 15.0, 11.0);
 
     private static final VoxelShape EB10_PANEL_EAST =
-            Block.box(8.0, 3.65, -8.0, 10.0, 15.0, 24.0);
+            Block.box(9.0, 3.65, -8.0, 11.0, 15.0, 24.0);
 
     private static final VoxelShape EB10_PANEL_WEST =
-            Block.box(6.0, 3.65, -8.0, 8.0, 15.0, 24.0);
+            Block.box(5.0, 3.65, -8.0, 7.0, 15.0, 24.0);
 
     private static final VoxelShape EB20_PANEL_NORTH =
-            Block.box(-8.0, 3.65, 5.8, 24.0, 15.0, 8.0);
+            Block.box(-8.0, 3.65, 4.8, 24.0, 15.0, 7.0);
 
     private static final VoxelShape EB20_PANEL_SOUTH =
-            Block.box(-8.0, 3.65, 8.0, 24.0, 15.0, 10.2);
+            Block.box(-8.0, 3.65, 9.0, 24.0, 15.0, 11.2);
 
     private static final VoxelShape EB20_PANEL_EAST =
-            Block.box(8.0, 3.65, -8.0, 10.2, 15.0, 24.0);
+            Block.box(9.0, 3.65, -8.0, 11.2, 15.0, 24.0);
 
     private static final VoxelShape EB20_PANEL_WEST =
-            Block.box(5.8, 3.65, -8.0, 8.0, 15.0, 24.0);
+            Block.box(4.8, 3.65, -8.0, 7.0, 15.0, 24.0);
 
     private static final VoxelShape POLE_NORTH =
-            Block.box(7.0, 0.0, 8.0, 9.0, 16.0, 10.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     private static final VoxelShape POLE_SOUTH =
-            Block.box(7.0, 0.0, 6.0, 9.0, 16.0, 8.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     private static final VoxelShape POLE_EAST =
-            Block.box(6.0, 0.0, 7.0, 8.0, 16.0, 9.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     private static final VoxelShape POLE_WEST =
-            Block.box(8.0, 0.0, 7.0, 10.0, 16.0, 9.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

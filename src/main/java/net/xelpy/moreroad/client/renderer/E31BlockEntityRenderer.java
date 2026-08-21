@@ -22,6 +22,9 @@ import net.xelpy.moreroad.block.custom.AbstractE31Block;
 import net.xelpy.moreroad.block.entity.E31BlockEntity;
 
 /**
+ * V101 : texte rapproché au maximum de la face du panneau, avec seulement
+ * un très léger écart anti-z-fighting pour éviter l'effet de texte flottant.
+ *
  * Renderer du texte personnalisable des E31a / E31b.
  *
  * V96 : finition verticale du E31b après test en jeu.
@@ -56,7 +59,8 @@ public class E31BlockEntityRenderer
 
     /* E31a : plaque X -4 -> 20, Y 10.84 -> 15, face avant Z = 6. */
     private static final float E31A_TEXT_Y = 0.786F;
-    private static final float E31A_TEXT_Z = 0.128F;
+    /* V99 : stabilisation du texte devant la face + POLYGON_OFFSET. */
+    private static final float E31A_TEXT_Z = 0.1925F;
     private static final float E31A_TEXT_X_OFFSET = 0.0F;
     private static final float E31A_BASE_SCALE = 0.0195F;
     private static final float E31A_MAX_WIDTH = 1.30F;
@@ -66,7 +70,7 @@ public class E31BlockEntityRenderer
      * volontairement décalé vers la droite et dispose d'une zone plus courte.
      */
     private static final float E31B_TEXT_Y = 0.812F;
-    private static final float E31B_TEXT_Z = 0.096F;
+    private static final float E31B_TEXT_Z = 0.1625F;
     private static final float E31B_TEXT_X_OFFSET = 0.18F;
     private static final float E31B_BASE_SCALE = 0.0190F;
     private static final float E31B_MAX_WIDTH = 1.04F;

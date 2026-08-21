@@ -13,11 +13,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class LigneCedezLePassageBlock extends HorizontalDirectionalBlock {
+    /* V101 : hitbox recalée sur la géométrie réelle du marquage au sol. */
     public static final MapCodec<LigneCedezLePassageBlock> CODEC = simpleCodec(LigneCedezLePassageBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 0, 16, 0.01, 16);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 0, 16, 0.01, 16);
-    private static final VoxelShape SHAPE_EAST = Block.box(0, 0, 0, 16, 0.01, 16);
-    private static final VoxelShape SHAPE_WEST = Block.box(0, 0, 0, 16, 0.01, 16);
+    private static final VoxelShape SHAPE_NORTH = Block.box(4, 0, 4, 12, 0.01, 12);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(4, 0, 4, 12, 0.01, 12);
+    private static final VoxelShape SHAPE_EAST = Block.box(4, 0, 4, 12, 0.01, 12);
+    private static final VoxelShape SHAPE_WEST = Block.box(4, 0, 4, 12, 0.01, 12);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

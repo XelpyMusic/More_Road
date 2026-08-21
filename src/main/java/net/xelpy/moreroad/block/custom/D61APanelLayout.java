@@ -41,16 +41,16 @@ public final class D61APanelLayout {
      * Z =  5.97 ->  7.98
      */
     private static final VoxelShape SIMPLE_NORTH =
-            Block.box(-8.00, 10.43, 5.97, 24.00, 14.99, 7.98);
+            Block.box(-8.00, 10.43, 4.97, 24.00, 14.99, 6.98);
 
     private static final VoxelShape SIMPLE_EAST =
-            Block.box(8.02, 10.43, -8.00, 10.03, 14.99, 24.00);
+            Block.box(9.02, 10.43, -8.00, 11.03, 14.99, 24.00);
 
     private static final VoxelShape SIMPLE_SOUTH =
-            Block.box(-8.00, 10.43, 8.02, 24.00, 14.99, 10.03);
+            Block.box(-8.00, 10.43, 9.02, 24.00, 14.99, 11.03);
 
     private static final VoxelShape SIMPLE_WEST =
-            Block.box(5.97, 10.43, -8.00, 7.98, 14.99, 24.00);
+            Block.box(4.97, 10.43, -8.00, 6.98, 14.99, 24.00);
 
     /*
      * D61A double : dimensions exactes du nouveau modèle Blockbench.
@@ -61,16 +61,16 @@ public final class D61APanelLayout {
      * Z =  6.00000 ->  8.00000
      */
     private static final VoxelShape DOUBLE_NORTH =
-            Block.box(-7.92040, 6.48259, 6.00000, 23.92040, 14.92040, 8.00000);
+            Block.box(-7.92040, 6.48259, 5.00000, 23.92040, 14.92040, 7.00000);
 
     private static final VoxelShape DOUBLE_EAST =
-            Block.box(8.00000, 6.48259, -7.92040, 10.00000, 14.92040, 23.92040);
+            Block.box(9.00000, 6.48259, -7.92040, 11.00000, 14.92040, 23.92040);
 
     private static final VoxelShape DOUBLE_SOUTH =
-            Block.box(-7.92040, 6.48259, 8.00000, 23.92040, 14.92040, 10.00000);
+            Block.box(-7.92040, 6.48259, 9.00000, 23.92040, 14.92040, 11.00000);
 
     private static final VoxelShape DOUBLE_WEST =
-            Block.box(6.00000, 6.48259, -7.92040, 8.00000, 14.92040, 23.92040);
+            Block.box(5.00000, 6.48259, -7.92040, 7.00000, 14.92040, 23.92040);
 
     public static double getPanelYOffset(
             D61APanelData[] panels,

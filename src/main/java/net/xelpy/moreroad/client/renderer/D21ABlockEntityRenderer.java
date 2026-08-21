@@ -60,15 +60,27 @@ public class D21ABlockEntityRenderer
      * RÉGLAGES TEXTE - COMMUNS
      * ============================================================ */
 
-    private static final float TEXT_Z = 0.128F;
+    /*
+     * V100 : les zones D21 sont resserrées vers leurs bords utiles :
+     * kilométrage plus près de la pointe et destination plus près du bord
+     * opposé, afin d'exploiter davantage la largeur réelle de la plaque.
+     */
+
+    private static final float TEXT_Z = 0.1925F;
+
+    /*
+     * V99 : le texte est posé légèrement devant la face du panneau et rendu
+     * avec un écart de profondeur réel et le mode NORMAL pour éviter à la fois
+     * les zones transparentes autour des glyphes et le z-fighting à distance.
+     */
 
     /*
      * V49 : les kilométrages des D21A simples utilisent maintenant les
      * mêmes colonnes latérales que les variantes 2 lignes afin que toutes
      * les valeurs restent visuellement alignées d'un panneau à l'autre.
      */
-    private static final float LEFT_DISTANCE_X = -0.1625F;
-    private static final float RIGHT_DISTANCE_X = 1.055F;
+    private static final float LEFT_DISTANCE_X = -0.250F;
+    private static final float RIGHT_DISTANCE_X = 1.250F;
 
     /*
      * V52 : correction du sens du réglage précédent. Sur les D21A simples
@@ -76,14 +88,14 @@ public class D21ABlockEntityRenderer
      * vers la droite. Les ancres sont maintenant identiques à celles des
      * variantes D21A2 afin d'obtenir une colonne cohérente.
      */
-    private static final float LEFT_DESTINATION_RIGHT_EDGE = 1.43F;
+    private static final float LEFT_DESTINATION_RIGHT_EDGE = 1.31F;
 
     /*
      * V50 : le texte destination des D21A simples orientés vers la droite
      * est légèrement ramené vers la gauche pour s'aligner visuellement avec
      * les autres panneaux du même ensemble.
      */
-    private static final float RIGHT_DESTINATION_LEFT_EDGE = -0.43F;
+    private static final float RIGHT_DESTINATION_LEFT_EDGE = -0.31F;
 
     private static final float LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 1.00F;
     private static final float RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.00F;
@@ -100,8 +112,8 @@ public class D21ABlockEntityRenderer
     private static final float SINGLE_DESTINATION_BASE_SCALE = 0.0170F;
     private static final float SINGLE_DISTANCE_BASE_SCALE = 0.0160F;
 
-    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITH_DISTANCE = 1.06F;
-    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE = 1.34F;
+    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITH_DISTANCE = 1.18F;
+    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE = 1.50F;
 
     private static final float SINGLE_DESTINATION_MAX_WIDTH_WITH_DISTANCE_AND_AUTOROUTE_LOGO = 0.82F;
     private static final float SINGLE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE_AND_AUTOROUTE_LOGO = 1.00F;
@@ -125,8 +137,8 @@ public class D21ABlockEntityRenderer
     private static final float TWO_LINE_DESTINATION_BASE_SCALE = 0.0158F;
     private static final float TWO_LINE_DISTANCE_BASE_SCALE = 0.0155F;
 
-    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITH_DISTANCE = 1.08F;
-    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE = 1.34F;
+    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITH_DISTANCE = 1.18F;
+    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE = 1.50F;
 
     private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITH_DISTANCE_AND_AUTOROUTE_LOGO = 0.78F;
     private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE_AND_AUTOROUTE_LOGO = 0.88F;
@@ -136,8 +148,8 @@ public class D21ABlockEntityRenderer
      * de la V8. L'ancien offset -1/16 est simplement intégré directement
      * dans ces deux constantes pour que rien ne bouge de ce côté-là.
      */
-    private static final float TWO_LINE_LEFT_DISTANCE_X = -0.1625F;
-    private static final float TWO_LINE_RIGHT_DISTANCE_X = 1.055F;
+    private static final float TWO_LINE_LEFT_DISTANCE_X = -0.250F;
+    private static final float TWO_LINE_RIGHT_DISTANCE_X = 1.250F;
 
     /*
      * Le panneau blanc à flèche droite donne visuellement un peu plus
@@ -145,7 +157,7 @@ public class D21ABlockEntityRenderer
      * uniquement son kilométrage d'environ un pixel Minecraft, sans
      * modifier les panneaux verts/bleus.
      */
-    private static final float TWO_LINE_RIGHT_DISTANCE_X_WHITE = 1.115F;
+    private static final float TWO_LINE_RIGHT_DISTANCE_X_WHITE = 1.270F;
 
     /*
      * Marges D21A2 définitives.
@@ -159,8 +171,8 @@ public class D21ABlockEntityRenderer
      *  - flèche à gauche  -> destination alignée à droite ;
      *  - flèche à droite  -> destination alignée à gauche.
      */
-    private static final float TWO_LINE_LEFT_DESTINATION_RIGHT_EDGE = 1.43F;
-    private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE = -0.43F;
+    private static final float TWO_LINE_LEFT_DESTINATION_RIGHT_EDGE = 1.31F;
+    private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE = -0.31F;
 
     private static final float TWO_LINE_LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 1.00F;
     private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.00F;
@@ -586,9 +598,9 @@ public class D21ABlockEntityRenderer
         }
 
         /*
-         * V48 : les deux modèles D21A simples sont désormais réellement
-         * centrés sur X = 8. Le texte utilise donc directement le repère
-         * commun du panneau, sans compensation gauche/droite.
+         * V99 : le corps rectangulaire des deux variantes est maintenant
+         * réellement centré sur X = 8. Les ancres texte sont donc exprimées
+         * directement dans ce repère commun, sans décalage supplémentaire.
          */
         float textY = SINGLE_TEXT_Y + yOffset;
 
@@ -701,7 +713,7 @@ public class D21ABlockEntityRenderer
             }
         } else {
             if (hasAnyDistance && arrowRight) {
-                destinationMaxWidth = 1.00F;
+                destinationMaxWidth = 1.12F;
             } else {
                 destinationMaxWidth =
                         hasAnyDistance

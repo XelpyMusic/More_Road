@@ -31,16 +31,16 @@ public class D61A2Block
     public static final double PANEL_VERTICAL_STEP = 0.64D;
 
     private static final VoxelShape POLE_NORTH =
-            Block.box(7.0, 0.0, 8.0, 9.0, 16.0, 10.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     private static final VoxelShape POLE_SOUTH =
-            Block.box(7.0, 0.0, 6.0, 9.0, 16.0, 8.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     private static final VoxelShape POLE_EAST =
-            Block.box(6.0, 0.0, 7.0, 8.0, 16.0, 9.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     private static final VoxelShape POLE_WEST =
-            Block.box(8.0, 0.0, 7.0, 10.0, 16.0, 9.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     public D61A2Block(Properties properties) {
         super(properties);

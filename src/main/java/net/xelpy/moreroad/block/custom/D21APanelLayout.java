@@ -210,59 +210,75 @@ public final class D21APanelLayout {
      * ============================================================ */
 
     /*
-     * V47 : les deux modèles D21A simples sont maintenant physiquement
-     * recentrés sur X = 8 et partagent exactement la même hauteur.
+     * V98 : le corps rectangulaire du D21 est désormais centré sur X = 8.
+     * La pointe de direction dépasse naturellement du côté correspondant,
+     * donc la silhouette totale est volontairement asymétrique.
      *
-     * NORTH :
-     * X = -7.96 -> 23.96
-     * Y =  7.80 -> 14.96
-     * Z =  6.00 ->  8.00
+     * Modèle arrow_right = false : X = -6.36 -> 25.56
+     * Modèle arrow_right = true  : X = -9.56 -> 22.36
      *
-     * La hitbox ne dépend donc plus du côté de la flèche.
+     * Ces bornes suivent exactement les modèles après leur décalage de
+     * +/- 1,6 unité Blockbench.
      */
-    private static final VoxelShape SIMPLE_NORTH =
-            Block.box(-7.96, 7.80, 6.00, 23.96, 14.96, 8.00);
-
-    private static final VoxelShape SIMPLE_EAST =
-            Block.box(8.00, 7.80, -7.96, 10.00, 14.96, 23.96);
-
-    private static final VoxelShape SIMPLE_SOUTH =
-            Block.box(-7.96, 7.80, 8.00, 23.96, 14.96, 10.00);
-
-    private static final VoxelShape SIMPLE_WEST =
-            Block.box(6.00, 7.80, -7.96, 8.00, 14.96, 23.96);
-
-    private static final VoxelShape DOUBLE_NORTH =
-            Block.box(-7.96, 6.08, 6.00, 23.96, 14.96, 8.00);
-
-    private static final VoxelShape DOUBLE_EAST =
-            Block.box(8.00, 6.08, -7.96, 10.00, 14.96, 23.96);
-
-    private static final VoxelShape DOUBLE_SOUTH =
-            Block.box(-7.96, 6.08, 8.00, 23.96, 14.96, 10.00);
-
-    private static final VoxelShape DOUBLE_WEST =
-            Block.box(6.00, 6.08, -7.96, 8.00, 14.96, 23.96);
+    private static final double LEFT_MODEL_MIN_X = -6.36D;
+    private static final double LEFT_MODEL_MAX_X = 25.56D;
+    private static final double RIGHT_MODEL_MIN_X = -9.56D;
+    private static final double RIGHT_MODEL_MAX_X = 22.36D;
 
     public static VoxelShape getPanelShape(
             Direction facing,
             boolean arrowRight,
             boolean doubleLine
     ) {
-        if (doubleLine) {
-            return switch (facing) {
-                case EAST -> DOUBLE_EAST;
-                case SOUTH -> DOUBLE_SOUTH;
-                case WEST -> DOUBLE_WEST;
-                default -> DOUBLE_NORTH;
-            };
-        }
+        double minY = doubleLine ? 6.08D : 7.80D;
+        double maxY = 14.96D;
 
-        return switch (facing) {
-            case EAST -> SIMPLE_EAST;
-            case SOUTH -> SIMPLE_SOUTH;
-            case WEST -> SIMPLE_WEST;
-            default -> SIMPLE_NORTH;
+        double minX = arrowRight
+                ? RIGHT_MODEL_MIN_X
+                : LEFT_MODEL_MIN_X;
+
+        double maxX = arrowRight
+                ? RIGHT_MODEL_MAX_X
+                : LEFT_MODEL_MAX_X;
+
+        Direction safeFacing = facing == null
+                ? Direction.NORTH
+                : facing;
+
+        return switch (safeFacing) {
+            case EAST -> Block.box(
+                    9.00D,
+                    minY,
+                    minX,
+                    11.00D,
+                    maxY,
+                    maxX
+            );
+            case SOUTH -> Block.box(
+                    16.00D - maxX,
+                    minY,
+                    9.00D,
+                    16.00D - minX,
+                    maxY,
+                    11.00D
+            );
+            case WEST -> Block.box(
+                    5.00D,
+                    minY,
+                    16.00D - maxX,
+                    7.00D,
+                    maxY,
+                    16.00D - minX
+            );
+            default -> Block.box(
+                    minX,
+                    minY,
+                    5.00D,
+                    maxX,
+                    maxY,
+                    7.00D
+            );
         };
     }
+
 }

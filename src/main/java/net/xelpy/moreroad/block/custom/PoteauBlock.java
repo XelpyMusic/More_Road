@@ -13,11 +13,15 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PoteauBlock extends HorizontalDirectionalBlock {
+    /*
+     * V97 : le poteau est désormais centré au milieu du bloc
+     * pour rester au même point quelle que soit son orientation.
+     */
     public static final MapCodec<PoteauBlock> CODEC = simpleCodec(PoteauBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(7, 0, 8, 9, 16, 10);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(7, 0, 6, 9, 16, 8);
-    private static final VoxelShape SHAPE_EAST = Block.box(6, 0, 7, 8, 16, 9);
-    private static final VoxelShape SHAPE_WEST = Block.box(8, 0, 7, 10, 16, 9);
+    private static final VoxelShape SHAPE_NORTH = Block.box(7, 0, 7, 9, 16, 9);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(7, 0, 7, 9, 16, 9);
+    private static final VoxelShape SHAPE_EAST = Block.box(7, 0, 7, 9, 16, 9);
+    private static final VoxelShape SHAPE_WEST = Block.box(7, 0, 7, 9, 16, 9);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

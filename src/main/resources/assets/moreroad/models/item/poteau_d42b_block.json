@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "moreroad:item/poteau_d42b_block"
-  }
+  "parent": "moreroad:block/poteau_d42b_block"
 }

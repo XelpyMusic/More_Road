@@ -58,8 +58,9 @@ public class D61ABlockEntityRenderer
     private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT =
             BlockDisplayContext.create();
 
-    private static final float TEXT_Z = 0.128F;
-    private static final float ARROW_Z = 0.130F;
+    /* V99 : stabilisation du texte devant la face + POLYGON_OFFSET. */
+    private static final float TEXT_Z = 0.1935F;
+    private static final float ARROW_Z = 0.1925F;
 
     private static final float SIMPLE_LINE_Y = 0.765F;
     private static final float DOUBLE_LINE_Y_TOP = 0.720F;

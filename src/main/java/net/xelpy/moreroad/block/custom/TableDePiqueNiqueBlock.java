@@ -13,11 +13,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class TableDePiqueNiqueBlock extends HorizontalDirectionalBlock {
+    /* V101 : hitbox recalée sur les limites exactes du modèle dans chaque orientation. */
     public static final MapCodec<TableDePiqueNiqueBlock> CODEC = simpleCodec(TableDePiqueNiqueBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(-6.85, 0, -8, 22.8, 18, 24);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(-6.85, 0, -8, 22.8, 18, 24);
-    private static final VoxelShape SHAPE_EAST = Block.box(-8, 0, -6.85, 24, 18, 22.8);
-    private static final VoxelShape SHAPE_WEST = Block.box(-8, 0, -6.85, 24, 18, 22.8);
+    private static final VoxelShape SHAPE_NORTH = Block.box(-6.85, 0.02695, -8, 22.8, 18, 24);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(-6.8, 0.02695, -8, 22.85, 18, 24);
+    private static final VoxelShape SHAPE_EAST = Block.box(-8, 0.02695, -6.85, 24, 18, 22.8);
+    private static final VoxelShape SHAPE_WEST = Block.box(-8, 0.02695, -6.8, 24, 18, 22.85);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

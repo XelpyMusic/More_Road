@@ -13,11 +13,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class BarriereDeSecuriteBlock extends HorizontalDirectionalBlock {
+    /* V101 : hitbox recalée sur les limites exactes du modèle dans chaque orientation. */
     public static final MapCodec<BarriereDeSecuriteBlock> CODEC = simpleCodec(BarriereDeSecuriteBlock::new);
     private static final VoxelShape SHAPE_NORTH = Block.box(-13, 0, 3, 27, 19, 13);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(-13, 0, 3, 27, 19, 13);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(-11, 0, 3, 29, 19, 13);
     private static final VoxelShape SHAPE_EAST = Block.box(3, 0, -13, 13, 19, 27);
-    private static final VoxelShape SHAPE_WEST = Block.box(3, 0, -13, 13, 19, 27);
+    private static final VoxelShape SHAPE_WEST = Block.box(3, 0, -11, 13, 19, 29);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

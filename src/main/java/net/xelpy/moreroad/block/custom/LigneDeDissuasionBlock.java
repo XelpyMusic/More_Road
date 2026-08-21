@@ -13,11 +13,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class LigneDeDissuasionBlock extends HorizontalDirectionalBlock {
+    /* V101 : hitbox recalée sur la géométrie réelle du marquage au sol. */
     public static final MapCodec<LigneDeDissuasionBlock> CODEC = simpleCodec(LigneDeDissuasionBlock::new);
-    private static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 0, 16, 0.01, 16);
-    private static final VoxelShape SHAPE_SOUTH = Block.box(0, 0, 0, 16, 0.01, 16);
-    private static final VoxelShape SHAPE_EAST = Block.box(0, 0, 0, 16, 0.01, 16);
-    private static final VoxelShape SHAPE_WEST = Block.box(0, 0, 0, 16, 0.01, 16);
+    private static final VoxelShape SHAPE_NORTH = Block.box(7, 0, 3, 9, 0.01, 13);
+    private static final VoxelShape SHAPE_SOUTH = Block.box(7, 0, 3, 9, 0.01, 13);
+    private static final VoxelShape SHAPE_EAST = Block.box(3, 0, 7, 13, 0.01, 9);
+    private static final VoxelShape SHAPE_WEST = Block.box(3, 0, 7, 13, 0.01, 9);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {

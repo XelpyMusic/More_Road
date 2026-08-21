@@ -30,31 +30,31 @@ public abstract class AbstractE31Block extends HorizontalDirectionalBlock
         implements EntityBlock {
 
     private static final VoxelShape POLE_NORTH =
-            Block.box(7.0, 0.0, 8.0, 9.0, 16.0, 10.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
     private static final VoxelShape POLE_SOUTH =
-            Block.box(7.0, 0.0, 6.0, 9.0, 16.0, 8.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
     private static final VoxelShape POLE_EAST =
-            Block.box(6.0, 0.0, 7.0, 8.0, 16.0, 9.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
     private static final VoxelShape POLE_WEST =
-            Block.box(8.0, 0.0, 7.0, 10.0, 16.0, 9.0);
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
 
     private static final VoxelShape E31A_PANEL_NORTH =
-            Block.box(-4.0, 10.84, 6.0, 20.0, 15.0, 8.0);
+            Block.box(-4.0, 10.84, 5.0, 20.0, 15.0, 7.0);
     private static final VoxelShape E31A_PANEL_SOUTH =
-            Block.box(-4.0, 10.84, 8.0, 20.0, 15.0, 10.0);
+            Block.box(-4.0, 10.84, 9.0, 20.0, 15.0, 11.0);
     private static final VoxelShape E31A_PANEL_EAST =
-            Block.box(8.0, 10.84, -4.0, 10.0, 15.0, 20.0);
+            Block.box(9.0, 10.84, -4.0, 11.0, 15.0, 20.0);
     private static final VoxelShape E31A_PANEL_WEST =
-            Block.box(6.0, 10.84, -4.0, 8.0, 15.0, 20.0);
+            Block.box(5.0, 10.84, -4.0, 7.0, 15.0, 20.0);
 
     private static final VoxelShape E31B_PANEL_NORTH =
-            Block.box(-4.0, 11.63, 6.5, 20.0, 15.0, 8.0);
+            Block.box(-4.0, 11.63, 5.5, 20.0, 15.0, 7.0);
     private static final VoxelShape E31B_PANEL_SOUTH =
-            Block.box(-4.0, 11.63, 8.0, 20.0, 15.0, 9.5);
+            Block.box(-4.0, 11.63, 9.0, 20.0, 15.0, 10.5);
     private static final VoxelShape E31B_PANEL_EAST =
-            Block.box(8.0, 11.63, -4.0, 9.5, 15.0, 20.0);
+            Block.box(9.0, 11.63, -4.0, 10.5, 15.0, 20.0);
     private static final VoxelShape E31B_PANEL_WEST =
-            Block.box(6.5, 11.63, -4.0, 8.0, 15.0, 20.0);
+            Block.box(5.5, 11.63, -4.0, 7.0, 15.0, 20.0);
 
     private final boolean waterName;
 

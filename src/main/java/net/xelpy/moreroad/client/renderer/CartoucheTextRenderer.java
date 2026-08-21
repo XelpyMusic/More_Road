@@ -16,6 +16,9 @@ import net.xelpy.moreroad.block.custom.CartoucheType;
 
 
 /**
+ * V101 : texte rapproché au maximum de la face du panneau, avec seulement
+ * un très léger écart anti-z-fighting pour éviter l'effet de texte flottant.
+ *
  * Rendu commun du texte libre affiché sur les cartouches E41 à E47.
  * Le texte est centré sur la face avant et réduit automatiquement quand
  * il devient trop long pour conserver les proportions du cartouche.
@@ -31,10 +34,9 @@ public final class CartoucheTextRenderer {
             );
 
     /*
-     * Les nouveaux modèles font 2 unités de profondeur (Z = 6 -> 8) puis
-     * sont rendus à 72 %. Leur face avant se trouve donc à environ 0,09 bloc
-     * du centre. TEXT_Z = 0.092 place le texte juste devant cette face :
-     * visible, sans z-fighting et sans effet de texte flottant.
+     * V99 : le texte est placé un peu plus franchement devant la face et
+     * utilise maintenant un écart de profondeur réel avec le mode NORMAL. Cela évite les zones transparentes autour des glyphes tout en stabilisant le rendu après le
+     * recentrage des modèles, sans donner d'effet de texte flottant.
      *
      * V58 : les nouveaux modèles sont géométriquement centrés sur X = 8.
      * Le décalage optique horizontal est donc supprimé : le texte est rendu
@@ -46,7 +48,7 @@ public final class CartoucheTextRenderer {
      * optique déjà validé.
      */
     private static final float TEXT_Y_FROM_BOTTOM = 0.132F;
-    private static final float TEXT_Z = 0.092F;
+    private static final float TEXT_Z = 0.1400F;
     private static final float CENTER_X_NUDGE = 0.000F;
 
     private static final float BASE_SCALE = 0.0185F;

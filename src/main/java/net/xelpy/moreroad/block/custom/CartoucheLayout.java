@@ -54,8 +54,8 @@ public final class CartoucheLayout {
      */
     private static final double MODEL_MIN_X = 2.4D;
     private static final double MODEL_MAX_X = 13.6D;
-    private static final double MODEL_MIN_Z = 6.0D;
-    private static final double MODEL_MAX_Z = 8.0D;
+    private static final double MODEL_MIN_Z = 5.0D;
+    private static final double MODEL_MAX_Z = 7.0D;
     private static final double MODEL_MAX_Y = 5.2D;
 
     private static final double CARTOUCHE_RENDER_HEIGHT =
@@ -417,34 +417,34 @@ public final class CartoucheLayout {
             case SOUTH -> Block.box(
                     7.0D + shiftX,
                     minY,
-                    6.0D + shiftZ,
+                    7.0D + shiftZ,
                     9.0D + shiftX,
                     maxY,
-                    8.0D + shiftZ
+                    9.0D + shiftZ
             );
             case EAST -> Block.box(
-                    6.0D + shiftX,
+                    7.0D + shiftX,
                     minY,
                     7.0D + shiftZ,
-                    8.0D + shiftX,
+                    9.0D + shiftX,
                     maxY,
                     9.0D + shiftZ
             );
             case WEST -> Block.box(
-                    8.0D + shiftX,
+                    7.0D + shiftX,
                     minY,
                     7.0D + shiftZ,
-                    10.0D + shiftX,
+                    9.0D + shiftX,
                     maxY,
                     9.0D + shiftZ
             );
             default -> Block.box(
                     7.0D + shiftX,
                     minY,
-                    8.0D + shiftZ,
+                    7.0D + shiftZ,
                     9.0D + shiftX,
                     maxY,
-                    10.0D + shiftZ
+                    9.0D + shiftZ
             );
         };
     }

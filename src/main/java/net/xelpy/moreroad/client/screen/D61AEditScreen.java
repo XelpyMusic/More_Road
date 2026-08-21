@@ -1,8 +1,9 @@
 package net.xelpy.moreroad.client.screen;
 
-import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -18,20 +19,16 @@ import net.xelpy.moreroad.network.UpdateD61APayload;
 public class D61AEditScreen extends Screen {
 
     private final BlockPos blockPos;
+    private final D61APanelData[] panels = new D61APanelData[D61ABlockEntity.MAX_PANELS];
 
-    private final D61APanelData[] panels =
-            new D61APanelData[D61ABlockEntity.MAX_PANELS];
-
-    private int selectedPanelIndex = 0;
-
+    private int selectedPanelIndex;
     private boolean panelEnabled = true;
-    private boolean doubleLine = false;
+    private boolean doubleLine;
     private D21AType selectedType = D21AType.WHITE;
-    private boolean autorouteLogo = false;
+    private boolean autorouteLogo;
     private RoadTextFont line1Font = RoadTextFont.L1;
     private RoadTextFont line2Font = RoadTextFont.L1;
-
-    private boolean arrowEnabled = false;
+    private boolean arrowEnabled;
     private D61AArrowPosition arrowPosition = D61AArrowPosition.RIGHT;
     private D61AArrowDirection arrowDirection = D61AArrowDirection.UP;
     private CartoucheType cartoucheType = CartoucheType.NONE;
@@ -43,23 +40,40 @@ public class D61AEditScreen extends Screen {
     private EditBox distance2Field;
     private EditBox cartoucheTextField;
 
-    private final Button[] panelButtons =
-            new Button[D61ABlockEntity.MAX_PANELS];
+    private final SignEditorUi.Rect[] tabRects = new SignEditorUi.Rect[D61ABlockEntity.MAX_PANELS];
+    private final SignEditorUi.Rect[] tabToggleRects = new SignEditorUi.Rect[D61ABlockEntity.MAX_PANELS];
+    private final SignEditorUi.Rect[] directionRects = new SignEditorUi.Rect[D61AArrowDirection.values().length];
 
-    private final Button[] directionButtons =
-            new Button[D61AArrowDirection.values().length];
+    private SignEditorUi.Rect previewRect;
+    private SignEditorUi.Rect contentRect;
+    private SignEditorUi.Rect styleRect;
+    private SignEditorUi.Rect arrowRect;
+    private SignEditorUi.Rect cartoucheRect;
+    private SignEditorUi.Rect structureRect;
 
-    private Button enabledButton;
-    private Button formatButton;
-    private Button whiteButton;
-    private Button greenButton;
-    private Button blueButton;
-    private Button autorouteLogoButton;
-    private Button arrowEnabledButton;
-    private Button arrowPositionButton;
-    private Button line1FontButton;
-    private Button line2FontButton;
-    private Button cartoucheButton;
+    private SignEditorUi.Rect line1FontRect;
+    private SignEditorUi.Rect line2FontRect;
+    private SignEditorUi.Rect whiteRect;
+    private SignEditorUi.Rect greenRect;
+    private SignEditorUi.Rect blueRect;
+    private SignEditorUi.Rect logoRect;
+    private SignEditorUi.Rect arrowEnabledRect;
+    private SignEditorUi.Rect arrowLeftRect;
+    private SignEditorUi.Rect arrowRightRect;
+    private SignEditorUi.Rect cartoucheTypeRect;
+    private SignEditorUi.Rect simpleRect;
+    private SignEditorUi.Rect doubleRect;
+    private SignEditorUi.Rect applyRect;
+    private SignEditorUi.Rect cancelRect;
+
+    private final SignEditorUi.Rect[] settingsPageRects = new SignEditorUi.Rect[5];
+    private int settingsPage = 0;
+
+    private int windowX;
+    private int windowY;
+    private int windowWidth;
+    private int windowHeight;
+    private float scale = 1.0F;
 
     public D61AEditScreen(
             BlockPos blockPos,
@@ -67,48 +81,17 @@ public class D61AEditScreen extends Screen {
             CartoucheType currentCartoucheType,
             String currentCartoucheText
     ) {
-        super(Component.literal("Ensemble directionnel D61A"));
-
+        super(Component.literal("Éditeur de panneau D61"));
         this.blockPos = blockPos.immutable();
-        this.cartoucheType =
-                currentCartoucheType == null
-                        ? CartoucheType.NONE
-                        : currentCartoucheType;
-        this.cartoucheText =
-                currentCartoucheText == null
-                        ? ""
-                        : currentCartoucheText;
+        this.cartoucheType = currentCartoucheType == null ? CartoucheType.NONE : currentCartoucheType;
+        this.cartoucheText = currentCartoucheText == null ? "" : currentCartoucheText;
 
         for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
-            D61APanelData panel =
-                    currentPanels != null && i < currentPanels.length
-                            ? currentPanels[i]
-                            : null;
-
+            D61APanelData panel = currentPanels != null && i < currentPanels.length ? currentPanels[i] : null;
             if (panel == null) {
-                panel =
-                        i == 0
-                                ? D61APanelData.firstPanelDefault()
-                                : D61APanelData.disabled();
+                panel = i == 0 ? D61APanelData.firstPanelDefault() : D61APanelData.disabled();
             }
-
-            D21AType type = sanitizeType(panel.type());
-
-            this.panels[i] = new D61APanelData(
-                    panel.enabled(),
-                    panel.line1(),
-                    panel.line2(),
-                    panel.distance1(),
-                    panel.distance2(),
-                    type,
-                    panel.doubleLine(),
-                    panel.arrowEnabled(),
-                    panel.arrowPosition(),
-                    panel.arrowDirection(),
-                    type != D21AType.WHITE && panel.autorouteLogo(),
-                    panel.line1Font(),
-                    panel.line2Font()
-            );
+            this.panels[i] = panel;
         }
     }
 
@@ -116,805 +99,579 @@ public class D61AEditScreen extends Screen {
     protected void init() {
         super.init();
 
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
+        int marginX = Math.max(6, Math.min(22, this.width / 36));
+        int marginY = Math.max(6, Math.min(16, this.height / 36));
+        this.windowX = marginX;
+        this.windowY = marginY;
+        this.windowWidth = this.width - marginX * 2;
+        this.windowHeight = this.height - marginY * 2;
+        this.scale = SignEditorUi.adaptiveEditorScale(this.windowWidth, this.windowHeight, 1240.0F, 860.0F);
 
-        int formWidth = Math.min(380, this.width - 24);
-        int left = centerX - formWidth / 2;
-        int gap = 6;
-        int halfWidth = (formWidth - gap) / 2;
+        boolean compact = compactUi();
+        boolean tight = tightCompactUi();
 
-        /* ========================================================
-         * ONGLETS PANNEAUX 1 A 4
-         * ======================================================== */
+        int pad = s(tight ? 12 : compact ? 14 : 16);
+        int header = SignEditorUi.adaptiveHeaderHeight(this.scale, true);
+        int tabsH = SignEditorUi.adaptiveTabsHeight(this.scale);
+        int footer = SignEditorUi.adaptiveFooterHeight(this.scale);
+        int gap = s(tight ? 10 : 12);
+        int sectionGap = s(tight ? 6 : 8);
+        int bodyY = this.windowY + header + tabsH;
+        int bodyH = this.windowHeight - header - tabsH - footer;
 
-        int tabWidth =
-                (
-                        formWidth
-                                - gap
-                                * (D61ABlockEntity.MAX_PANELS - 1)
-                )
-                        / D61ABlockEntity.MAX_PANELS;
-
-        int tabsY = centerY - 218;
-
-        for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
-            final int panelIndex = i;
-
-            this.panelButtons[i] =
-                    Button.builder(
-                                    Component.empty(),
-                                    button -> selectPanel(panelIndex)
-                            )
-                            .bounds(
-                                    left + i * (tabWidth + gap),
-                                    tabsY,
-                                    tabWidth,
-                                    20
-                            )
-                            .build();
-
-            this.addRenderableWidget(this.panelButtons[i]);
+        int tabsGap = s(8);
+        int tabsW = this.windowWidth - pad * 2;
+        int tabW = (tabsW - tabsGap * 3) / 4;
+        int tabY = this.windowY + header;
+        for (int i = 0; i < this.tabRects.length; i++) {
+            int tx = this.windowX + pad + i * (tabW + tabsGap);
+            this.tabRects[i] = new SignEditorUi.Rect(tx, tabY, tabW, s(32));
+            this.tabToggleRects[i] = new SignEditorUi.Rect(tx + tabW - s(34), tabY + s(7), s(28), s(18));
         }
 
-        /* ========================================================
-         * ÉTAT DU PANNEAU
-         * ======================================================== */
+        int leftW = Math.max(s(310), Math.round((this.windowWidth - pad * 2 - gap) * 0.44F));
+        int rightW = this.windowWidth - pad * 2 - gap - leftW;
+        int leftX = this.windowX + pad;
+        int rightX = leftX + leftW + gap;
 
-        addSectionHeader(
-                "ÉTAT DU PANNEAU",
-                left,
-                centerY - 190,
-                formWidth
-        );
+        this.previewRect = new SignEditorUi.Rect(leftX, bodyY, leftW, Math.max(s(160), bodyH - s(tight ? 4 : 8)));
 
-        this.enabledButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.panelEnabled = !this.panelEnabled;
-                                    updateEnabledButton();
-                                    updatePanelButtons();
-                                }
-                        )
-                        .bounds(
-                                left,
-                                centerY - 169,
-                                halfWidth,
-                                20
-                        )
-                        .build();
+        if (pagedUi()) {
+            int pageGap = 4;
+            int pageHeight = 22;
+            SignEditorUi.Rect pageBar = new SignEditorUi.Rect(rightX, bodyY, rightW, pageHeight);
+            SignEditorUi.Rect[] pages = SignEditorUi.pageTabRects(pageBar, this.settingsPageRects.length, pageHeight, pageGap);
+            System.arraycopy(pages, 0, this.settingsPageRects, 0, this.settingsPageRects.length);
 
-        this.addRenderableWidget(this.enabledButton);
+            int cardY = bodyY + pageHeight + 6;
+            int cardHeight = Math.max(96, bodyH - pageHeight - 10);
+            SignEditorUi.Rect fullCard = new SignEditorUi.Rect(rightX, cardY, rightW, cardHeight);
+            this.contentRect = fullCard;
+            this.styleRect = fullCard;
+            this.arrowRect = fullCard;
+            this.cartoucheRect = fullCard;
+            this.structureRect = fullCard;
+        } else {
+            int available = Math.max(180, bodyH - (tight ? s(2) : s(8)));
+            int[] sectionHeights = SignEditorUi.fitSections(
+                    available,
+                    sectionGap,
+                    new float[]{0.24F, 0.18F, 0.25F, 0.15F, 0.18F},
+                    new int[]{
+                            s(tight ? 82 : compact ? 102 : 132),
+                            s(tight ? 66 : compact ? 82 : 100),
+                            s(tight ? 86 : compact ? 104 : 130),
+                            s(tight ? 58 : compact ? 70 : 88),
+                            s(tight ? 46 : compact ? 54 : 70)
+                    }
+            );
+            int contentH = sectionHeights[0];
+            int styleH = sectionHeights[1];
+            int arrowH = sectionHeights[2];
+            int cartoucheH = sectionHeights[3];
+            int structureH = sectionHeights[4];
 
-        this.formatButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.doubleLine = !this.doubleLine;
-                                    updateFormatButton();
-                                    updateFieldVisibility();
-                                    updatePanelButtons();
-                                }
-                        )
-                        .bounds(
-                                left + halfWidth + gap,
-                                centerY - 169,
-                                halfWidth,
-                                20
-                        )
-                        .build();
+            int y = bodyY;
+            this.contentRect = new SignEditorUi.Rect(rightX, y, rightW, contentH);
+            y += contentH + sectionGap;
+            this.styleRect = new SignEditorUi.Rect(rightX, y, rightW, styleH);
+            y += styleH + sectionGap;
+            this.arrowRect = new SignEditorUi.Rect(rightX, y, rightW, arrowH);
+            y += arrowH + sectionGap;
+            this.cartoucheRect = new SignEditorUi.Rect(rightX, y, rightW, cartoucheH);
+            y += cartoucheH + sectionGap;
+            this.structureRect = new SignEditorUi.Rect(rightX, y, rightW, structureH);
+        }
 
-        this.addRenderableWidget(this.formatButton);
+        initContentControls();
+        initStyleControls();
+        initArrowControls();
+        initCartoucheControls();
+        initStructureControls();
 
-        /* ========================================================
-         * TEXTES
-         * ======================================================== */
+        int actionY = this.windowY + this.windowHeight - s(36);
+        int actionW = s(145);
+        this.cancelRect = new SignEditorUi.Rect(this.windowX + this.windowWidth - pad - actionW, actionY, actionW, s(28));
+        this.applyRect = new SignEditorUi.Rect(this.cancelRect.x() - s(10) - actionW, actionY, actionW, s(28));
 
-        addSectionHeader(
-                "TEXTES  •  Destination / Police / Km",
-                left,
-                centerY - 139,
-                formWidth
-        );
+        loadSelectedPanelIntoWidgets();
+        updateFieldVisibility();
+        updateCartoucheFieldState();
+        updatePagedVisibility();
+        this.setInitialFocus(this.line1Field);
+    }
 
-        int lineLabelWidth = 36;
-        int fontButtonWidth = 92;
-        int distanceWidth = 70;
-        int destinationWidth =
-                formWidth
-                        - lineLabelWidth
-                        - fontButtonWidth
-                        - distanceWidth
-                        - gap * 3;
+    private void initContentControls() {
+        int innerX = this.contentRect.x() + s(10);
+        int innerW = this.contentRect.width() - s(20);
+        int fieldH = pagedUi() ? 20 : s(22);
+        int gap = pagedUi() ? 7 : s(7);
+        int fontW = Math.max(s(86), Math.round(innerW * 0.22F));
+        int distanceW = Math.max(s(60), Math.round(innerW * 0.16F));
+        int textW = innerW - fontW - distanceW - gap * 2;
+        int row1Y = this.contentRect.y() + (pagedUi() ? 34 : s(compactUi() ? 36 : 46));
+        int row2Y = row1Y + fieldH + (pagedUi() ? 8 : s(compactUi() ? 8 : 17));
 
-        addRowLabel(
-                "L1",
-                left,
-                centerY - 118,
-                lineLabelWidth
-        );
-
-        this.line1Field =
-                new EditBox(
-                        this.font,
-                        left + lineLabelWidth + gap,
-                        centerY - 118,
-                        destinationWidth,
-                        20,
-                        Component.literal("Destination ligne 1")
-                );
+        this.line1Field = new EditBox(this.font, innerX, row1Y, textW, fieldH, Component.literal("Destination 1"));
         this.line1Field.setMaxLength(48);
         this.addRenderableWidget(this.line1Field);
-
-        this.line1FontButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.line1Font = this.line1Font.next();
-                                    updateFontButtons();
-                                }
-                        )
-                        .bounds(
-                                left + lineLabelWidth + gap + destinationWidth + gap,
-                                centerY - 118,
-                                fontButtonWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.line1FontButton);
-
-        this.distance1Field =
-                new EditBox(
-                        this.font,
-                        left
-                                + lineLabelWidth
-                                + gap
-                                + destinationWidth
-                                + gap
-                                + fontButtonWidth
-                                + gap,
-                        centerY - 118,
-                        distanceWidth,
-                        20,
-                        Component.literal("Distance ligne 1")
-                );
+        this.line1FontRect = new SignEditorUi.Rect(innerX + textW + gap, row1Y, fontW, fieldH);
+        this.distance1Field = new EditBox(this.font, this.line1FontRect.x() + fontW + gap, row1Y, distanceW, fieldH, Component.literal("Km 1"));
         this.distance1Field.setMaxLength(8);
         this.addRenderableWidget(this.distance1Field);
 
-        addRowLabel(
-                "L2",
-                left,
-                centerY - 92,
-                lineLabelWidth
-        );
-
-        this.line2Field =
-                new EditBox(
-                        this.font,
-                        left + lineLabelWidth + gap,
-                        centerY - 92,
-                        destinationWidth,
-                        20,
-                        Component.literal("Destination ligne 2")
-                );
+        this.line2Field = new EditBox(this.font, innerX, row2Y, textW, fieldH, Component.literal("Destination 2"));
         this.line2Field.setMaxLength(48);
         this.addRenderableWidget(this.line2Field);
-
-        this.line2FontButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.line2Font = this.line2Font.next();
-                                    updateFontButtons();
-                                }
-                        )
-                        .bounds(
-                                left + lineLabelWidth + gap + destinationWidth + gap,
-                                centerY - 92,
-                                fontButtonWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.line2FontButton);
-
-        this.distance2Field =
-                new EditBox(
-                        this.font,
-                        left
-                                + lineLabelWidth
-                                + gap
-                                + destinationWidth
-                                + gap
-                                + fontButtonWidth
-                                + gap,
-                        centerY - 92,
-                        distanceWidth,
-                        20,
-                        Component.literal("Distance ligne 2")
-                );
+        this.line2FontRect = new SignEditorUi.Rect(innerX + textW + gap, row2Y, fontW, fieldH);
+        this.distance2Field = new EditBox(this.font, this.line2FontRect.x() + fontW + gap, row2Y, distanceW, fieldH, Component.literal("Km 2"));
         this.distance2Field.setMaxLength(8);
         this.addRenderableWidget(this.distance2Field);
+    }
 
-        /* ========================================================
-         * APPARENCE
-         * ======================================================== */
+    private void initStyleControls() {
+        int innerX = this.styleRect.x() + s(10);
+        int innerW = this.styleRect.width() - s(20);
+        int gap = pagedUi() ? 8 : s(8);
+        int controlH = pagedUi() ? 20 : s(23);
+        int colorY = this.styleRect.y() + (pagedUi() ? 34 : s(compactUi() ? 34 : 43));
+        int colorW = (innerW - gap * 2) / 3;
+        this.whiteRect = new SignEditorUi.Rect(innerX, colorY, colorW, controlH);
+        this.greenRect = new SignEditorUi.Rect(innerX + colorW + gap, colorY, colorW, controlH);
+        this.blueRect = new SignEditorUi.Rect(innerX + (colorW + gap) * 2, colorY, colorW, controlH);
+        this.logoRect = new SignEditorUi.Rect(innerX, colorY + controlH + (pagedUi() ? 8 : s(6)), innerW, pagedUi() ? 24 : s(compactUi() ? 26 : 30));
+    }
 
-        addSectionHeader(
-                "APPARENCE  •  Couleur / Logo",
-                left,
-                centerY - 62,
-                formWidth
-        );
+    private void initArrowControls() {
+        int innerX = this.arrowRect.x() + s(10);
+        int innerW = this.arrowRect.width() - s(20);
+        int topY = this.arrowRect.y() + (pagedUi() ? 32 : s(compactUi() ? 30 : 38));
+        int toggleH = pagedUi() ? 24 : s(compactUi() ? 26 : 30);
+        this.arrowEnabledRect = new SignEditorUi.Rect(innerX, topY, innerW, toggleH);
 
-        int colorWidth = (formWidth - gap * 2) / 3;
+        int posY = topY + toggleH + (pagedUi() ? 7 : s(3));
+        int posW = Math.max(s(88), Math.round(innerW * 0.26F));
+        int posH = pagedUi() ? 20 : s(22);
+        int posGap = pagedUi() ? 7 : s(7);
+        this.arrowLeftRect = new SignEditorUi.Rect(innerX, posY, posW, posH);
+        this.arrowRightRect = new SignEditorUi.Rect(innerX + posW + posGap, posY, posW, posH);
 
-        this.whiteButton =
-                Button.builder(
-                                Component.literal("Blanc"),
-                                button -> selectType(D21AType.WHITE)
-                        )
-                        .bounds(
-                                left,
-                                centerY - 41,
-                                colorWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.whiteButton);
-
-        this.greenButton =
-                Button.builder(
-                                Component.literal("Vert"),
-                                button -> selectType(D21AType.GREEN)
-                        )
-                        .bounds(
-                                left + colorWidth + gap,
-                                centerY - 41,
-                                colorWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.greenButton);
-
-        this.blueButton =
-                Button.builder(
-                                Component.literal("Bleu"),
-                                button -> selectType(D21AType.BLUE)
-                        )
-                        .bounds(
-                                left + (colorWidth + gap) * 2,
-                                centerY - 41,
-                                colorWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.blueButton);
-
-        this.autorouteLogoButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.autorouteLogo = !this.autorouteLogo;
-                                    updateAutorouteButton();
-                                }
-                        )
-                        .bounds(
-                                left,
-                                centerY - 15,
-                                formWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.autorouteLogoButton);
-
-        /* ========================================================
-         * FLÈCHE
-         * ======================================================== */
-
-        addSectionHeader(
-                "FLÈCHE  •  Activation / Position / Direction",
-                left,
-                centerY + 15,
-                formWidth
-        );
-
-        this.arrowEnabledButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.arrowEnabled = !this.arrowEnabled;
-                                    updateFieldVisibility();
-                                    updateArrowControls();
-                                    updatePanelButtons();
-                                }
-                        )
-                        .bounds(
-                                left,
-                                centerY + 36,
-                                halfWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.arrowEnabledButton);
-
-        this.arrowPositionButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.arrowPosition =
-                                            this.arrowPosition.opposite();
-                                    updateArrowControls();
-                                }
-                        )
-                        .bounds(
-                                left + halfWidth + gap,
-                                centerY + 36,
-                                halfWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.arrowPositionButton);
-
-        D61AArrowDirection[] directions =
-                D61AArrowDirection.values();
-
-        int directionGap = 4;
-        int directionWidth =
-                (
-                        formWidth
-                                - directionGap
-                                * (directions.length - 1)
-                )
-                        / directions.length;
-
-        int directionY = centerY + 62;
-
-        for (int i = 0; i < directions.length; i++) {
-            final D61AArrowDirection direction = directions[i];
-
-            this.directionButtons[i] =
-                    Button.builder(
-                                    Component.literal(direction.symbol()),
-                                    button -> {
-                                        this.arrowDirection = direction;
-                                        updateArrowControls();
-                                    }
-                            )
-                            .bounds(
-                                    left
-                                            + i
-                                            * (
-                                            directionWidth
-                                                    + directionGap
-                                    ),
-                                    directionY,
-                                    directionWidth,
-                                    20
-                            )
-                            .build();
-
-            this.addRenderableWidget(this.directionButtons[i]);
+        int dirsY = posY + posH + (pagedUi() ? 7 : s(7));
+        int dirGap = pagedUi() ? 5 : s(5);
+        int dirW = (innerW - dirGap * 7) / 8;
+        int dirH = pagedUi() ? 20 : s(compactUi() ? 22 : 24);
+        for (int i = 0; i < this.directionRects.length; i++) {
+            this.directionRects[i] = new SignEditorUi.Rect(innerX + i * (dirW + dirGap), dirsY, dirW, dirH);
         }
+    }
 
-        /* ========================================================
-         * CARTOUCHE
-         * ======================================================== */
-
-        addSectionHeader(
-                "CARTOUCHE  •  Type / Texte",
-                left,
-                centerY + 92,
-                formWidth
-        );
-
-        this.cartoucheButton =
-                Button.builder(
-                                Component.empty(),
-                                button -> {
-                                    this.cartoucheType =
-                                            this.cartoucheType.next();
-                                    updateCartoucheButton();
-                                }
-                        )
-                        .bounds(
-                                left,
-                                centerY + 113,
-                                formWidth,
-                                20
-                        )
-                        .build();
-        this.addRenderableWidget(this.cartoucheButton);
-
-        this.cartoucheTextField =
-                new EditBox(
-                        this.font,
-                        left,
-                        centerY + 139,
-                        formWidth,
-                        20,
-                        Component.literal("Texte du cartouche")
-                );
+    private void initCartoucheControls() {
+        int innerX = this.cartoucheRect.x() + s(10);
+        int innerW = this.cartoucheRect.width() - s(20);
+        int y = this.cartoucheRect.y() + (pagedUi() ? 34 : s(compactUi() ? 34 : 44));
+        int gap = pagedUi() ? 8 : s(8);
+        int typeW = Math.max(s(125), Math.round(innerW * 0.40F));
+        int controlH = pagedUi() ? 20 : s(23);
+        this.cartoucheTypeRect = new SignEditorUi.Rect(innerX, y, typeW, controlH);
+        this.cartoucheTextField = new EditBox(this.font, innerX + typeW + gap, y, innerW - typeW - gap, controlH, Component.literal("Texte cartouche"));
         this.cartoucheTextField.setMaxLength(24);
         this.cartoucheTextField.setValue(this.cartoucheText);
         this.addRenderableWidget(this.cartoucheTextField);
+    }
 
-        /* ========================================================
-         * ACTIONS
-         * ======================================================== */
+    private void initStructureControls() {
+        int innerX = this.structureRect.x() + s(10);
+        int innerW = this.structureRect.width() - s(20);
+        int y = this.structureRect.y() + (pagedUi() ? 34 : tightCompactUi() ? s(18) : compactUi() ? s(24) : s(42));
+        int gap = pagedUi() ? 8 : s(8);
+        int w = (innerW - gap) / 2;
+        int controlH = pagedUi() ? 20 : s(23);
+        this.simpleRect = new SignEditorUi.Rect(innerX, y, w, controlH);
+        this.doubleRect = new SignEditorUi.Rect(innerX + w + gap, y, w, controlH);
+    }
 
-        this.addRenderableWidget(
-                Button.builder(
-                                Component.literal("Valider les modifications"),
-                                button -> save()
-                        )
-                        .bounds(
-                                left,
-                                centerY + 169,
-                                halfWidth,
-                                20
-                        )
-                        .build()
+    @Override
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        graphics.fill(0, 0, this.width, this.height, SignEditorUi.COLOR_OVERLAY);
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        SignEditorUi.drawModernWindow(
+                graphics,
+                this.font,
+                this.windowX,
+                this.windowY,
+                this.windowWidth,
+                this.windowHeight,
+                "D61",
+                "Éditeur de panneau D61",
+                compactUi() ? "" : "Configuration en direct"
         );
 
-        this.addRenderableWidget(
-                Button.builder(
-                                Component.literal("Annuler"),
-                                button -> this.onClose()
-                        )
-                        .bounds(
-                                left + halfWidth + gap,
-                                centerY + 169,
-                                halfWidth,
-                                20
-                        )
-                        .build()
+        for (int i = 0; i < this.tabRects.length; i++) {
+            D61APanelData panel = i == this.selectedPanelIndex ? currentPanelFromWidgets() : this.panels[i];
+            SignEditorUi.drawModernButton(
+                    graphics,
+                    this.font,
+                    this.tabRects[i],
+                    compactUi() ? "Panneau " + (i + 1) : "Panneau " + (i + 1) + "  •  " + (panel.doubleLine() ? "2 lignes" : "1 ligne"),
+                    i == this.selectedPanelIndex,
+                    true,
+                    mouseX,
+                    mouseY
+            );
+            SignEditorUi.drawModernToggle(graphics, this.font, this.tabToggleRects[i], "", "", panel.enabled(), true, mouseX, mouseY);
+        }
+
+        SignEditorUi.drawD61StackPreview(
+                graphics,
+                this.font,
+                new SignEditorUi.PreviewBox(this.previewRect.x(), this.previewRect.y(), this.previewRect.width(), this.previewRect.height(), true),
+                previewPanels(),
+                this.selectedPanelIndex,
+                this.cartoucheType,
+                this.cartoucheTextField.getValue()
         );
 
-        loadSelectedPanelIntoWidgets();
-        updateCartoucheButton();
-        this.setInitialFocus(this.line1Field);
-    }
-
-    private void selectPanel(int newIndex) {
-        if (
-                newIndex < 0
-                        || newIndex >= D61ABlockEntity.MAX_PANELS
-                        || newIndex == this.selectedPanelIndex
-        ) {
-            return;
+        if (pagedUi()) {
+            SignEditorUi.drawPageTabs(
+                    graphics,
+                    this.font,
+                    this.settingsPageRects,
+                    new String[]{"Texte", "Style", "Flèche", "Cart.", "Format"},
+                    this.settingsPage,
+                    mouseX,
+                    mouseY
+            );
+            switch (this.settingsPage) {
+                case 0 -> drawContent(graphics, mouseX, mouseY);
+                case 1 -> drawStyle(graphics, mouseX, mouseY);
+                case 2 -> drawArrow(graphics, mouseX, mouseY);
+                case 3 -> drawCartouche(graphics, mouseX, mouseY);
+                default -> drawStructure(graphics, mouseX, mouseY);
+            }
+        } else {
+            drawContent(graphics, mouseX, mouseY);
+            drawStyle(graphics, mouseX, mouseY);
+            drawArrow(graphics, mouseX, mouseY);
+            drawCartouche(graphics, mouseX, mouseY);
+            drawStructure(graphics, mouseX, mouseY);
         }
 
-        storeSelectedPanelFromWidgets();
-        this.selectedPanelIndex = newIndex;
-        loadSelectedPanelIntoWidgets();
-        updateCartoucheButton();
-        this.setInitialFocus(this.line1Field);
+        if (!compactUi()) {
+            graphics.text(
+                    this.font,
+                    Component.literal("Conseil : l'activation de chaque panneau se règle directement dans les onglets du haut."),
+                    this.windowX + s(18),
+                    this.windowY + this.windowHeight - s(28),
+                    SignEditorUi.MODERN_MUTED,
+                    false
+            );
+        }
+        SignEditorUi.drawModernButton(graphics, this.font, this.applyRect, "✓  Appliquer", true, true, mouseX, mouseY);
+        SignEditorUi.drawModernButton(graphics, this.font, this.cancelRect, "×  Annuler", false, true, mouseX, mouseY);
+
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    private void selectType(D21AType type) {
-        this.selectedType = sanitizeType(type);
-
-        if (this.selectedType == D21AType.WHITE) {
-            this.autorouteLogo = false;
+    private void drawContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        SignEditorUi.drawModernSection(graphics, this.font, this.contentRect, "1. CONTENU", pagedUi() ? "" : "Destinations, police et kilométrage");
+        if (!compactUi()) {
+            SignEditorUi.drawFieldLabel(graphics, this.font, "Destination 1", this.line1Field.getX(), this.line1Field.getY() - s(11));
+            SignEditorUi.drawFieldLabel(graphics, this.font, "Police", this.line1FontRect.x(), this.line1FontRect.y() - s(11));
+            SignEditorUi.drawFieldLabel(graphics, this.font, "Km", this.distance1Field.getX(), this.distance1Field.getY() - s(11));
         }
-
-        updateTypeButtons();
-        updateAutorouteButton();
+        SignEditorUi.drawModernButton(graphics, this.font, this.line1FontRect, SignEditorUi.fontLabel(this.line1Font), false, true, mouseX, mouseY);
+        if (this.doubleLine) {
+            if (!compactUi()) {
+                SignEditorUi.drawFieldLabel(graphics, this.font, "Destination 2", this.line2Field.getX(), this.line2Field.getY() - s(11));
+                SignEditorUi.drawFieldLabel(graphics, this.font, "Police", this.line2FontRect.x(), this.line2FontRect.y() - s(11));
+                SignEditorUi.drawFieldLabel(graphics, this.font, "Km", this.distance2Field.getX(), this.distance2Field.getY() - s(11));
+            }
+            SignEditorUi.drawModernButton(graphics, this.font, this.line2FontRect, SignEditorUi.fontLabel(this.line2Font), false, true, mouseX, mouseY);
+        }
     }
 
-    private void storeSelectedPanelFromWidgets() {
-        if (
-                this.line1Field == null
-                        || this.line2Field == null
-                        || this.distance1Field == null
-                        || this.distance2Field == null
-        ) {
-            return;
-        }
+    private void drawStyle(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        SignEditorUi.drawModernSection(graphics, this.font, this.styleRect, "2. STYLE", pagedUi() ? "" : "Couleur du panneau et logo autoroute");
+        SignEditorUi.drawModernButton(graphics, this.font, this.whiteRect, "Blanc", this.selectedType == D21AType.WHITE, true, mouseX, mouseY);
+        SignEditorUi.drawModernButton(graphics, this.font, this.greenRect, "Vert", this.selectedType == D21AType.GREEN, true, mouseX, mouseY);
+        SignEditorUi.drawModernButton(graphics, this.font, this.blueRect, "Bleu", this.selectedType == D21AType.BLUE, true, mouseX, mouseY);
+        boolean logoAllowed = this.selectedType != D21AType.WHITE;
+        SignEditorUi.drawModernToggle(graphics, this.font, this.logoRect, "Logo autoroute", compactUi() ? "" : "Afficher le pictogramme autoroute", this.autorouteLogo, logoAllowed, mouseX, mouseY);
+    }
 
-        this.panels[this.selectedPanelIndex] = new D61APanelData(
+    private void drawArrow(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        SignEditorUi.drawModernSection(graphics, this.font, this.arrowRect, "3. FLÈCHE", pagedUi() ? "" : "Activation, position et direction");
+        SignEditorUi.drawModernToggle(graphics, this.font, this.arrowEnabledRect, "Flèche", compactUi() ? "" : "Afficher une flèche directionnelle", this.arrowEnabled, true, mouseX, mouseY);
+        SignEditorUi.drawModernButton(graphics, this.font, this.arrowLeftRect, "À gauche", this.arrowPosition == D61AArrowPosition.LEFT, this.arrowEnabled, mouseX, mouseY);
+        SignEditorUi.drawModernButton(graphics, this.font, this.arrowRightRect, "À droite", this.arrowPosition == D61AArrowPosition.RIGHT, this.arrowEnabled, mouseX, mouseY);
+        D61AArrowDirection[] values = D61AArrowDirection.values();
+        for (int i = 0; i < values.length; i++) {
+            SignEditorUi.drawModernButton(
+                    graphics,
+                    this.font,
+                    this.directionRects[i],
+                    values[i].symbol(),
+                    values[i] == this.arrowDirection,
+                    this.arrowEnabled,
+                    mouseX,
+                    mouseY
+            );
+        }
+    }
+
+    private void drawCartouche(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        SignEditorUi.drawModernSection(graphics, this.font, this.cartoucheRect, "4. CARTOUCHE", pagedUi() ? "" : "Couleur et texte du cartouche");
+        SignEditorUi.drawModernButton(
+                graphics,
+                this.font,
+                this.cartoucheTypeRect,
+                SignEditorUi.cartoucheLabel(this.cartoucheType),
+                this.cartoucheType.isVisible(),
+                true,
+                mouseX,
+                mouseY
+        );
+    }
+
+    private void drawStructure(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        SignEditorUi.drawModernSection(graphics, this.font, this.structureRect, "5. STRUCTURE", pagedUi() ? "" : "Format du panneau sélectionné");
+        SignEditorUi.drawModernButton(graphics, this.font, this.simpleRect, "Simple (1 ligne)", !this.doubleLine, true, mouseX, mouseY);
+        SignEditorUi.drawModernButton(graphics, this.font, this.doubleRect, "Double (2 lignes)", this.doubleLine, true, mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (event.button() == 0) {
+            double x = event.x();
+            double y = event.y();
+
+            for (int i = 0; i < this.tabRects.length; i++) {
+                if (this.tabToggleRects[i].contains(x, y)) {
+                    togglePanelEnabled(i);
+                    return true;
+                }
+                if (this.tabRects[i].contains(x, y)) {
+                    selectPanel(i);
+                    return true;
+                }
+            }
+            if (pagedUi()) {
+                for (int i = 0; i < this.settingsPageRects.length; i++) {
+                    if (this.settingsPageRects[i] != null && this.settingsPageRects[i].contains(x, y)) {
+                        this.settingsPage = i;
+                        updatePagedVisibility();
+                        return true;
+                    }
+                }
+            }
+
+            if ((!pagedUi() || this.settingsPage == 0) && this.line1FontRect.contains(x, y)) {
+                this.line1Font = this.line1Font.next();
+                return true;
+            }
+            if ((!pagedUi() || this.settingsPage == 0) && this.doubleLine && this.line2FontRect.contains(x, y)) {
+                this.line2Font = this.line2Font.next();
+                return true;
+            }
+            if (!pagedUi() || this.settingsPage == 1) {
+                if (this.whiteRect.contains(x, y)) {
+                    selectType(D21AType.WHITE);
+                    return true;
+                }
+                if (this.greenRect.contains(x, y)) {
+                    selectType(D21AType.GREEN);
+                    return true;
+                }
+                if (this.blueRect.contains(x, y)) {
+                    selectType(D21AType.BLUE);
+                    return true;
+                }
+                if (this.logoRect.contains(x, y) && this.selectedType != D21AType.WHITE) {
+                    this.autorouteLogo = !this.autorouteLogo;
+                    return true;
+                }
+            }
+            if (!pagedUi() || this.settingsPage == 2) {
+                if (this.arrowEnabledRect.contains(x, y)) {
+                    this.arrowEnabled = !this.arrowEnabled;
+                    return true;
+                }
+                if (this.arrowEnabled && this.arrowLeftRect.contains(x, y)) {
+                    this.arrowPosition = D61AArrowPosition.LEFT;
+                    return true;
+                }
+                if (this.arrowEnabled && this.arrowRightRect.contains(x, y)) {
+                    this.arrowPosition = D61AArrowPosition.RIGHT;
+                    return true;
+                }
+                if (this.arrowEnabled) {
+                    D61AArrowDirection[] values = D61AArrowDirection.values();
+                    for (int i = 0; i < this.directionRects.length; i++) {
+                        if (this.directionRects[i].contains(x, y)) {
+                            this.arrowDirection = values[i];
+                            return true;
+                        }
+                    }
+                }
+            }
+            if ((!pagedUi() || this.settingsPage == 3) && this.cartoucheTypeRect.contains(x, y)) {
+                this.cartoucheType = this.cartoucheType.next();
+                updateCartoucheFieldState();
+                return true;
+            }
+            if (!pagedUi() || this.settingsPage == 4) {
+                if (this.simpleRect.contains(x, y)) {
+                    this.doubleLine = false;
+                    updateFieldVisibility();
+                    return true;
+                }
+                if (this.doubleRect.contains(x, y)) {
+                    this.doubleLine = true;
+                    updateFieldVisibility();
+                    return true;
+                }
+            }
+            if (this.applyRect.contains(x, y)) {
+                save();
+                return true;
+            }
+            if (this.cancelRect.contains(x, y)) {
+                this.onClose();
+                return true;
+            }
+        }
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    private D61APanelData[] previewPanels() {
+        D61APanelData[] result = this.panels.clone();
+        result[this.selectedPanelIndex] = currentPanelFromWidgets();
+        return result;
+    }
+
+    private D61APanelData currentPanelFromWidgets() {
+        return new D61APanelData(
                 this.panelEnabled,
-                this.line1Field.getValue(),
-                this.line2Field.getValue(),
-                this.distance1Field.getValue(),
-                this.distance2Field.getValue(),
-                this.selectedType,
+                this.line1Field == null ? "" : this.line1Field.getValue(),
+                this.line2Field == null ? "" : this.line2Field.getValue(),
+                this.distance1Field == null ? "" : this.distance1Field.getValue(),
+                this.distance2Field == null ? "" : this.distance2Field.getValue(),
+                sanitizeType(this.selectedType),
                 this.doubleLine,
                 this.arrowEnabled,
                 this.arrowPosition,
                 this.arrowDirection,
-                this.selectedType != D21AType.WHITE && this.autorouteLogo,
+                this.autorouteLogo,
                 this.line1Font,
                 this.line2Font
         );
     }
 
+    private void togglePanelEnabled(int index) {
+        if (index < 0 || index >= this.panels.length) {
+            return;
+        }
+        if (index == this.selectedPanelIndex) {
+            this.panelEnabled = !this.panelEnabled;
+            return;
+        }
+        D61APanelData p = this.panels[index];
+        this.panels[index] = new D61APanelData(
+                !p.enabled(), p.line1(), p.line2(), p.distance1(), p.distance2(), p.type(), p.doubleLine(),
+                p.arrowEnabled(), p.arrowPosition(), p.arrowDirection(), p.autorouteLogo(), p.line1Font(), p.line2Font()
+        );
+    }
+
+    private void selectPanel(int newIndex) {
+        if (newIndex < 0 || newIndex >= D61ABlockEntity.MAX_PANELS || newIndex == this.selectedPanelIndex) {
+            return;
+        }
+        storeSelectedPanelFromWidgets();
+        this.selectedPanelIndex = newIndex;
+        loadSelectedPanelIntoWidgets();
+        this.setInitialFocus(this.line1Field);
+    }
+
+    private void selectType(D21AType type) {
+        this.selectedType = sanitizeType(type);
+        if (this.selectedType == D21AType.WHITE) {
+            this.autorouteLogo = false;
+        }
+    }
+
+    private void storeSelectedPanelFromWidgets() {
+        this.panels[this.selectedPanelIndex] = currentPanelFromWidgets();
+    }
+
     private void loadSelectedPanelIntoWidgets() {
         D61APanelData panel = this.panels[this.selectedPanelIndex];
-
         this.panelEnabled = panel.enabled();
         this.doubleLine = panel.doubleLine();
         this.selectedType = sanitizeType(panel.type());
-        this.autorouteLogo =
-                this.selectedType != D21AType.WHITE
-                        && panel.autorouteLogo();
-
+        this.autorouteLogo = panel.autorouteLogo();
+        this.line1Font = panel.line1Font();
+        this.line2Font = panel.line2Font();
         this.arrowEnabled = panel.arrowEnabled();
         this.arrowPosition = panel.arrowPosition();
         this.arrowDirection = panel.arrowDirection();
-        this.line1Font = panel.line1Font();
-        this.line2Font = panel.line2Font();
-
+        if (this.selectedType == D21AType.WHITE) {
+            this.autorouteLogo = false;
+        }
         this.line1Field.setValue(panel.line1());
         this.line2Field.setValue(panel.line2());
         this.distance1Field.setValue(panel.distance1());
         this.distance2Field.setValue(panel.distance2());
-
-        updateEnabledButton();
-        updateFormatButton();
         updateFieldVisibility();
-        updateTypeButtons();
-        updateAutorouteButton();
-        updateArrowControls();
-        updateFontButtons();
-        updatePanelButtons();
-    }
-
-    private void addSectionHeader(
-            String label,
-            int x,
-            int y,
-            int width
-    ) {
-        Button header =
-                Button.builder(
-                                Component.literal("— " + label + " —"),
-                                button -> {
-                                }
-                        )
-                        .bounds(
-                                x,
-                                y,
-                                width,
-                                16
-                        )
-                        .build();
-
-        header.active = false;
-        this.addRenderableWidget(header);
-    }
-
-    private void addRowLabel(
-            String label,
-            int x,
-            int y,
-            int width
-    ) {
-        Button rowLabel =
-                Button.builder(
-                                Component.literal(label),
-                                button -> {
-                                }
-                        )
-                        .bounds(
-                                x,
-                                y,
-                                width,
-                                20
-                        )
-                        .build();
-
-        rowLabel.active = false;
-        this.addRenderableWidget(rowLabel);
     }
 
     private void updateFieldVisibility() {
-        this.line2Field.visible = this.doubleLine;
-        this.line2Field.active = this.doubleLine;
+        boolean contentVisible = !pagedUi() || this.settingsPage == 0;
+        this.line1Field.visible = contentVisible;
+        this.line1Field.active = contentVisible;
+        this.distance1Field.visible = contentVisible;
+        this.distance1Field.active = contentVisible;
 
-        if (this.line2FontButton != null) {
-            this.line2FontButton.visible = this.doubleLine;
-            this.line2FontButton.active = this.doubleLine;
-        }
-
-        // Flèche OU kilométrage : la valeur reste mémorisée dans le champ.
-        this.distance1Field.visible = !this.arrowEnabled;
-        this.distance1Field.active = !this.arrowEnabled;
-        this.distance2Field.visible = this.doubleLine && !this.arrowEnabled;
-        this.distance2Field.active = this.doubleLine && !this.arrowEnabled;
+        boolean line2Visible = contentVisible && this.doubleLine;
+        this.line2Field.visible = line2Visible;
+        this.line2Field.active = line2Visible;
+        this.distance2Field.visible = line2Visible;
+        this.distance2Field.active = line2Visible;
     }
 
-    private void updateFontButtons() {
-        if (this.line1FontButton != null) {
-            this.line1FontButton.setMessage(
-                    Component.literal(
-                            this.line1Font == RoadTextFont.L4
-                                    ? "Police : L4"
-                                    : "Police : L1"
-                    )
-            );
-        }
-
-        if (this.line2FontButton != null) {
-            this.line2FontButton.setMessage(
-                    Component.literal(
-                            this.line2Font == RoadTextFont.L4
-                                    ? "Police : L4"
-                                    : "Police : L1"
-                    )
-            );
-        }
-    }
-
-    private void updatePanelButtons() {
-        for (int i = 0; i < D61ABlockEntity.MAX_PANELS; i++) {
-            if (this.panelButtons[i] == null) {
-                continue;
-            }
-
-            boolean enabled =
-                    i == this.selectedPanelIndex
-                            ? this.panelEnabled
-                            : this.panels[i].enabled();
-
-            boolean isDouble =
-                    i == this.selectedPanelIndex
-                            ? this.doubleLine
-                            : this.panels[i].doubleLine();
-
-            boolean hasArrow =
-                    i == this.selectedPanelIndex
-                            ? this.arrowEnabled
-                            : this.panels[i].arrowEnabled();
-
-            D61AArrowDirection panelArrowDirection =
-                    i == this.selectedPanelIndex
-                            ? this.arrowDirection
-                            : this.panels[i].arrowDirection();
-
-            String label =
-                    "P" + (i + 1)
-                            + " "
-                            + (isDouble ? "2L" : "1L")
-                            + (hasArrow ? " " + panelArrowDirection.symbol() : "")
-                            + (enabled ? "" : " OFF");
-
-            if (i == this.selectedPanelIndex) {
-                label = "[" + label + "]";
-            }
-
-            this.panelButtons[i].setMessage(Component.literal(label));
-        }
-    }
-
-    private void updateEnabledButton() {
-        this.enabledButton.setMessage(
-                Component.literal(
-                        this.panelEnabled
-                                ? "Actif : Oui"
-                                : "Actif : Non"
-                )
-        );
-    }
-
-    private void updateFormatButton() {
-        this.formatButton.setMessage(
-                Component.literal(
-                        this.doubleLine
-                                ? "[ Double • 2 lignes ]"
-                                : "Simple • 1 ligne"
-                )
-        );
-    }
-
-    private void updateTypeButtons() {
-        this.whiteButton.setMessage(
-                Component.literal(
-                        this.selectedType == D21AType.WHITE
-                                ? "[ Blanc ]"
-                                : "Blanc"
-                )
-        );
-
-        this.greenButton.setMessage(
-                Component.literal(
-                        this.selectedType == D21AType.GREEN
-                                ? "[ Vert ]"
-                                : "Vert"
-                )
-        );
-
-        this.blueButton.setMessage(
-                Component.literal(
-                        this.selectedType == D21AType.BLUE
-                                ? "[ Bleu ]"
-                                : "Bleu"
-                )
-        );
-    }
-
-    private void updateAutorouteButton() {
-        boolean allowed = this.selectedType != D21AType.WHITE;
-
-        if (!allowed) {
-            this.autorouteLogo = false;
-        }
-
-        this.autorouteLogoButton.visible = allowed;
-        this.autorouteLogoButton.active = allowed;
-        this.autorouteLogoButton.setMessage(
-                Component.literal(
-                        this.autorouteLogo
-                                ? "[ Logo autoroute : Oui ]"
-                                : "Logo autoroute : Non"
-                )
-        );
-    }
-
-    private void updateArrowControls() {
-        this.arrowEnabledButton.setMessage(
-                Component.literal(
-                        this.arrowEnabled
-                                ? "Flèche : Oui"
-                                : "Flèche : Non"
-                )
-        );
-
-        this.arrowPositionButton.setMessage(
-                Component.literal(
-                        "Position : "
-                                + (this.arrowPosition == D61AArrowPosition.LEFT
-                                ? "Gauche"
-                                : "Droite")
-                )
-        );
-
-        this.arrowPositionButton.active = this.arrowEnabled;
-
-        D61AArrowDirection[] directions = D61AArrowDirection.values();
-
-        for (int i = 0; i < directions.length; i++) {
-            Button button = this.directionButtons[i];
-            if (button == null) {
-                continue;
-            }
-
-            D61AArrowDirection direction = directions[i];
-            button.active = this.arrowEnabled;
-            button.setMessage(
-                    Component.literal(
-                            direction == this.arrowDirection
-                                    ? "[" + direction.symbol() + "]"
-                                    : direction.symbol()
-                    )
-            );
-        }
-    }
-
-    private void updateCartoucheButton() {
-        if (this.cartoucheButton == null) {
-            return;
-        }
-
-        this.cartoucheButton.setMessage(
-                Component.literal(
-                        "Cartouche : "
-                                + this.cartoucheType.getDisplayName()
-                                + (this.cartoucheType.isVisible()
-                                ? " | texte ci-dessous"
-                                : "")
-                )
-        );
-
+    private void updateCartoucheFieldState() {
         if (this.cartoucheTextField != null) {
-            this.cartoucheTextField.active = this.cartoucheType.isVisible();
+            boolean visible = !pagedUi() || this.settingsPage == 3;
+            this.cartoucheTextField.visible = visible;
+            this.cartoucheTextField.active = visible && this.cartoucheType.isVisible();
         }
+    }
+
+    private void updatePagedVisibility() {
+        updateFieldVisibility();
+        updateCartoucheFieldState();
+    }
+
+    private boolean compactUi() {
+        return SignEditorUi.compactForScale(this.scale);
+    }
+
+    private boolean tightCompactUi() {
+        return SignEditorUi.tightForScale(this.scale, this.windowHeight);
+    }
+
+    private boolean pagedUi() {
+        return SignEditorUi.pagedCompactMode(this.scale, this.windowHeight);
+    }
+
+    private int s(int value) {
+        return SignEditorUi.scaledUi(value, this.scale);
     }
 
     private void save() {
         storeSelectedPanelFromWidgets();
-
         ClientPacketDistributor.sendToServer(
                 new UpdateD61APayload(
                         this.blockPos,
@@ -926,7 +683,6 @@ public class D61AEditScreen extends Screen {
                         this.cartoucheTextField.getValue()
                 )
         );
-
         this.onClose();
     }
 

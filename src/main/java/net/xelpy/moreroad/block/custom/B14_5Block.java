@@ -34,16 +34,16 @@ public class B14_5Block extends HorizontalDirectionalBlock {
             EnumProperty.create("speed", B14Speed.class);
 
     private static final VoxelShape SHAPE_NORTH =
-            Block.box(0, 0, 7, 16, 16, 10);
-
-    private static final VoxelShape SHAPE_SOUTH =
             Block.box(0, 0, 6, 16, 16, 9);
 
+    private static final VoxelShape SHAPE_SOUTH =
+            Block.box(0, 0, 7, 16, 16, 10);
+
     private static final VoxelShape SHAPE_EAST =
-            Block.box(6, 0, 0, 9, 16, 16);
+            Block.box(7, 0, 0, 10, 16, 16);
 
     private static final VoxelShape SHAPE_WEST =
-            Block.box(7, 0, 0, 10, 16, 16);
+            Block.box(6, 0, 0, 9, 16, 16);
 
     public B14_5Block(Properties properties) {
         super(properties);

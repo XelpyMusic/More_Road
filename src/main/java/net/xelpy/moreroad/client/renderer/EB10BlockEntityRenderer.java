@@ -60,7 +60,8 @@ public class EB10BlockEntityRenderer
     /*
      * Le texte est rendu légèrement devant la face pour rester visible.
      */
-    private static final float TEXT_Z = 0.128F;
+    /* V99 : stabilisation du texte devant la face + POLYGON_OFFSET. */
+    private static final float TEXT_Z = 0.1925F;
 
     /*
      * Une ligne : encore un tout petit peu plus bas.
