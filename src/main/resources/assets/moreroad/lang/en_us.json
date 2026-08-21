@@ -281,5 +281,6 @@
   "block.moreroad.d42b": "D42b - Roundabout",
   "block.moreroad.poteau_d42b_block": "D42b poles",
   "block.moreroad.e31a": "E31a — Local place name",
-  "block.moreroad.e31b": "E31b — Stream name"
+  "block.moreroad.e31b": "E31b — Stream name",
+  "item.moreroad.road_builder": "Road Builder"
 }

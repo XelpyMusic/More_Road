@@ -21,6 +21,7 @@ public class MoreRoadCreativeModeTabs2 {
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(MoreRoadBlocks.POTEAU);
                         output.accept(MoreRoadBlocks.POTEAU_D42B);
+                        output.accept(MoreRoadItems.ROAD_BUILDER.get());
                         output.accept(MoreRoadBlocks.BITUME);
                         output.accept(MoreRoadBlocks.DALLEDEBITUME);
                         output.accept(MoreRoadBlocks.LIGNECEDEZLEPASSAGE);

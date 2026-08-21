@@ -1,8 +1,6 @@
 package net.xelpy.moreroad.item;
 
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -16,6 +14,9 @@ public class MoreRoadItems {
 
     public static final DeferredItem<Item> LOGO2 =
             ITEMS.registerItem("logo2", Item::new);
+
+    public static final DeferredItem<Item> ROAD_BUILDER =
+            ITEMS.registerItem("road_builder", RoadBuilderItem::new);
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

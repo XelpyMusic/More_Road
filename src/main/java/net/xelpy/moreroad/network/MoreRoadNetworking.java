@@ -20,6 +20,8 @@ import net.xelpy.moreroad.block.entity.D42bBlockEntity;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 import net.xelpy.moreroad.block.entity.E31BlockEntity;
+import net.xelpy.moreroad.item.MoreRoadItems;
+import net.xelpy.moreroad.item.RoadBuilderItem;
 
 public final class MoreRoadNetworking {
 
@@ -129,6 +131,17 @@ public final class MoreRoadNetworking {
                 UpdateB14Payload.TYPE,
                 UpdateB14Payload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateB14
+        );
+
+        /*
+         * --------------------------------------------------------
+         * Constructeur de route
+         * --------------------------------------------------------
+         */
+        registrar.playToServer(
+                BuildRoadPayload.TYPE,
+                BuildRoadPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleBuildRoad
         );
     }
 
@@ -711,6 +724,47 @@ public final class MoreRoadNetworking {
                     Block.UPDATE_ALL
             );
         }
+    }
+
+
+    /*
+     * ============================================================
+     * CONSTRUCTEUR DE ROUTE
+     * ============================================================
+     */
+
+    private static void handleBuildRoad(
+            BuildRoadPayload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        boolean hasBuilderInMainHand =
+                player.getMainHandItem().getItem()
+                        == MoreRoadItems.ROAD_BUILDER.get();
+
+        boolean hasBuilderInOffHand =
+                player.getOffhandItem().getItem()
+                        == MoreRoadItems.ROAD_BUILDER.get();
+
+        if (!hasBuilderInMainHand && !hasBuilderInOffHand) {
+            return;
+        }
+
+        if (!(player instanceof net.minecraft.server.level.ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        RoadBuilderItem.buildFromEditor(
+                serverPlayer,
+                payload.start(),
+                payload.control(),
+                payload.end()
+        );
     }
 
 
