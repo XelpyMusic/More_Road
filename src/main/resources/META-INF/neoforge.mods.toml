@@ -29,8 +29,14 @@ displayName="${mod_name}" #mandatory
 # A URL for the "homepage" for this mod, displayed in the mod UI
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
 
-# A file name (in the root of the mod JAR) containing a logo for display
-#logoFile="examplemod.png" #optional
+# Square icon displayed next to More Road in the Mods list (NeoForge 26.2+)
+# Use the existing mod texture through an explicit resource identifier.
+iconFile="moreroad:textures/item/logo.png" #optional
+iconBlur=false #optional
+
+# Image displayed in the More Road information panel.
+# bannerFile replaces the deprecated logoFile property in NeoForge 26.2+.
+bannerFile="moreroad:textures/item/logo.png" #optional
 
 # A text field displayed in the mod UI
 #credits="" #optional
@@ -39,7 +45,7 @@ displayName="${mod_name}" #mandatory
 authors="${mod_authors}" #optional
 
 # The description text for the mod (multi line!) (#mandatory)
-description='''${mod_description}'''
+description='''More Road enrichit Minecraft avec une large collection de panneaux routiers français, de panneaux directionnels personnalisables et de mobilier urbain pour créer des routes plus réalistes.'''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
 #[[mixins]]

@@ -1438,6 +1438,38 @@ public final class SignEditorUi {
         }
     }
 
+    /**
+     * Tronque un texte selon sa largeur réelle dans la police Minecraft.
+     * Utilisé par toutes les interfaces configurables afin qu'aucun libellé
+     * ne puisse sortir de son cadre quand le GUI Scale réduit la résolution
+     * logique de l'écran.
+     */
+    public static String fitText(Font font, String value, int maxWidth) {
+        if (font == null || value == null || value.isEmpty() || maxWidth <= 0) {
+            return "";
+        }
+        if (font.width(value) <= maxWidth) {
+            return value;
+        }
+
+        String ellipsis = "…";
+        int ellipsisWidth = font.width(ellipsis);
+        if (ellipsisWidth >= maxWidth) {
+            return "";
+        }
+
+        int end = value.length();
+        while (end > 0 && font.width(value.substring(0, end)) + ellipsisWidth > maxWidth) {
+            end--;
+        }
+        return end <= 0 ? ellipsis : value.substring(0, end) + ellipsis;
+    }
+
+    public static int safeControlHeight(Font font, int requestedHeight) {
+        int fontHeight = font == null ? 9 : font.lineHeight;
+        return Math.max(fontHeight + 7, requestedHeight);
+    }
+
     public static void drawModernWindow(
             GuiGraphicsExtractor graphics,
             Font font,
@@ -1465,9 +1497,10 @@ public final class SignEditorUi {
 
         int titleX = iconX + iconSize + 12;
         int titleY = y + (ultraCompactHeader ? 8 : compactHeader ? 9 : 12);
-        graphics.text(font, Component.literal(title), titleX, titleY, COLOR_TEXT, false);
+        int textMaxWidth = Math.max(0, x + width - titleX - 10);
+        graphics.text(font, Component.literal(fitText(font, title, textMaxWidth)), titleX, titleY, COLOR_TEXT, false);
         if (!ultraCompactHeader && subtitle != null && !subtitle.isBlank()) {
-            graphics.text(font, Component.literal(subtitle), titleX, titleY + 13, MODERN_MUTED, false);
+            graphics.text(font, Component.literal(fitText(font, subtitle, textMaxWidth)), titleX, titleY + 13, MODERN_MUTED, false);
         }
     }
 
@@ -1502,9 +1535,10 @@ public final class SignEditorUi {
 
         int titleX = iconX + iconSize + 12;
         int titleY = y + (ultraCompactHeader ? 8 : compactHeader ? 9 : 12);
-        graphics.text(font, Component.literal(title), titleX, titleY, COLOR_TEXT, false);
+        int textMaxWidth = Math.max(0, x + width - titleX - 10);
+        graphics.text(font, Component.literal(fitText(font, title, textMaxWidth)), titleX, titleY, COLOR_TEXT, false);
         if (!ultraCompactHeader && subtitle != null && !subtitle.isBlank()) {
-            graphics.text(font, Component.literal(subtitle), titleX, titleY + 13, MODERN_MUTED, false);
+            graphics.text(font, Component.literal(fitText(font, subtitle, textMaxWidth)), titleX, titleY + 13, MODERN_MUTED, false);
         }
     }
 
@@ -1535,7 +1569,10 @@ public final class SignEditorUi {
     ) {
         graphics.fill(rect.x(), rect.y(), rect.x() + rect.width(), rect.y() + rect.height(), MODERN_PANEL);
         graphics.outline(rect.x(), rect.y(), rect.width(), rect.height(), MODERN_BORDER_SOFT);
-        graphics.text(font, Component.literal(title), rect.x() + 10, rect.y() + 8, COLOR_TEXT, false);
+        int maxTextWidth = Math.max(0, rect.width() - 20);
+        if (rect.height() >= font.lineHeight + 6) {
+            graphics.text(font, Component.literal(fitText(font, title, maxTextWidth)), rect.x() + 10, rect.y() + 8, COLOR_TEXT, false);
+        }
 
         /*
          * V111 : avec une GUI Scale élevée, la résolution logique de Minecraft
@@ -1546,7 +1583,7 @@ public final class SignEditorUi {
          * permet.
          */
         if (rect.height() >= 104 && subtitle != null && !subtitle.isBlank()) {
-            graphics.text(font, Component.literal(subtitle), rect.x() + 10, rect.y() + 21, MODERN_MUTED, false);
+            graphics.text(font, Component.literal(fitText(font, subtitle, maxTextWidth)), rect.x() + 10, rect.y() + 21, MODERN_MUTED, false);
         }
     }
 
@@ -1571,7 +1608,10 @@ public final class SignEditorUi {
 
         graphics.fill(rect.x(), rect.y(), rect.x() + rect.width(), rect.y() + rect.height(), background);
         graphics.outline(rect.x(), rect.y(), rect.width(), rect.height(), border);
-        graphics.centeredText(font, Component.literal(label), rect.x() + rect.width() / 2, rect.y() + Math.max(3, (rect.height() - 9) / 2), textColor);
+        if (rect.height() >= font.lineHeight + 2 && rect.width() >= 8) {
+            String fitted = fitText(font, label, Math.max(0, rect.width() - 8));
+            graphics.centeredText(font, Component.literal(fitted), rect.x() + rect.width() / 2, rect.y() + Math.max(2, (rect.height() - font.lineHeight) / 2), textColor);
+        }
     }
 
     public static void drawModernToggle(
@@ -1589,12 +1629,15 @@ public final class SignEditorUi {
         if (hovered) {
             graphics.fill(rect.x(), rect.y(), rect.x() + rect.width(), rect.y() + rect.height(), 0x552D3E50);
         }
-        graphics.text(font, Component.literal(label), rect.x() + 2, rect.y() + 3, enabled ? COLOR_TEXT : 0xFF697583, false);
+        int toggleWidth = Math.min(30, Math.max(18, rect.width() - 4));
+        int labelMaxWidth = Math.max(0, rect.width() - toggleWidth - 10);
+        if (rect.height() >= font.lineHeight + 2) {
+            graphics.text(font, Component.literal(fitText(font, label, labelMaxWidth)), rect.x() + 2, rect.y() + 3, enabled ? COLOR_TEXT : 0xFF697583, false);
+        }
         if (rect.height() >= 28 && helper != null && !helper.isBlank()) {
-            graphics.text(font, Component.literal(helper), rect.x() + 2, rect.y() + 14, MODERN_MUTED, false);
+            graphics.text(font, Component.literal(fitText(font, helper, labelMaxWidth)), rect.x() + 2, rect.y() + 14, MODERN_MUTED, false);
         }
 
-        int toggleWidth = Math.min(30, Math.max(18, rect.width() - 4));
         int toggleHeight = Math.min(14, Math.max(10, rect.height() - 4));
         int tx = rect.x() + rect.width() - toggleWidth - 2;
         int ty = rect.y() + Math.max(2, (rect.height() - toggleHeight) / 2);
@@ -1768,7 +1811,7 @@ public final class SignEditorUi {
      * occupe la colonne de droite à la fois.
      */
     public static boolean pagedCompactMode(float scale, int windowHeight) {
-        return scale < 0.54F || windowHeight < 520;
+        return scale < 0.62F || windowHeight < 580;
     }
 
     public static Rect[] pageTabRects(Rect area, int count, int height, int gap) {

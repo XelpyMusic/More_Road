@@ -282,5 +282,6 @@
   "block.moreroad.poteau_d42b_block": "D42b poles",
   "block.moreroad.e31a": "E31a — Local place name",
   "block.moreroad.e31b": "E31b — Watercourse name",
-  "item.moreroad.road_builder": "Road Builder"
+  "item.moreroad.road_builder": "Road Builder",
+  "block.moreroad.panonceau": "Configurable road supplementary plate"
 }

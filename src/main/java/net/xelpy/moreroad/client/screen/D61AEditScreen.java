@@ -189,10 +189,12 @@ public class D61AEditScreen extends Screen {
         initCartoucheControls();
         initStructureControls();
 
-        int actionY = this.windowY + this.windowHeight - s(36);
-        int actionW = s(145);
-        this.cancelRect = new SignEditorUi.Rect(this.windowX + this.windowWidth - pad - actionW, actionY, actionW, s(28));
-        this.applyRect = new SignEditorUi.Rect(this.cancelRect.x() - s(10) - actionW, actionY, actionW, s(28));
+        int actionH = SignEditorUi.safeControlHeight(this.font, s(28));
+        int actionW = Math.max(74, Math.max(s(145), Math.max(this.font.width("✓  Appliquer"), this.font.width("×  Annuler")) + 18));
+        int actionGap = Math.max(4, s(10));
+        int actionY = this.windowY + this.windowHeight - Math.max(s(36), actionH + 4);
+        this.cancelRect = new SignEditorUi.Rect(this.windowX + this.windowWidth - pad - actionW, actionY, actionW, actionH);
+        this.applyRect = new SignEditorUi.Rect(this.cancelRect.x() - actionGap - actionW, actionY, actionW, actionH);
 
         loadSelectedPanelIntoWidgets();
         updateFieldVisibility();
@@ -362,7 +364,7 @@ public class D61AEditScreen extends Screen {
         if (!compactUi()) {
             graphics.text(
                     this.font,
-                    Component.literal("Conseil : l'activation de chaque panneau se règle directement dans les onglets du haut."),
+                    Component.literal(SignEditorUi.fitText(this.font, "Conseil : l'activation de chaque panneau se règle directement dans les onglets du haut.", this.windowWidth - Math.max(36, s(36)))),
                     this.windowX + s(18),
                     this.windowY + this.windowHeight - s(28),
                     SignEditorUi.MODERN_MUTED,

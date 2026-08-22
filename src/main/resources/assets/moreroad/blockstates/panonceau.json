@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/panonceau_support"
+    },
+    "facing=east": {
+      "model": "moreroad:block/panonceau_support",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/panonceau_support",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/panonceau_support",
+      "y": 270
+    }
+  }
+}

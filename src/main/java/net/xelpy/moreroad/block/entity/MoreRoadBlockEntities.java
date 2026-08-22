@@ -112,6 +112,24 @@ public class MoreRoadBlockEntities {
 
     /*
      * ============================================================
+     * PANONCEAUX M
+     * ============================================================
+     */
+
+    public static final Supplier<BlockEntityType<PanonceauBlockEntity>>
+            PANONCEAU =
+            BLOCK_ENTITY_TYPES.register(
+                    "panonceau",
+                    () -> new BlockEntityType<>(
+                            PanonceauBlockEntity::new,
+                            false,
+                            MoreRoadBlocks.PANONCEAU.get()
+                    )
+            );
+
+
+    /*
+     * ============================================================
      * ENREGISTREMENT
      * ============================================================
      */

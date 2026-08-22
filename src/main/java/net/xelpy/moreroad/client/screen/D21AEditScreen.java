@@ -141,10 +141,12 @@ public class D21AEditScreen extends Screen {
 
         initFieldsAndControls();
 
-        int actionY = this.windowY + this.windowHeight - s(38);
-        int actionWidth = s(150);
-        this.cancelRect = new SignEditorUi.Rect(this.windowX + this.windowWidth - pad - actionWidth, actionY, actionWidth, s(28));
-        this.applyRect = new SignEditorUi.Rect(this.cancelRect.x() - s(10) - actionWidth, actionY, actionWidth, s(28));
+        int actionH = SignEditorUi.safeControlHeight(this.font, s(28));
+        int actionWidth = Math.max(74, Math.max(s(150), Math.max(this.font.width("✓  Appliquer"), this.font.width("×  Annuler")) + 18));
+        int actionGap = Math.max(4, s(10));
+        int actionY = this.windowY + this.windowHeight - Math.max(s(38), actionH + 4);
+        this.cancelRect = new SignEditorUi.Rect(this.windowX + this.windowWidth - pad - actionWidth, actionY, actionWidth, actionH);
+        this.applyRect = new SignEditorUi.Rect(this.cancelRect.x() - actionGap - actionWidth, actionY, actionWidth, actionH);
 
         loadSelectedPanelIntoWidgets();
         updatePagedVisibility();
@@ -288,12 +290,12 @@ public class D21AEditScreen extends Screen {
         if (!pagedUi() || this.settingsPage == 2) {
             SignEditorUi.drawModernSection(graphics, this.font, this.structureRect, "3. STRUCTURE", pagedUi() ? "" : "Panneau simple à une ligne");
             if (!compactUi()) {
-                graphics.text(this.font, Component.literal("L'activation se règle directement dans les onglets Panneau 1 à 4."), this.structureRect.x() + s(10), this.structureRect.y() + s(42), SignEditorUi.MODERN_MUTED, false);
+                graphics.text(this.font, Component.literal(SignEditorUi.fitText(this.font, "L'activation se règle directement dans les onglets Panneau 1 à 4.", this.structureRect.width() - Math.max(20, s(20)))), this.structureRect.x() + s(10), this.structureRect.y() + s(42), SignEditorUi.MODERN_MUTED, false);
             }
         }
 
         if (!compactUi() && !pagedUi()) {
-            graphics.text(this.font, Component.literal("Conseil : utilisez Panneau 1 à 4 ; le bouton à droite de chaque onglet active ou désactive l’étage."), this.windowX + s(18), this.windowY + this.windowHeight - s(28), SignEditorUi.MODERN_MUTED, false);
+            graphics.text(this.font, Component.literal(SignEditorUi.fitText(this.font, "Conseil : utilisez Panneau 1 à 4 ; le bouton à droite de chaque onglet active ou désactive l’étage.", this.windowWidth - Math.max(36, s(36)))), this.windowX + s(18), this.windowY + this.windowHeight - s(28), SignEditorUi.MODERN_MUTED, false);
         }
         SignEditorUi.drawModernButton(graphics, this.font, this.applyRect, "✓  Appliquer", true, true, mouseX, mouseY);
         SignEditorUi.drawModernButton(graphics, this.font, this.cancelRect, "×  Annuler", false, true, mouseX, mouseY);

@@ -887,6 +887,13 @@ public class MoreRoadBlocks {
             (properties) -> new D42bBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    /*
+     * Panonceaux M1 à M5 : un support générique, jusqu'à trois plaques.
+     */
+    public static final DeferredBlock<Block> PANONCEAU = registerBlock("panonceau",
+            (properties) -> new PanonceauBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
     /* Double poteau spécifique au D42b, fourni par l'utilisateur. */
     public static final DeferredBlock<Block> POTEAU_D42B = registerBlock("poteau_d42b_block",
             (properties) -> new PoteauD42bBlock(properties

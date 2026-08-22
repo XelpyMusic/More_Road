@@ -186,20 +186,21 @@ public class D21A2EditScreen extends Screen {
         initContentFields();
         initCustomControls();
 
-        int actionY = this.windowY + this.windowHeight - s(38);
-        int actionWidth = s(150);
-        int actionGap = s(10);
+        int actionH = SignEditorUi.safeControlHeight(this.font, s(28));
+        int actionWidth = Math.max(74, Math.max(s(150), Math.max(this.font.width("✓  Appliquer"), this.font.width("×  Annuler")) + 18));
+        int actionGap = Math.max(4, s(10));
+        int actionY = this.windowY + this.windowHeight - Math.max(s(38), actionH + 4);
         this.cancelRect = new SignEditorUi.Rect(
                 this.windowX + this.windowWidth - pad - actionWidth,
                 actionY,
                 actionWidth,
-                s(28)
+                actionH
         );
         this.applyRect = new SignEditorUi.Rect(
                 this.cancelRect.x() - actionGap - actionWidth,
                 actionY,
                 actionWidth,
-                s(28)
+                actionH
         );
 
         loadSelectedPanelIntoWidgets();
@@ -567,7 +568,7 @@ public class D21A2EditScreen extends Screen {
         if (!compactUi()) {
             graphics.text(
                     this.font,
-                    Component.literal("Conseil : chaque Panneau possède son activation directement dans les onglets du haut."),
+                    Component.literal(SignEditorUi.fitText(this.font, "Conseil : chaque Panneau possède son activation directement dans les onglets du haut.", this.windowWidth - Math.max(36, s(36)))),
                     tipX,
                     tipY,
                     SignEditorUi.MODERN_MUTED,

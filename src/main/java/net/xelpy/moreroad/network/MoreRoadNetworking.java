@@ -15,11 +15,14 @@ import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.D42bBranchData;
 import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.EB10Block;
+import net.xelpy.moreroad.block.custom.PanonceauEntry;
+import net.xelpy.moreroad.block.custom.PanonceauVariant;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.block.entity.D42bBlockEntity;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 import net.xelpy.moreroad.block.entity.E31BlockEntity;
+import net.xelpy.moreroad.block.entity.PanonceauBlockEntity;
 import net.xelpy.moreroad.item.MoreRoadItems;
 import net.xelpy.moreroad.item.RoadBuilderItem;
 
@@ -44,6 +47,8 @@ public final class MoreRoadNetworking {
     private static final int MAX_D42B_DISTANCE_LENGTH = 16;
 
     private static final int MAX_CARTOUCHE_TEXT_LENGTH = 24;
+
+    private static final int MAX_PANONCEAU_VALUE_LENGTH = 24;
 
     private static final int MAX_EDIT_DISTANCE = 8;
 
@@ -131,6 +136,17 @@ public final class MoreRoadNetworking {
                 UpdateB14Payload.TYPE,
                 UpdateB14Payload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateB14
+        );
+
+        /*
+         * --------------------------------------------------------
+         * Panonceaux M1 à M5
+         * --------------------------------------------------------
+         */
+        registrar.playToServer(
+                UpdatePanonceauPayload.TYPE,
+                UpdatePanonceauPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdatePanonceau
         );
 
         /*
@@ -724,6 +740,58 @@ public final class MoreRoadNetworking {
                     Block.UPDATE_ALL
             );
         }
+    }
+
+
+    /*
+     * ============================================================
+     * PANONCEAUX M1 À M5
+     * ============================================================
+     */
+
+    private static void handleUpdatePanonceau(
+            UpdatePanonceauPayload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+
+        if (player.blockPosition().distManhattan(pos) > MAX_EDIT_DISTANCE) {
+            return;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof PanonceauBlockEntity blockEntity)) {
+            return;
+        }
+
+        PanonceauEntry[] entries = new PanonceauEntry[PanonceauBlockEntity.MAX_PANONCEAUX];
+
+        for (int i = 0; i < entries.length; i++) {
+            PanonceauEntry requested = payload.entry(i);
+            PanonceauVariant variant = requested.variant() == null
+                    ? PanonceauVariant.M1
+                    : requested.variant();
+
+            entries[i] = new PanonceauEntry(
+                    requested.enabled(),
+                    variant,
+                    cleanText(requested.value(), MAX_PANONCEAU_VALUE_LENGTH)
+            );
+        }
+
+        blockEntity.setEntries(entries);
+        BlockState state = level.getBlockState(pos);
+        level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
     }
 
 

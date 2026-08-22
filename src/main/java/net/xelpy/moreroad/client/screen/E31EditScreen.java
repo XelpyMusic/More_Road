@@ -80,10 +80,12 @@ public class E31EditScreen extends Screen {
         this.textField.setValue(this.currentText);
         this.addRenderableWidget(this.textField);
 
-        int actionY = this.windowY + this.windowHeight - s(36);
-        int actionW = s(145);
-        this.cancelRect = new SignEditorUi.Rect(this.windowX + this.windowWidth - pad - actionW, actionY, actionW, s(28));
-        this.applyRect = new SignEditorUi.Rect(this.cancelRect.x() - s(10) - actionW, actionY, actionW, s(28));
+        int actionH = SignEditorUi.safeControlHeight(this.font, s(28));
+        int actionW = Math.max(74, Math.max(s(145), Math.max(this.font.width("✓  Appliquer"), this.font.width("×  Annuler")) + 18));
+        int actionGap = Math.max(4, s(10));
+        int actionY = this.windowY + this.windowHeight - Math.max(s(36), actionH + 4);
+        this.cancelRect = new SignEditorUi.Rect(this.windowX + this.windowWidth - pad - actionW, actionY, actionW, actionH);
+        this.applyRect = new SignEditorUi.Rect(this.cancelRect.x() - actionGap - actionW, actionY, actionW, actionH);
 
         this.setInitialFocus(this.textField);
     }
@@ -126,7 +128,7 @@ public class E31EditScreen extends Screen {
             SignEditorUi.drawFieldLabel(graphics, this.font, "Texte", this.textField.getX(), this.textField.getY() - s(12));
             graphics.text(
                     this.font,
-                    Component.literal("Police : Italique"),
+                    Component.literal(SignEditorUi.fitText(this.font, "Police : Italique", this.contentRect.width() - Math.max(24, s(24)))),
                     this.contentRect.x() + s(12),
                     this.textField.getY() + s(38),
                     SignEditorUi.MODERN_MUTED,
@@ -134,7 +136,7 @@ public class E31EditScreen extends Screen {
             );
             graphics.text(
                     this.font,
-                    Component.literal("La police de ce panneau est imposée par le modèle de signalisation."),
+                    Component.literal(SignEditorUi.fitText(this.font, "La police de ce panneau est imposée par le modèle de signalisation.", this.contentRect.width() - Math.max(24, s(24)))),
                     this.contentRect.x() + s(12),
                     this.textField.getY() + s(52),
                     SignEditorUi.MODERN_MUTED,
