@@ -93,8 +93,8 @@ public class D42bEditScreen extends Screen {
         int tabY = this.windowY + header;
         for (int i = 0; i < this.branchRects.length; i++) {
             int tx = this.windowX + pad + i * (tabW + tabsGap);
-            this.branchRects[i] = new SignEditorUi.Rect(tx, tabY, tabW, s(32));
-            this.branchToggleRects[i] = new SignEditorUi.Rect(tx + tabW - s(34), tabY + s(7), s(28), s(18));
+            this.branchRects[i] = new SignEditorUi.Rect(tx, tabY, tabW, SignEditorUi.safeControlHeight(this.font, s(32)));
+            this.branchToggleRects[i] = SignEditorUi.tabToggleRect(this.branchRects[i], this.font);
         }
 
         int leftW = Math.max(s(330), Math.round((this.windowWidth - pad * 2 - gap) * 0.48F));

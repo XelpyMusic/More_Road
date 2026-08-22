@@ -561,6 +561,19 @@ public final class SignEditorUi {
         graphics.text(font, component, textX, y, color, false);
     }
 
+    private static void drawLeftPreviewText(
+            GuiGraphicsExtractor graphics,
+            Font font,
+            String value,
+            int x,
+            int y,
+            int color,
+            RoadTextFont roadFont
+    ) {
+        Component component = roadComponent(value == null ? "" : value, roadFont);
+        graphics.text(font, component, x, y, color, false);
+    }
+
     private static void drawCenteredNoShadow(
             GuiGraphicsExtractor graphics,
             Font font,
@@ -886,15 +899,15 @@ public final class SignEditorUi {
         if (panel.doubleLine()) {
             int y1 = y + height / 3 - 4;
             int y2 = y + height * 2 / 3 - 4;
-            drawCenteredPreviewText(graphics, font, shorten(clean(panel.line1()), Math.max(8, (textRight - textLeft) / 6)), textCenter, y1, fg, false, panel.line1Font());
-            drawCenteredPreviewText(graphics, font, shorten(clean(panel.line2()), Math.max(8, (textRight - textLeft) / 6)), textCenter, y2, fg, false, panel.line2Font());
+            drawLeftPreviewText(graphics, font, shorten(clean(panel.line1()), Math.max(8, (textRight - textLeft) / 6)), textLeft, y1, fg, panel.line1Font());
+            drawLeftPreviewText(graphics, font, shorten(clean(panel.line2()), Math.max(8, (textRight - textLeft) / 6)), textLeft, y2, fg, panel.line2Font());
             if (!arrow) {
                 drawCenteredPreviewText(graphics, font, shorten(clean(panel.distance1()), 6), distanceCenter, y1, fg, false);
                 drawCenteredPreviewText(graphics, font, shorten(clean(panel.distance2()), 6), distanceCenter, y2, fg, false);
             }
         } else {
             int ty = y + height / 2 - 4;
-            drawCenteredPreviewText(graphics, font, shorten(clean(panel.line1()), Math.max(8, (textRight - textLeft) / 6)), textCenter, ty, fg, false, panel.line1Font());
+            drawLeftPreviewText(graphics, font, shorten(clean(panel.line1()), Math.max(8, (textRight - textLeft) / 6)), textLeft, ty, fg, panel.line1Font());
             if (!arrow) drawCenteredPreviewText(graphics, font, shorten(clean(panel.distance()), 6), distanceCenter, ty, fg, false);
         }
 
@@ -1587,6 +1600,31 @@ public final class SignEditorUi {
         }
     }
 
+    /**
+     * Zone de clic commune pour les interrupteurs placés dans les onglets.
+     * Les dimensions sont exprimées en pixels GUI réels (pas en design pixels
+     * multipliés par le facteur adaptatif), ce qui garantit que la zone cliquable
+     * reste superposée à l'interrupteur visible même avec un GUI Scale élevé.
+     */
+    public static Rect tabToggleRect(Rect tabRect, Font font) {
+        if (tabRect == null) {
+            return new Rect(0, 0, 1, 1);
+        }
+
+        int fontHeight = font == null ? 9 : font.lineHeight;
+        int maxWidth = Math.max(1, tabRect.width() - 8);
+        int desiredWidth = Math.max(28, Math.min(36, tabRect.width() / 4));
+        int width = Math.min(desiredWidth, maxWidth);
+
+        int maxHeight = Math.max(1, tabRect.height() - 4);
+        int desiredHeight = Math.max(18, fontHeight + 8);
+        int height = Math.min(desiredHeight, maxHeight);
+
+        int x = tabRect.x() + tabRect.width() - width - 4;
+        int y = tabRect.y() + Math.max(2, (tabRect.height() - height) / 2);
+        return new Rect(x, y, width, height);
+    }
+
     public static void drawModernButton(
             GuiGraphicsExtractor graphics,
             Font font,
@@ -1629,7 +1667,8 @@ public final class SignEditorUi {
         if (hovered) {
             graphics.fill(rect.x(), rect.y(), rect.x() + rect.width(), rect.y() + rect.height(), 0x552D3E50);
         }
-        int toggleWidth = Math.min(30, Math.max(18, rect.width() - 4));
+        int availableToggleWidth = Math.max(1, rect.width() - 4);
+        int toggleWidth = Math.min(30, availableToggleWidth);
         int labelMaxWidth = Math.max(0, rect.width() - toggleWidth - 10);
         if (rect.height() >= font.lineHeight + 2) {
             graphics.text(font, Component.literal(fitText(font, label, labelMaxWidth)), rect.x() + 2, rect.y() + 3, enabled ? COLOR_TEXT : 0xFF697583, false);
@@ -1638,13 +1677,13 @@ public final class SignEditorUi {
             graphics.text(font, Component.literal(fitText(font, helper, labelMaxWidth)), rect.x() + 2, rect.y() + 14, MODERN_MUTED, false);
         }
 
-        int toggleHeight = Math.min(14, Math.max(10, rect.height() - 4));
+        int toggleHeight = Math.min(14, Math.max(1, rect.height() - 4));
         int tx = rect.x() + rect.width() - toggleWidth - 2;
         int ty = rect.y() + Math.max(2, (rect.height() - toggleHeight) / 2);
         int bg = value ? MODERN_BLUE : 0xFF59636E;
         graphics.fill(tx, ty, tx + toggleWidth, ty + toggleHeight, bg);
         graphics.outline(tx, ty, toggleWidth, toggleHeight, value ? 0xFF64AFFF : 0xFF74808C);
-        int knobSize = Math.max(6, toggleHeight - 4);
+        int knobSize = Math.max(2, toggleHeight - 4);
         int knobX = value ? tx + toggleWidth - knobSize - 2 : tx + 2;
         graphics.fill(knobX, ty + 2, knobX + knobSize, ty + 2 + knobSize, COLOR_WHITE);
     }

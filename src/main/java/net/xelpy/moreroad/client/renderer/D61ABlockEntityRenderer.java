@@ -1,6 +1,7 @@
 package net.xelpy.moreroad.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -10,6 +11,7 @@ import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
@@ -58,9 +60,16 @@ public class D61ABlockEntityRenderer
     private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT =
             BlockDisplayContext.create();
 
+    private static final Identifier AUTOROUTE_LOGO_TEXTURE =
+            Identifier.fromNamespaceAndPath(
+                    MoreRoad.MODID,
+                    "textures/block/autoroute_logo.png"
+            );
+
     /* V99 : stabilisation du texte devant la face + POLYGON_OFFSET. */
     private static final float TEXT_Z = 0.1935F;
     private static final float ARROW_Z = 0.1925F;
+    private static final float AUTOROUTE_LOGO_Z = 0.1915F;
 
     private static final float SIMPLE_LINE_Y = 0.765F;
     private static final float DOUBLE_LINE_Y_TOP = 0.720F;
@@ -78,13 +87,18 @@ public class D61ABlockEntityRenderer
      * Avec une flèche à droite, le texte conserve sa marge gauche normale
      * mais sa largeur maximale s'arrête avant la flèche.
      */
-    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW = -0.12F;
-    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW = -0.10F;
+    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW = 0.05F;
+    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_LEFT_ARROW = 0.08F;
 
-    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = -0.12F;
-    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = -0.08F;
-    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW = 0.16F;
-    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW = 0.20F;
+    /*
+     * Le logo autoroute ne doit jamais recentrer artificiellement la destination.
+     * Le texte conserve donc exactement la même ancre gauche que sans logo ; seule
+     * sa largeur maximale est réduite afin de réserver la zone du pictogramme.
+     */
+    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = SIMPLE_DESTINATION_LEFT_EDGE;
+    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = DOUBLE_DESTINATION_LEFT_EDGE;
+    private static final float SIMPLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW = -0.08F;
+    private static final float DOUBLE_DESTINATION_LEFT_EDGE_WITH_LOGO_AND_LEFT_ARROW = -0.06F;
 
     private static final float SINGLE_DESTINATION_BASE_SCALE = 0.0165F;
     private static final float SINGLE_DISTANCE_BASE_SCALE = 0.0160F;
@@ -99,17 +113,17 @@ public class D61ABlockEntityRenderer
      * n'est rendu. La destination dispose donc de toute la place restante
      * jusqu'à la zone occupée par le PNG.
      */
-    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW = 1.53F;
-    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW = 1.55F;
-    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW = 1.52F;
-    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW = 1.54F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW = 1.34F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW = 1.46F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LEFT_ARROW = 1.32F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_RIGHT_ARROW = 1.44F;
 
     private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO = 1.28F;
     private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_AUTOROUTE_LOGO = 1.18F;
-    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW = 1.08F;
-    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW = 1.02F;
-    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW = 1.12F;
-    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW = 0.98F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW = 1.00F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_RIGHT_ARROW = 0.94F;
+    private static final float SIMPLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW = 1.06F;
+    private static final float DOUBLE_DESTINATION_MAX_WIDTH_WITH_LOGO_AND_LEFT_ARROW = 0.96F;
 
     private static final float DISTANCE_MAX_WIDTH = 0.26F;
 
@@ -134,6 +148,13 @@ public class D61ABlockEntityRenderer
 
     private static final float SIMPLE_ARROW_SCALE = 0.24F;
     private static final float DOUBLE_ARROW_SCALE = 0.34F;
+
+
+    // Dimensions exactes des anciens overlays Blockbench du logo autoroute.
+    private static final float SIMPLE_AUTOROUTE_LOGO_SIZE = 3.65F / 16.0F;
+    private static final float DOUBLE_AUTOROUTE_LOGO_SIZE = 5.00F / 16.0F;
+    private static final float SIMPLE_AUTOROUTE_LOGO_Y = 12.685F / 16.0F;
+    private static final float DOUBLE_AUTOROUTE_LOGO_Y = 10.58F / 16.0F;
 
     private final BlockModelResolver blockResolver;
 
@@ -233,7 +254,7 @@ public class D61ABlockEntityRenderer
                             .setValue(D61APanelModelBlock.TYPE, renderState.panelTypes[i])
                             .setValue(
                                     D61APanelModelBlock.AUTOROUTE_LOGO,
-                                    renderState.autorouteLogos[i]
+                                    false
                             );
 
             this.blockResolver.update(
@@ -336,6 +357,18 @@ public class D61ABlockEntityRenderer
             );
 
             poseStack.popPose();
+
+            if (renderState.autorouteLogos[i]) {
+                submitAutorouteLogo(
+                        renderState.doubleLines[i],
+                        renderState.arrowEnabled[i],
+                        renderState.arrowPositions[i],
+                        yOffset,
+                        renderState,
+                        poseStack,
+                        collector
+                );
+            }
 
             if (renderState.arrowEnabled[i]) {
                 submitArrow(
@@ -473,6 +506,70 @@ public class D61ABlockEntityRenderer
                 renderState.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 0
+        );
+
+        poseStack.popPose();
+    }
+
+    private static void submitAutorouteLogo(
+            boolean doubleLine,
+            boolean arrowEnabled,
+            D61AArrowPosition arrowPosition,
+            float yOffset,
+            D61ARenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        D61AArrowPosition effectiveArrowPosition = arrowPosition == null
+                ? D61AArrowPosition.RIGHT
+                : arrowPosition;
+
+        float leftSideX = doubleLine ? DOUBLE_ARROW_LEFT_X : SIMPLE_ARROW_LEFT_X;
+        float rightSideX = doubleLine ? DOUBLE_ARROW_RIGHT_X : SIMPLE_ARROW_RIGHT_X;
+
+        /*
+         * Sans flèche on garde la position historique du logo. Avec une flèche,
+         * le logo passe systématiquement sur le côté opposé : les deux éléments
+         * ne peuvent donc plus jamais se superposer.
+         */
+        float logoCenterX = !arrowEnabled
+                ? rightSideX
+                : (effectiveArrowPosition == D61AArrowPosition.LEFT
+                ? rightSideX
+                : leftSideX);
+
+        float logoCenterY = (doubleLine
+                ? DOUBLE_AUTOROUTE_LOGO_Y
+                : SIMPLE_AUTOROUTE_LOGO_Y) + yOffset;
+        float logoSize = doubleLine
+                ? DOUBLE_AUTOROUTE_LOGO_SIZE
+                : SIMPLE_AUTOROUTE_LOGO_SIZE;
+
+        poseStack.pushPose();
+        poseStack.translate(0.5F, logoCenterY, 0.5F);
+        poseStack.mulPose(
+                Axis.YP.rotationDegrees(
+                        getFacingRotation(renderState.facing)
+                )
+        );
+
+        float centerX = logoCenterX - 0.5F;
+        float half = logoSize / 2.0F;
+        int light = renderState.lightCoords;
+
+        collector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(AUTOROUTE_LOGO_TEXTURE),
+                (pose, consumer) -> addAutorouteLogoQuad(
+                        pose,
+                        consumer,
+                        centerX - half,
+                        centerX + half,
+                        -half,
+                        half,
+                        AUTOROUTE_LOGO_Z,
+                        light
+                )
         );
 
         poseStack.popPose();
@@ -960,6 +1057,40 @@ public class D61ABlockEntityRenderer
         );
 
         poseStack.popPose();
+    }
+
+    private static void addAutorouteLogoQuad(
+            PoseStack.Pose pose,
+            VertexConsumer consumer,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float z,
+            int light
+    ) {
+        addAutorouteLogoVertex(pose, consumer, left, bottom, z, 0.0F, 1.0F, light);
+        addAutorouteLogoVertex(pose, consumer, right, bottom, z, 1.0F, 1.0F, light);
+        addAutorouteLogoVertex(pose, consumer, right, top, z, 1.0F, 0.0F, light);
+        addAutorouteLogoVertex(pose, consumer, left, top, z, 0.0F, 0.0F, light);
+    }
+
+    private static void addAutorouteLogoVertex(
+            PoseStack.Pose pose,
+            VertexConsumer consumer,
+            float x,
+            float y,
+            float z,
+            float u,
+            float v,
+            int light
+    ) {
+        consumer.addVertex(pose, x, y, z)
+                .setColor(0xFFFFFFFF)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(pose, 0.0F, 0.0F, 1.0F);
     }
 
     private static FontDescription.Resource getRoadFont(

@@ -1,3 +1,6 @@
 {
-  "parent": "moreroad:block/panonceau_item"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "moreroad:item/panonceau"
+  }
 }

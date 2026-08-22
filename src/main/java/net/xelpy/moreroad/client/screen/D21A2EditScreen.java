@@ -135,12 +135,10 @@ public class D21A2EditScreen extends Screen {
         int tabWidth = Math.max(s(120), (tabsTotalWidth - tabGap * 3) / 4);
         for (int i = 0; i < this.tabRects.length; i++) {
             int tx = this.windowX + pad + i * (tabWidth + tabGap);
-            this.tabRects[i] = new SignEditorUi.Rect(tx, tabY, tabWidth, s(32));
-            this.tabToggleRects[i] = new SignEditorUi.Rect(
-                    tx + tabWidth - s(34),
-                    tabY + s(7),
-                    s(28),
-                    s(18)
+            this.tabRects[i] = new SignEditorUi.Rect(tx, tabY, tabWidth, SignEditorUi.safeControlHeight(this.font, s(32)));
+            this.tabToggleRects[i] = SignEditorUi.tabToggleRect(
+                    this.tabRects[i],
+                    this.font
             );
         }
 

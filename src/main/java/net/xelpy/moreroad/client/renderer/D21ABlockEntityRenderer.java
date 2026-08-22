@@ -97,8 +97,8 @@ public class D21ABlockEntityRenderer
      */
     private static final float RIGHT_DESTINATION_LEFT_EDGE = -0.31F;
 
-    private static final float LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 1.00F;
-    private static final float RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.00F;
+    private static final float LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 0.90F;
+    private static final float RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.22F;
 
     private static final float DISTANCE_MAX_WIDTH = 0.28F;
 
@@ -115,8 +115,8 @@ public class D21ABlockEntityRenderer
     private static final float SINGLE_DESTINATION_MAX_WIDTH_WITH_DISTANCE = 1.18F;
     private static final float SINGLE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE = 1.50F;
 
-    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITH_DISTANCE_AND_AUTOROUTE_LOGO = 0.82F;
-    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE_AND_AUTOROUTE_LOGO = 1.00F;
+    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITH_DISTANCE_AND_AUTOROUTE_LOGO = 0.66F;
+    private static final float SINGLE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE_AND_AUTOROUTE_LOGO = 0.84F;
 
     /* ============================================================
      * D21A2 - 2 LIGNES
@@ -140,8 +140,8 @@ public class D21ABlockEntityRenderer
     private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITH_DISTANCE = 1.18F;
     private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE = 1.50F;
 
-    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITH_DISTANCE_AND_AUTOROUTE_LOGO = 0.78F;
-    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE_AND_AUTOROUTE_LOGO = 0.88F;
+    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITH_DISTANCE_AND_AUTOROUTE_LOGO = 0.62F;
+    private static final float TWO_LINE_DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE_AND_AUTOROUTE_LOGO = 0.76F;
 
     /*
      * Les distances gardent EXACTEMENT la position horizontale effective
@@ -174,8 +174,8 @@ public class D21ABlockEntityRenderer
     private static final float TWO_LINE_LEFT_DESTINATION_RIGHT_EDGE = 1.31F;
     private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE = -0.31F;
 
-    private static final float TWO_LINE_LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 1.00F;
-    private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.00F;
+    private static final float TWO_LINE_LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 0.90F;
+    private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.22F;
 
     private final BlockModelResolver blockResolver;
 
@@ -704,7 +704,7 @@ public class D21ABlockEntityRenderer
                  * On garde sa position actuelle et on réserve sa zone pour
                  * empêcher tout chevauchement avec une destination longue.
                  */
-                destinationMaxWidth = 0.66F;
+                destinationMaxWidth = 0.52F;
             } else {
                 destinationMaxWidth =
                         hasAnyDistance
