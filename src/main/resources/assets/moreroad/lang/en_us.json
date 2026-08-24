@@ -283,5 +283,9 @@
   "block.moreroad.e31a": "E31a — Local place name",
   "block.moreroad.e31b": "E31b — Watercourse name",
   "item.moreroad.road_builder": "Road Builder",
-  "block.moreroad.panonceau": "Configurable road supplementary plate"
+  "block.moreroad.panonceau": "Configurable road supplementary plate",
+  "block.moreroad.da31c": "DA31C — Large motorway sign",
+  "block.moreroad.support_da31c_pied": "DA31C — Gantry base",
+  "block.moreroad.support_da31c_poteau": "DA31C — Gantry post",
+  "block.moreroad.support_da31c_traverse": "DA31C — Gantry crossbar"
 }

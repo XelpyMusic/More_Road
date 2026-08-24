@@ -21,6 +21,9 @@ public class MoreRoadCreativeModeTabs2 {
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(MoreRoadBlocks.POTEAU);
                         output.accept(MoreRoadBlocks.POTEAU_D42B);
+                        output.accept(MoreRoadBlocks.SUPPORT_DA31C_PIED);
+                        output.accept(MoreRoadBlocks.SUPPORT_DA31C_POTEAU);
+                        output.accept(MoreRoadBlocks.SUPPORT_DA31C_TRAVERSE);
                         output.accept(MoreRoadBlocks.BITUME);
                         output.accept(MoreRoadBlocks.DALLEDEBITUME);
                         output.accept(MoreRoadBlocks.LIGNECEDEZLEPASSAGE);

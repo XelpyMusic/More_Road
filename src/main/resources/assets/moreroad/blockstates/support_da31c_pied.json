@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/support_da31c_pied"
+    },
+    "facing=east": {
+      "model": "moreroad:block/support_da31c_pied",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/support_da31c_pied",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/support_da31c_pied",
+      "y": 270
+    }
+  }
+}

@@ -8,16 +8,19 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.xelpy.moreroad.block.custom.B14Speed;
+import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.B14_5Block;
 import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
+import net.xelpy.moreroad.block.custom.DA31CBlock;
 import net.xelpy.moreroad.block.custom.D42bBranchData;
 import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.EB10Block;
 import net.xelpy.moreroad.block.custom.PanonceauEntry;
 import net.xelpy.moreroad.block.custom.PanonceauVariant;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
+import net.xelpy.moreroad.block.entity.DA31CBlockEntity;
 import net.xelpy.moreroad.block.entity.D42bBlockEntity;
 import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
@@ -37,6 +40,10 @@ public final class MoreRoadNetworking {
     private static final int MAX_EB10_LINE_LENGTH = 32;
 
     private static final int MAX_E31_TEXT_LENGTH = 48;
+
+    private static final int MAX_DA31C_LINE_LENGTH = 48;
+
+    private static final int MAX_DA31C_CARTOUCHE_LENGTH = 24;
 
     private static final int MAX_D21A_LINE_LENGTH = 48;
 
@@ -100,6 +107,12 @@ public final class MoreRoadNetworking {
                 UpdateE31TextPayload.TYPE,
                 UpdateE31TextPayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateE31Text
+        );
+
+        registrar.playToServer(
+                UpdateDA31CPayload.TYPE,
+                UpdateDA31CPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateDA31C
         );
 
 
@@ -378,6 +391,65 @@ public final class MoreRoadNetworking {
      * D21A
      * ============================================================
      */
+
+    private static void handleUpdateDA31C(
+            UpdateDA31CPayload payload,
+            IPayloadContext context
+    ) {
+
+        var player = context.player();
+
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+
+        if (player.blockPosition().distManhattan(pos) > MAX_EDIT_DISTANCE) {
+            return;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof DA31CBlockEntity blockEntity)) {
+            return;
+        }
+
+        String line1 = cleanText(payload.line1(), MAX_DA31C_LINE_LENGTH);
+        String line2 = cleanText(payload.line2(), MAX_DA31C_LINE_LENGTH);
+        String leftText = cleanText(payload.cartoucheLeftText(), MAX_DA31C_CARTOUCHE_LENGTH);
+        String rightText = cleanText(payload.cartoucheRightText(), MAX_DA31C_CARTOUCHE_LENGTH);
+
+        CartoucheType leftType = CartoucheType.fromSerializedName(payload.cartoucheLeftType());
+        CartoucheType rightType = CartoucheType.fromSerializedName(payload.cartoucheRightType());
+
+        blockEntity.setData(
+                line1,
+                line2,
+                leftType,
+                leftText,
+                rightType,
+                rightText
+        );
+
+        BlockState currentState = level.getBlockState(pos);
+        if (currentState.getBlock() instanceof DA31CBlock) {
+            BlockState newState = currentState
+                    .setValue(DA31CBlock.CARTOUCHE_LEFT, leftType)
+                    .setValue(DA31CBlock.CARTOUCHE_RIGHT, rightType);
+
+            if (!newState.equals(currentState)) {
+                level.setBlock(pos, newState, Block.UPDATE_ALL);
+            }
+        }
+
+        BlockState finalState = level.getBlockState(pos);
+        level.sendBlockUpdated(pos, finalState, finalState, Block.UPDATE_ALL);
+    }
+
 
     private static void handleUpdateD21A(
             UpdateD21APayload payload,

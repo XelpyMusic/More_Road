@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "moreroad:block/support_da31c_poteau"
+    },
+    "facing=east": {
+      "model": "moreroad:block/support_da31c_poteau",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "moreroad:block/support_da31c_poteau",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "moreroad:block/support_da31c_poteau",
+      "y": 270
+    }
+  }
+}

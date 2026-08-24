@@ -1290,6 +1290,22 @@ public class MoreRoadBlocks {
             (properties) -> new J5Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> DA31C = registerBlock("da31c",
+            (properties) -> new DA31CBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> SUPPORT_DA31C_PIED = registerBlock("support_da31c_pied",
+            (properties) -> new DA31CSupportFootBlock(properties
+                    .noOcclusion().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> SUPPORT_DA31C_POTEAU = registerBlock("support_da31c_poteau",
+            (properties) -> new DA31CSupportPoleBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
+    public static final DeferredBlock<Block> SUPPORT_DA31C_TRAVERSE = registerBlock("support_da31c_traverse",
+            (properties) -> new DA31CSupportCrossbarBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
 
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {

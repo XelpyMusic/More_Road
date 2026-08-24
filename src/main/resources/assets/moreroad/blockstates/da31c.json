@@ -1,0 +1,429 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_left": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e41_45"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_left": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e41_45",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_left": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e41_45",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_left": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e41_45",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_left": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e42"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_left": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e42",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_left": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e42",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_left": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e42",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_left": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e43"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_left": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e43",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_left": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e43",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_left": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e43",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_left": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e44"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_left": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e44",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_left": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e44",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_left": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e44",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_left": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e47"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_left": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e47",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_left": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e47",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_left": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_right_e47",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_right": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e41_45"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_right": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e41_45",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_right": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e41_45",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_right": "e41_45"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e41_45",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_right": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e42"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_right": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e42",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_right": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e42",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_right": "e42"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e42",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_right": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e43"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_right": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e43",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_right": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e43",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_right": "e43"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e43",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_right": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e44"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_right": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e44",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_right": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e44",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_right": "e44"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e44",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "cartouche_right": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e47"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "cartouche_right": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e47",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "cartouche_right": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e47",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "cartouche_right": "e47"
+      },
+      "apply": {
+        "model": "moreroad:block/da31c_cartouche_left_e47",
+        "y": 270
+      }
+    }
+  ]
+}

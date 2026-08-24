@@ -61,6 +61,17 @@ public class MoreRoadBlockEntities {
                     )
             );
 
+    public static final Supplier<BlockEntityType<DA31CBlockEntity>>
+            DA31C =
+            BLOCK_ENTITY_TYPES.register(
+                    "da31c",
+                    () -> new BlockEntityType<>(
+                            DA31CBlockEntity::new,
+                            false,
+                            MoreRoadBlocks.DA31C.get()
+                    )
+            );
+
 
     /*
      * ============================================================
