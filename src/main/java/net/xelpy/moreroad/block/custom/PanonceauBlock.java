@@ -33,14 +33,36 @@ public class PanonceauBlock
 
     public static final MapCodec<PanonceauBlock> CODEC = simpleCodec(PanonceauBlock::new);
 
-    private static final VoxelShape NORTH_SOUTH = Shapes.or(
-            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0),
-            Block.box(0.5, 1.0, 5.5, 15.5, 15.8, 10.5)
+    /*
+     * Hitbox synchronisée avec le dernier modèle Blockbench validé.
+     *
+     * La plaque NORTH est à Z = 6 -> 7. On garde juste une très légère marge
+     * de confort côté sélection, mais sans réavancer artificiellement le
+     * volume comme lors de la passe précédente.
+     * La largeur/hauteur couvrent toujours la zone maximale des 3 plaques
+     * dynamiques M1 -> M12 / TXT.
+     */
+    private static final VoxelShape POLE_SHAPE =
+            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0);
+
+    private static final VoxelShape NORTH = Shapes.or(
+            POLE_SHAPE,
+            Block.box(0.5, 0.8, 5.95, 15.5, 15.55, 7.00)
     );
 
-    private static final VoxelShape EAST_WEST = Shapes.or(
-            Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 9.0),
-            Block.box(5.5, 1.0, 0.5, 10.5, 15.8, 15.5)
+    private static final VoxelShape SOUTH = Shapes.or(
+            POLE_SHAPE,
+            Block.box(0.5, 0.8, 9.00, 15.5, 15.55, 10.05)
+    );
+
+    private static final VoxelShape EAST = Shapes.or(
+            POLE_SHAPE,
+            Block.box(9.00, 0.8, 0.5, 10.05, 15.55, 15.5)
+    );
+
+    private static final VoxelShape WEST = Shapes.or(
+            POLE_SHAPE,
+            Block.box(5.95, 0.8, 0.5, 7.00, 15.55, 15.5)
     );
 
     public PanonceauBlock(Properties properties) {
@@ -63,8 +85,10 @@ public class PanonceauBlock
             CollisionContext context
     ) {
         return switch (state.getValue(FACING)) {
-            case EAST, WEST -> EAST_WEST;
-            default -> NORTH_SOUTH;
+            case EAST -> EAST;
+            case SOUTH -> SOUTH;
+            case WEST -> WEST;
+            default -> NORTH;
         };
     }
 

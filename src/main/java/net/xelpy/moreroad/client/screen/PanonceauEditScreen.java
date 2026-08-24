@@ -17,6 +17,10 @@ import net.xelpy.moreroad.block.entity.PanonceauBlockEntity;
 import net.xelpy.moreroad.network.UpdatePanonceauPayload;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -33,6 +37,8 @@ import java.util.Optional;
  * panonceaux proches les uns des autres.
  */
 public class PanonceauEditScreen extends Screen {
+
+    private static final int PREVIEW_TEXT_Y_BIAS = 2;
 
     private static final String[] FAMILIES = {"M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "TXT"};
     private static final int MAX_VARIANT_CARDS = 12;
@@ -312,22 +318,22 @@ public class PanonceauEditScreen extends Screen {
                 false
         );
 
-        if (selected.variant().isCustomText()) {
+        if (selected.variant().hasSecondaryValue()) {
             SignEditorUi.drawFieldLabel(
                     graphics,
                     this.font,
-                    "Ligne 1",
+                    primaryFieldLabel(selected.variant()),
                     this.valueField.getX(),
                     this.valueField.getY() - Math.max(12, s(12))
             );
             SignEditorUi.drawFieldLabel(
                     graphics,
                     this.font,
-                    "Ligne 2 (facultative)",
+                    secondaryFieldLabel(selected.variant()),
                     this.secondLineField.getX(),
                     this.secondLineField.getY() - Math.max(12, s(12))
             );
-            if (!compactUi()) {
+            if (!compactUi() && selected.variant().isCustomText()) {
                 graphics.text(
                         this.font,
                         Component.literal(fitText("Ligne 2 vide = texte centré sur une seule ligne.", this.stackRect.width() - 24)),
@@ -370,7 +376,7 @@ public class PanonceauEditScreen extends Screen {
         int summaryFirstOffset = Math.max(13, s(18));
         int summaryRequiredHeight = summaryFirstOffset + summaryLineGap * 2 + this.font.lineHeight + 4;
         int currentFieldHeight = Math.max(18, s(26));
-        int summaryBaseBottom = selected.variant().isCustomText()
+        int summaryBaseBottom = selected.variant().hasSecondaryValue()
                 ? this.secondLineField.getY() + currentFieldHeight
                 : this.valueField.getY() + currentFieldHeight;
         int summaryY = summaryBaseBottom + Math.max(14, s(24));
@@ -710,35 +716,35 @@ public class PanonceauEditScreen extends Screen {
                     graphics,
                     value,
                     centerX,
-                    centerY - 4,
+                    centerY - 4 + PREVIEW_TEXT_Y_BIAS,
                     Math.max(12, Math.round(rect.width() * 0.56F))
             );
             case M3B_RIGHT_VALUE -> drawPreviewText(
                     graphics,
                     value,
                     rect.x() + Math.round(rect.width() * 0.74F),
-                    centerY - 4,
+                    centerY - 4 + PREVIEW_TEXT_Y_BIAS,
                     Math.max(10, Math.round(rect.width() * 0.38F))
             );
             case M3B_LEFT_VALUE -> drawPreviewText(
                     graphics,
                     value,
                     rect.x() + Math.round(rect.width() * 0.26F),
-                    centerY - 4,
+                    centerY - 4 + PREVIEW_TEXT_Y_BIAS,
                     Math.max(10, Math.round(rect.width() * 0.38F))
             );
             case LOWER_VALUE -> drawPreviewText(
                     graphics,
                     value,
                     centerX,
-                    rect.y() + Math.max(2, rect.height() - 12),
+                    rect.y() + Math.max(2, rect.height() - 12) + PREVIEW_TEXT_Y_BIAS,
                     Math.max(12, Math.round(rect.width() * 0.62F))
             );
             case UPPER_VALUE -> drawPreviewText(
                     graphics,
                     value,
                     centerX,
-                    rect.y() + 3,
+                    rect.y() + 3 + PREVIEW_TEXT_Y_BIAS,
                     Math.max(12, Math.round(rect.width() * 0.66F))
             );
             case M5A -> {
@@ -746,14 +752,14 @@ public class PanonceauEditScreen extends Screen {
                         graphics,
                         "STOP",
                         centerX,
-                        centerY - 11,
+                        centerY - 11 + PREVIEW_TEXT_Y_BIAS,
                         Math.max(12, Math.round(rect.width() * 0.76F))
                 );
                 drawPreviewText(
                         graphics,
                         value,
                         centerX,
-                        centerY + 3,
+                        centerY + 3 + PREVIEW_TEXT_Y_BIAS,
                         Math.max(12, Math.round(rect.width() * 0.80F))
                 );
             }
@@ -762,17 +768,47 @@ public class PanonceauEditScreen extends Screen {
                         graphics,
                         "STOP",
                         rect.x() + Math.round(rect.width() * 0.28F),
-                        centerY - 4,
+                        centerY - 4 + PREVIEW_TEXT_Y_BIAS,
                         Math.max(12, Math.round(rect.width() * 0.40F))
                 );
                 drawPreviewText(
                         graphics,
                         value,
                         rect.x() + Math.round(rect.width() * 0.73F),
-                        centerY - 4,
+                        centerY - 4 + PREVIEW_TEXT_Y_BIAS,
                         Math.max(12, Math.round(rect.width() * 0.42F))
                 );
             }
+            case M1A_DUAL_TEXT -> {
+                String[] values = splitCustomLines(value);
+                drawPreviewWrappedText(
+                        graphics,
+                        values[0],
+                        rect.x() + Math.round(rect.width() * 0.20F),
+                        centerY,
+                        Math.max(10, Math.round(rect.width() * 0.25F)),
+                        4
+                );
+                drawPreviewText(graphics, values[1], rect.x() + Math.round(rect.width() * 0.68F), centerY - 4 + PREVIEW_TEXT_Y_BIAS, Math.max(12, Math.round(rect.width() * 0.50F)));
+            }
+            case M8_VERTICAL_TOP_VALUE -> drawPreviewText(
+                    graphics, value, centerX, rect.y() + 3 + PREVIEW_TEXT_Y_BIAS, Math.max(10, Math.round(rect.width() * 0.70F))
+            );
+            case M8_RIGHT_TOP_VALUE -> drawPreviewText(
+                    graphics, value, rect.x() + Math.round(rect.width() * 0.35F), rect.y() + 2 + PREVIEW_TEXT_Y_BIAS, Math.max(10, Math.round(rect.width() * 0.34F))
+            );
+            case M8_LEFT_TOP_VALUE -> drawPreviewText(
+                    graphics, value, rect.x() + Math.round(rect.width() * 0.65F), rect.y() + 2 + PREVIEW_TEXT_Y_BIAS, Math.max(10, Math.round(rect.width() * 0.34F))
+            );
+            case M8F_DUAL_VALUE -> {
+                String[] values = splitCustomLines(value);
+                drawPreviewText(graphics, values[0], rect.x() + Math.round(rect.width() * 0.36F), rect.y() + 2 + PREVIEW_TEXT_Y_BIAS, Math.max(9, Math.round(rect.width() * 0.22F)));
+                drawPreviewText(graphics, values[1], rect.x() + Math.round(rect.width() * 0.64F), rect.y() + 2 + PREVIEW_TEXT_Y_BIAS, Math.max(9, Math.round(rect.width() * 0.22F)));
+            }
+            case M10_ROUTE_WHITE -> drawPreviewText(graphics, value, centerX, centerY - 4 + PREVIEW_TEXT_Y_BIAS, Math.max(12, Math.round(rect.width() * 0.52F)), 0xFFFFFFFF);
+            case M10_EXIT_NUMBER -> drawPreviewText(graphics, value, rect.x() + Math.round(rect.width() * 0.72F), centerY - 4 + PREVIEW_TEXT_Y_BIAS, Math.max(10, Math.round(rect.width() * 0.28F)));
+            case M10_C2_WHITE -> drawPreviewText(graphics, value, rect.x() + Math.round(rect.width() * 0.68F), centerY - 4 + PREVIEW_TEXT_Y_BIAS, Math.max(10, Math.round(rect.width() * 0.46F)), 0xFFFFFFFF);
+            case M10Z_TEXT -> drawPreviewText(graphics, value, centerX, centerY - 4 + PREVIEW_TEXT_Y_BIAS, Math.max(12, Math.round(rect.width() * 0.82F)));
             case CUSTOM_TEXT -> {
                 String[] lines = splitCustomLines(value);
                 if (lines[1].isBlank()) {
@@ -780,7 +816,7 @@ public class PanonceauEditScreen extends Screen {
                             graphics,
                             lines[0],
                             centerX,
-                            centerY - 4,
+                            centerY - 4 + PREVIEW_TEXT_Y_BIAS,
                             Math.max(12, Math.round(rect.width() * 0.82F))
                     );
                 } else {
@@ -788,19 +824,60 @@ public class PanonceauEditScreen extends Screen {
                             graphics,
                             lines[0],
                             centerX,
-                            centerY - 10,
+                            centerY - 10 + PREVIEW_TEXT_Y_BIAS,
                             Math.max(12, Math.round(rect.width() * 0.82F))
                     );
                     drawPreviewText(
                             graphics,
                             lines[1],
                             centerX,
-                            centerY + 2,
+                            centerY + 2 + PREVIEW_TEXT_Y_BIAS,
                             Math.max(12, Math.round(rect.width() * 0.82F))
                     );
                 }
             }
         }
+    }
+
+    private void drawPreviewWrappedText(
+            GuiGraphicsExtractor graphics,
+            String value,
+            int centerX,
+            int centerY,
+            int maxWidth,
+            int maxLines
+    ) {
+        String[] lines = balancedPreviewWrap(value, maxLines);
+        int lineGap = Math.max(8, this.font.lineHeight);
+        int startY = centerY - ((lines.length * lineGap) / 2);
+        for (int i = 0; i < lines.length; i++) {
+            drawPreviewText(graphics, lines[i], centerX, startY + i * lineGap, maxWidth);
+        }
+    }
+
+    private static String[] balancedPreviewWrap(String value, int maxLines) {
+        String cleaned = value == null ? "" : value.strip().replaceAll("\s+", " ");
+        if (cleaned.isBlank() || maxLines <= 1) {
+            return new String[]{cleaned};
+        }
+        String[] words = cleaned.split(" ");
+        int count = Math.min(maxLines, words.length);
+        String[] lines = new String[count];
+        int index = 0;
+        for (int line = 0; line < count; line++) {
+            int remainingWords = words.length - index;
+            int remainingLines = count - line;
+            int take = Math.max(1, (int) Math.ceil(remainingWords / (double) remainingLines));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < take && index < words.length; i++, index++) {
+                if (!builder.isEmpty()) {
+                    builder.append(' ');
+                }
+                builder.append(words[index]);
+            }
+            lines[line] = builder.toString();
+        }
+        return lines;
     }
 
     private void drawPreviewText(
@@ -809,6 +886,17 @@ public class PanonceauEditScreen extends Screen {
             int centerX,
             int y,
             int maxWidth
+    ) {
+        drawPreviewText(graphics, value, centerX, y, maxWidth, 0xFF111111);
+    }
+
+    private void drawPreviewText(
+            GuiGraphicsExtractor graphics,
+            String value,
+            int centerX,
+            int y,
+            int maxWidth,
+            int color
     ) {
         String fitted = fitText(value, maxWidth);
         if (fitted.isBlank()) {
@@ -819,7 +907,7 @@ public class PanonceauEditScreen extends Screen {
                 Component.literal(fitted),
                 centerX,
                 y,
-                0xFF111111
+                color
         );
     }
 
@@ -895,6 +983,7 @@ public class PanonceauEditScreen extends Screen {
                 if (image == null) {
                     return null;
                 }
+                image = composeModelMatchedPreview(variant, image);
 
                 int srcWidth = image.getWidth();
                 int srcHeight = image.getHeight();
@@ -922,6 +1011,129 @@ public class PanonceauEditScreen extends Screen {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private static BufferedImage composeModelMatchedPreview(PanonceauVariant variant, BufferedImage content) {
+        /*
+         * Les textures M12A/M12B contiennent désormais leur triangle complet.
+         * Elles peuvent donc être affichées directement sans reconstruire une
+         * seconde face qui se superposerait au visuel.
+         */
+        if (variant != PanonceauVariant.M11B
+                && variant != PanonceauVariant.M12A_C
+                && variant != PanonceauVariant.M12B_C) {
+            return content;
+        }
+
+        int w = content.getWidth();
+        int h = content.getHeight();
+        BufferedImage result = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = result.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if (variant == PanonceauVariant.M11B) {
+            /*
+             * M11B est constitué de deux panonceaux horizontaux indépendants.
+             * Les proportions sont identiques à celles du renderer 3D.
+             */
+            drawM11BPreviewBand(g, w, h, 0.088F, 0.400F);
+            drawM11BPreviewBand(g, w, h, 0.600F, 0.912F);
+        } else {
+            // Variante M12 sur subjectile carré foncé.
+            g.setColor(new Color(27, 25, 24));
+            g.fillRect(0, 0, w, h);
+        }
+
+        g.drawImage(content, 0, 0, null);
+        g.dispose();
+        return result;
+    }
+
+    private static void drawM11BPreviewBand(
+            Graphics2D g,
+            int w,
+            int h,
+            float topRatio,
+            float bottomRatio
+    ) {
+        int top = Math.round(h * topRatio);
+        int bottom = Math.round(h * bottomRatio);
+        int bandHeight = Math.max(1, bottom - top);
+        int radius = Math.max(4, Math.round(bandHeight * 0.28F));
+        int border = Math.max(2, Math.round(bandHeight * 0.035F));
+
+        g.setColor(new Color(27, 25, 24));
+        g.fillRoundRect(0, top, w, bandHeight, radius, radius);
+
+        g.setColor(Color.WHITE);
+        g.fillRoundRect(
+                border,
+                top + border,
+                Math.max(1, w - border * 2),
+                Math.max(1, bandHeight - border * 2),
+                Math.max(2, radius - border),
+                Math.max(2, radius - border)
+        );
+    }
+
+    private static void drawPreviewTriangle(Graphics2D g, int w, int h, float sideInsetRatio, float verticalInsetRatio) {
+        int sideInset = Math.round(w * sideInsetRatio);
+        int topInset = Math.round(h * verticalInsetRatio);
+        int bottomInset = Math.round(h * verticalInsetRatio);
+        int left = sideInset;
+        int right = w - 1 - sideInset;
+        int top = topInset;
+        int bottom = h - 1 - bottomInset;
+        int center = (left + right) / 2;
+
+        int width = right - left;
+        int height = bottom - top;
+        Polygon outer = roundedPreviewTriangle(left, right, top, bottom);
+        g.setColor(Color.RED);
+        g.fillPolygon(outer);
+
+        int borderX = Math.max(2, Math.round(width * 0.09F));
+        int borderTop = Math.max(2, Math.round(height * 0.085F));
+        int borderBottom = Math.max(3, Math.round(height * 0.14F));
+        Polygon inner = roundedPreviewTriangle(
+                left + borderX,
+                right - borderX,
+                top + borderTop,
+                bottom - borderBottom
+        );
+        g.setColor(Color.WHITE);
+        g.fillPolygon(inner);
+    }
+
+    private static Polygon roundedPreviewTriangle(int left, int right, int top, int bottom) {
+        int width = right - left;
+        int height = bottom - top;
+        int topCornerX = Math.max(1, Math.round(width * 0.075F));
+        int topCornerY = Math.max(1, Math.round(height * 0.055F));
+        int tipCornerX = Math.max(1, Math.round(width * 0.040F));
+        int tipCornerY = Math.max(1, Math.round(height * 0.060F));
+        int center = (left + right) / 2;
+        return new Polygon(
+                new int[]{
+                        left + topCornerX,
+                        right - topCornerX,
+                        right,
+                        center + tipCornerX,
+                        center,
+                        center - tipCornerX,
+                        left
+                },
+                new int[]{
+                        top,
+                        top,
+                        top + topCornerY,
+                        bottom - tipCornerY,
+                        bottom,
+                        bottom - tipCornerY,
+                        top + topCornerY
+                },
+                7
+        );
     }
 
     private int chooseFamilyColumns(int availableWidth) {
@@ -986,9 +1198,9 @@ public class PanonceauEditScreen extends Screen {
 
         PanonceauEntry entry = this.entries[this.selectedSlot];
         boolean editable = entry.variant().isEditable();
-        boolean customText = entry.variant().isCustomText();
+        boolean secondaryValue = entry.variant().hasSecondaryValue();
 
-        if (customText) {
+        if (secondaryValue) {
             String[] lines = splitCustomLines(entry.value());
             this.valueField.setValue(lines[0]);
             this.secondLineField.setValue(lines[1]);
@@ -999,8 +1211,8 @@ public class PanonceauEditScreen extends Screen {
 
         this.valueField.visible = editable;
         this.valueField.active = editable;
-        this.secondLineField.visible = customText;
-        this.secondLineField.active = customText;
+        this.secondLineField.visible = secondaryValue;
+        this.secondLineField.active = secondaryValue;
 
         if (editable) {
             this.setInitialFocus(this.valueField);
@@ -1011,7 +1223,7 @@ public class PanonceauEditScreen extends Screen {
         PanonceauEntry current = this.entries[this.selectedSlot];
         String value = current.value();
 
-        if (current.variant().isCustomText() && this.valueField != null && this.secondLineField != null) {
+        if (current.variant().hasSecondaryValue() && this.valueField != null && this.secondLineField != null) {
             value = combineCustomLines(this.valueField.getValue(), this.secondLineField.getValue());
         } else if (current.variant().isEditable() && this.valueField != null) {
             value = this.valueField.getValue();
@@ -1043,6 +1255,32 @@ public class PanonceauEditScreen extends Screen {
         List<PanonceauVariant> variants = PanonceauVariant.forFamily(family);
         int index = variants.indexOf(variant);
         return index < 0 ? 0 : index / Math.max(1, this.variantsPerPage);
+    }
+
+    private static String primaryFieldLabel(PanonceauVariant variant) {
+        if (variant == PanonceauVariant.CUSTOM_TEXT) {
+            return "Ligne 1";
+        }
+        if (variant == PanonceauVariant.M1A) {
+            return "Texte repère";
+        }
+        if (variant == PanonceauVariant.M8F_BIS) {
+            return "Distance gauche";
+        }
+        return "Valeur 1";
+    }
+
+    private static String secondaryFieldLabel(PanonceauVariant variant) {
+        if (variant == PanonceauVariant.CUSTOM_TEXT) {
+            return "Ligne 2 (facultative)";
+        }
+        if (variant == PanonceauVariant.M1A) {
+            return "Distance";
+        }
+        if (variant == PanonceauVariant.M8F_BIS) {
+            return "Distance droite";
+        }
+        return "Valeur 2";
     }
 
     private boolean compactUi() {

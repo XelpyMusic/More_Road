@@ -961,7 +961,7 @@ public class D21ABlockEntityRenderer
                 textY,
                 text,
                 false,
-                Font.DisplayMode.NORMAL,
+                Font.DisplayMode.POLYGON_OFFSET,
                 renderState.lightCoords,
                 color,
                 0x00000000,

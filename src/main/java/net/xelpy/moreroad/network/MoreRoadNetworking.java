@@ -48,7 +48,7 @@ public final class MoreRoadNetworking {
 
     private static final int MAX_CARTOUCHE_TEXT_LENGTH = 24;
 
-    private static final int MAX_PANONCEAU_VALUE_LENGTH = 24;
+    private static final int MAX_PANONCEAU_VALUE_LENGTH = 73;
 
     private static final int MAX_EDIT_DISTANCE = 8;
 
@@ -785,7 +785,7 @@ public final class MoreRoadNetworking {
             entries[i] = new PanonceauEntry(
                     requested.enabled(),
                     variant,
-                    cleanText(requested.value(), MAX_PANONCEAU_VALUE_LENGTH)
+                    cleanPanonceauText(requested.value(), MAX_PANONCEAU_VALUE_LENGTH)
             );
         }
 
@@ -870,6 +870,29 @@ public final class MoreRoadNetworking {
      * NETTOYAGE DU TEXTE
      * ============================================================
      */
+
+    /**
+     * Nettoyage réservé aux panonceaux : contrairement aux autres champs du
+     * mod, un saut de ligne est une donnée utile (TXT, M1a et M8f bis).
+     * On conserve au maximum deux lignes, on retire les retours chariot et on
+     * borne ensuite la longueur totale sans transformer le saut de ligne en espace.
+     */
+    private static String cleanPanonceauText(String text, int maxLength) {
+        if (text == null) {
+            return "";
+        }
+
+        String normalized = text.replace("\r", "");
+        String[] raw = normalized.split("\n", 3);
+        String first = raw.length > 0 ? raw[0].strip() : "";
+        String second = raw.length > 1 ? raw[1].strip() : "";
+        String cleaned = second.isBlank() ? first : first + "\n" + second;
+
+        if (cleaned.length() > maxLength) {
+            cleaned = cleaned.substring(0, maxLength);
+        }
+        return cleaned;
+    }
 
     private static String cleanText(
             String text,

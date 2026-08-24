@@ -13,7 +13,7 @@ import java.util.List;
 public enum PanonceauVariant {
 
     M1("m1", "M1", "M1 — Distance", 3.44F, "m1_base.png", RenderMode.CENTER_VALUE, "150 m"),
-    M1A("m1a", "M1", "M1a — Repère / distance", 3.42F, "m1a.png", RenderMode.FIXED, ""),
+    M1A("m1a", "M1", "M1a — Repère / distance", 3.42F, "m1a.png", RenderMode.M1A_DUAL_TEXT, "Marque du distributeur de carburant\n53 km"),
 
     M2("m2", "M2", "M2 — Étendue", 3.55F, "m2_base.png", RenderMode.CENTER_VALUE_WITH_ARROWS, "500 m"),
 
@@ -73,18 +73,18 @@ public enum PanonceauVariant {
     M7_EX2("m7_ex2", "M7", "M7 — exemple 2", 0.9992F, "m7_ex2.png", RenderMode.FIXED, ""),
     M7_EX3("m7_ex3", "M7", "M7 — exemple 3", 1.0006F, "m7_ex3.png", RenderMode.FIXED, ""),
     M8A("m8a", "M8", "M8a", 0.4025F, "m8a.png", RenderMode.FIXED, ""),
-    M8A_BIS("m8a_bis", "M8", "M8a — variante bis", 0.4015F, "m8a_bis.png", RenderMode.FIXED, ""),
+    M8A_BIS("m8a_bis", "M8", "M8a — variante bis", 0.4015F, "m8a_bis.png", RenderMode.M8_VERTICAL_TOP_VALUE, "50 m"),
     M8AD("m8ad", "M8", "M8ad", 0.6381F, "m8ad.png", RenderMode.FIXED, ""),
     M8B("m8b", "M8", "M8b", 0.4047F, "m8b.png", RenderMode.FIXED, ""),
     M8C("m8c", "M8", "M8c", 0.4043F, "m8c.png", RenderMode.FIXED, ""),
-    M8C_BIS("m8c_bis", "M8", "M8c — variante bis", 0.2862F, "m8c_bis.png", RenderMode.FIXED, ""),
+    M8C_BIS("m8c_bis", "M8", "M8c — variante bis", 0.2862F, "m8c_bis.png", RenderMode.M8_VERTICAL_TOP_VALUE, "75 m"),
     M8D("m8d", "M8", "M8d", 2.4979F, "m8d.png", RenderMode.FIXED, ""),
-    M8D_BIS_HYPHEN("m8d-bis", "M8", "M8d — variante bis", 2.2579F, "m8d-bis.png", RenderMode.FIXED, ""),
-    M8D_BIS("m8d_bis", "M8", "M8d — variante bis", 2.4557F, "m8d_bis.png", RenderMode.FIXED, ""),
+    M8D_BIS_HYPHEN("m8d-bis", "M8", "M8d — variante bis", 2.2579F, "m8d-bis.png", RenderMode.M8_RIGHT_TOP_VALUE, "50 m"),
+    M8D_BIS("m8d_bis", "M8", "M8d — variante bis", 2.4557F, "m8d_bis.png", RenderMode.M8_RIGHT_TOP_VALUE, "50 m"),
     M8E("m8e", "M8", "M8e", 2.4979F, "m8e.png", RenderMode.FIXED, ""),
-    M8E_BIS("m8e_bis", "M8", "M8e — variante bis", 2.4979F, "m8e_bis.png", RenderMode.FIXED, ""),
+    M8E_BIS("m8e_bis", "M8", "M8e — variante bis", 2.4979F, "m8e_bis.png", RenderMode.M8_LEFT_TOP_VALUE, "50 m"),
     M8F("m8f", "M8", "M8f", 3.4941F, "m8f.png", RenderMode.FIXED, ""),
-    M8F_BIS("m8f_bis", "M8", "M8f — variante bis", 3.4941F, "m8f_bis.png", RenderMode.FIXED, ""),
+    M8F_BIS("m8f_bis", "M8", "M8f — variante bis", 3.4941F, "m8f_bis.png", RenderMode.M8F_DUAL_VALUE, "75 m\n50 m"),
     M9A("m9a", "M9", "M9A", 1.7996F, "m9a.png", RenderMode.FIXED, ""),
     M9B("m9b", "M9", "M9B", 3.5964F, "m9b.png", RenderMode.FIXED, ""),
     M9C("m9c", "M9", "M9C", 2.4936F, "m9c.png", RenderMode.FIXED, ""),
@@ -114,15 +114,15 @@ public enum PanonceauVariant {
     M9Z_EX16("m9z_ex16", "M9", "M9z — exemple 16", 3.4941F, "m9z_ex16.png", RenderMode.FIXED, ""),
     M9ZEX1CDR("m9zex1cdr", "M9", "M9z — exemple CDR", 3.4498F, "m9zex1cdr.png", RenderMode.FIXED, ""),
     M9ZG2("m9zg2", "M9", "M9zG2", 1.7853F, "m9zg2.png", RenderMode.FIXED, ""),
-    M10A("m10a", "M10", "M10A", 3.4815F, "m10a.png", RenderMode.FIXED, ""),
-    M10A_EX1("m10a_ex1", "M10", "M10a — exemple 1", 3.4385F, "m10a_ex1.png", RenderMode.FIXED, ""),
-    M10A_EX2("m10a_ex2", "M10", "M10a — exemple 2", 3.4458F, "m10a_ex2.png", RenderMode.FIXED, ""),
-    M10B("m10b", "M10", "M10b", 1.9832F, "m10b.png", RenderMode.FIXED, ""),
-    M10BL("m10bl", "M10", "M10BL", 1.9974F, "m10bl.png", RenderMode.FIXED, ""),
+    M10A("m10a", "M10", "M10A", 3.4815F, "m10a.png", RenderMode.M10_ROUTE_WHITE, "A 75"),
+    M10A_EX1("m10a_ex1", "M10", "M10a — exemple 1", 3.4385F, "m10a_ex1.png", RenderMode.M10_ROUTE_WHITE, "A 75"),
+    M10A_EX2("m10a_ex2", "M10", "M10a — exemple 2", 3.4458F, "m10a_ex2.png", RenderMode.M10_ROUTE_WHITE, "N 79"),
+    M10B("m10b", "M10", "M10b", 1.9832F, "m10b.png", RenderMode.M10_EXIT_NUMBER, "19"),
+    M10BL("m10bl", "M10", "M10BL", 1.9974F, "m10bl.png", RenderMode.M10_EXIT_NUMBER, "19"),
     M10C1("m10c1", "M10", "M10c1", 3.2764F, "m10c1.png", RenderMode.FIXED, ""),
-    M10C2("m10c2", "M10", "M10c2", 3.3020F, "m10c2.png", RenderMode.FIXED, ""),
+    M10C2("m10c2", "M10", "M10c2", 3.3020F, "m10c2.png", RenderMode.M10_C2_WHITE, "A 104"),
     M10C3("m10c3", "M10", "M10c3", 3.3054F, "m10c3.png", RenderMode.FIXED, ""),
-    M10Z("m10z", "M10", "M10z", 3.4589F, "m10z.png", RenderMode.FIXED, ""),
+    M10Z("m10z", "M10", "M10z", 3.4589F, "m10z.png", RenderMode.M10Z_TEXT, "Les Flots Bleus"),
     M11A("m11a", "M11", "M11a", 1.9922F, "m11a.png", RenderMode.FIXED, ""),
     M11B("m11b", "M11", "M11b", 0.9991F, "m11b.png", RenderMode.FIXED, ""),
     M11B_EX1("m11b_ex1", "M11", "M11b — exemple 1", 1.6639F, "m11b_ex1.png", RenderMode.FIXED, ""),
@@ -147,6 +147,15 @@ public enum PanonceauVariant {
         UPPER_VALUE,
         M5A,
         M5B,
+        M1A_DUAL_TEXT,
+        M8_VERTICAL_TOP_VALUE,
+        M8_RIGHT_TOP_VALUE,
+        M8_LEFT_TOP_VALUE,
+        M8F_DUAL_VALUE,
+        M10_ROUTE_WHITE,
+        M10_EXIT_NUMBER,
+        M10_C2_WHITE,
+        M10Z_TEXT,
         CUSTOM_TEXT
     }
 
@@ -210,6 +219,17 @@ public enum PanonceauVariant {
 
     public boolean isCustomText() {
         return this.renderMode == RenderMode.CUSTOM_TEXT;
+    }
+
+    /**
+     * Variantes dont l'éditeur doit conserver deux zones de texte distinctes.
+     * Les deux valeurs sont sérialisées dans PanonceauEntry.value() séparées
+     * par un saut de ligne, comme le panonceau TXT à deux lignes.
+     */
+    public boolean hasSecondaryValue() {
+        return this.renderMode == RenderMode.CUSTOM_TEXT
+                || this.renderMode == RenderMode.M1A_DUAL_TEXT
+                || this.renderMode == RenderMode.M8F_DUAL_VALUE;
     }
 
     /**
