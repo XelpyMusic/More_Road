@@ -11,11 +11,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.xelpy.moreroad.block.custom.CartoucheType;
+import net.xelpy.moreroad.block.custom.DA31CArrowType;
 
 public class DA31CBlockEntity extends BlockEntity {
 
     private String line1 = "";
     private String line2 = "";
+    private String line3 = "";
+    private String line4 = "";
+
+    private CartoucheType cartoucheTopType = CartoucheType.NONE;
+    private String cartoucheTopText = "";
 
     private CartoucheType cartoucheLeftType = CartoucheType.NONE;
     private String cartoucheLeftText = "";
@@ -23,48 +29,56 @@ public class DA31CBlockEntity extends BlockEntity {
     private CartoucheType cartoucheRightType = CartoucheType.NONE;
     private String cartoucheRightText = "";
 
+    private DA31CArrowType arrowLeftType = DA31CArrowType.DOWN;
+    private DA31CArrowType arrowRightType = DA31CArrowType.DOWN;
+
     public DA31CBlockEntity(BlockPos pos, BlockState state) {
         super(MoreRoadBlockEntities.DA31C.get(), pos, state);
     }
 
-    public String getLine1() {
-        return this.line1;
-    }
+    public String getLine1() { return this.line1; }
+    public String getLine2() { return this.line2; }
+    public String getLine3() { return this.line3; }
+    public String getLine4() { return this.line4; }
 
-    public String getLine2() {
-        return this.line2;
-    }
+    public CartoucheType getCartoucheTopType() { return this.cartoucheTopType; }
+    public String getCartoucheTopText() { return this.cartoucheTopText; }
 
-    public CartoucheType getCartoucheLeftType() {
-        return this.cartoucheLeftType;
-    }
+    public CartoucheType getCartoucheLeftType() { return this.cartoucheLeftType; }
+    public String getCartoucheLeftText() { return this.cartoucheLeftText; }
 
-    public String getCartoucheLeftText() {
-        return this.cartoucheLeftText;
-    }
+    public CartoucheType getCartoucheRightType() { return this.cartoucheRightType; }
+    public String getCartoucheRightText() { return this.cartoucheRightText; }
 
-    public CartoucheType getCartoucheRightType() {
-        return this.cartoucheRightType;
-    }
-
-    public String getCartoucheRightText() {
-        return this.cartoucheRightText;
-    }
+    public DA31CArrowType getArrowLeftType() { return this.arrowLeftType; }
+    public DA31CArrowType getArrowRightType() { return this.arrowRightType; }
 
     public void setData(
             String line1,
             String line2,
+            String line3,
+            String line4,
+            CartoucheType cartoucheTopType,
+            String cartoucheTopText,
             CartoucheType cartoucheLeftType,
             String cartoucheLeftText,
             CartoucheType cartoucheRightType,
-            String cartoucheRightText
+            String cartoucheRightText,
+            DA31CArrowType arrowLeftType,
+            DA31CArrowType arrowRightType
     ) {
         this.line1 = line1 == null ? "" : line1;
         this.line2 = line2 == null ? "" : line2;
+        this.line3 = line3 == null ? "" : line3;
+        this.line4 = line4 == null ? "" : line4;
+        this.cartoucheTopType = cartoucheTopType == null ? CartoucheType.NONE : cartoucheTopType;
+        this.cartoucheTopText = cartoucheTopText == null ? "" : cartoucheTopText;
         this.cartoucheLeftType = cartoucheLeftType == null ? CartoucheType.NONE : cartoucheLeftType;
         this.cartoucheLeftText = cartoucheLeftText == null ? "" : cartoucheLeftText;
         this.cartoucheRightType = cartoucheRightType == null ? CartoucheType.NONE : cartoucheRightType;
         this.cartoucheRightText = cartoucheRightText == null ? "" : cartoucheRightText;
+        this.arrowLeftType = arrowLeftType == null ? DA31CArrowType.DOWN : arrowLeftType;
+        this.arrowRightType = arrowRightType == null ? DA31CArrowType.DOWN : arrowRightType;
         setChanged();
     }
 
@@ -74,12 +88,14 @@ public class DA31CBlockEntity extends BlockEntity {
 
         this.line1 = input.getStringOr("line1", "");
         this.line2 = input.getStringOr("line2", "");
+        this.line3 = input.getStringOr("line3", "");
+        this.line4 = input.getStringOr("line4", "");
 
-        /*
-         * Compatibilité avec les premières versions du DA31C :
-         * - gauche = ancien cartouche autoroute rouge ;
-         * - droite = ancien cartouche européen vert.
-         */
+        this.cartoucheTopType = CartoucheType.fromSerializedName(
+                input.getStringOr("cartouche_top_type", "none")
+        );
+        this.cartoucheTopText = input.getStringOr("cartouche_top_text", "");
+
         String leftFallback = input.getBooleanOr("autoroute_enabled", false)
                 ? CartoucheType.E42.getSerializedName()
                 : CartoucheType.NONE.getSerializedName();
@@ -102,6 +118,13 @@ public class DA31CBlockEntity extends BlockEntity {
                 "cartouche_right_text",
                 input.getStringOr("european_text", "")
         );
+
+        this.arrowLeftType = DA31CArrowType.fromSerializedName(
+                input.getStringOr("arrow_left_type", "down")
+        );
+        this.arrowRightType = DA31CArrowType.fromSerializedName(
+                input.getStringOr("arrow_right_type", "down")
+        );
     }
 
     @Override
@@ -110,10 +133,17 @@ public class DA31CBlockEntity extends BlockEntity {
 
         output.putString("line1", this.line1);
         output.putString("line2", this.line2);
+        output.putString("line3", this.line3);
+        output.putString("line4", this.line4);
+
+        output.putString("cartouche_top_type", this.cartoucheTopType.getSerializedName());
+        output.putString("cartouche_top_text", this.cartoucheTopText);
         output.putString("cartouche_left_type", this.cartoucheLeftType.getSerializedName());
         output.putString("cartouche_left_text", this.cartoucheLeftText);
         output.putString("cartouche_right_type", this.cartoucheRightType.getSerializedName());
         output.putString("cartouche_right_text", this.cartoucheRightText);
+        output.putString("arrow_left_type", this.arrowLeftType.getSerializedName());
+        output.putString("arrow_right_type", this.arrowRightType.getSerializedName());
     }
 
     @Override

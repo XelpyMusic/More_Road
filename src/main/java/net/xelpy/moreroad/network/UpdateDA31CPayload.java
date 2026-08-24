@@ -12,10 +12,16 @@ public record UpdateDA31CPayload(
         BlockPos pos,
         String line1,
         String line2,
+        String line3,
+        String line4,
+        String cartoucheTopType,
+        String cartoucheTopText,
         String cartoucheLeftType,
         String cartoucheLeftText,
         String cartoucheRightType,
-        String cartoucheRightText
+        String cartoucheRightText,
+        String arrowLeftType,
+        String arrowRightType
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateDA31CPayload> TYPE =
@@ -32,6 +38,12 @@ public record UpdateDA31CPayload(
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer)
                     );
                 }
@@ -41,20 +53,44 @@ public record UpdateDA31CPayload(
                     BlockPos.STREAM_CODEC.encode(buffer, payload.pos());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line1());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line2());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line3());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line4());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheTopType());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheTopText());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheLeftType());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheLeftText());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheRightType());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheRightText());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.arrowLeftType());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, payload.arrowRightType());
                 }
             };
 
     public UpdateDA31CPayload {
-        line1 = line1 == null ? "" : line1;
-        line2 = line2 == null ? "" : line2;
-        cartoucheLeftType = cartoucheLeftType == null ? "none" : cartoucheLeftType;
-        cartoucheLeftText = cartoucheLeftText == null ? "" : cartoucheLeftText;
-        cartoucheRightType = cartoucheRightType == null ? "none" : cartoucheRightType;
-        cartoucheRightText = cartoucheRightText == null ? "" : cartoucheRightText;
+        line1 = safe(line1);
+        line2 = safe(line2);
+        line3 = safe(line3);
+        line4 = safe(line4);
+        cartoucheTopType = safeType(cartoucheTopType);
+        cartoucheTopText = safe(cartoucheTopText);
+        cartoucheLeftType = safeType(cartoucheLeftType);
+        cartoucheLeftText = safe(cartoucheLeftText);
+        cartoucheRightType = safeType(cartoucheRightType);
+        cartoucheRightText = safe(cartoucheRightText);
+        arrowLeftType = safeArrow(arrowLeftType);
+        arrowRightType = safeArrow(arrowRightType);
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static String safeType(String value) {
+        return value == null ? "none" : value;
+    }
+
+    private static String safeArrow(String value) {
+        return value == null ? "down" : value;
     }
 
     @Override

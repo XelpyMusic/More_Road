@@ -8,14 +8,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.xelpy.moreroad.block.custom.CartoucheType;
+import net.xelpy.moreroad.block.custom.DA31CArrowType;
 import net.xelpy.moreroad.network.UpdateDA31CPayload;
 
 /**
- * Éditeur DA31C V6.
- *
- * Les deux cartouches fonctionnent maintenant comme sur les autres panneaux
- * modifiables : choix du type/couleur, puis saisie du texte. "Aucun" masque
- * totalement le cartouche dans le monde.
+ * Éditeur DA31C V11 : 4 lignes, 3 cartouches à taille normale et 2 flèches sélectionnables.
  */
 public class DA31CEditScreen extends Screen {
 
@@ -23,24 +20,30 @@ public class DA31CEditScreen extends Screen {
     private static final int MAX_CARTOUCHE_LENGTH = 24;
 
     private final BlockPos blockPos;
-    private final String currentLine1;
-    private final String currentLine2;
+    private final String[] currentLines = new String[4];
 
+    private CartoucheType cartoucheTopType;
+    private final String currentCartoucheTopText;
     private CartoucheType cartoucheLeftType;
     private final String currentCartoucheLeftText;
-
     private CartoucheType cartoucheRightType;
     private final String currentCartoucheRightText;
 
-    private EditBox line1Field;
-    private EditBox line2Field;
+    private DA31CArrowType arrowLeftType;
+    private DA31CArrowType arrowRightType;
+
+    private final EditBox[] lineFields = new EditBox[4];
+    private EditBox cartoucheTopTextField;
     private EditBox cartoucheLeftTextField;
     private EditBox cartoucheRightTextField;
 
     private SignEditorUi.Rect previewRect;
     private SignEditorUi.Rect contentRect;
+    private SignEditorUi.Rect cartoucheTopTypeRect;
     private SignEditorUi.Rect cartoucheLeftTypeRect;
     private SignEditorUi.Rect cartoucheRightTypeRect;
+    private SignEditorUi.Rect arrowLeftTypeRect;
+    private SignEditorUi.Rect arrowRightTypeRect;
     private SignEditorUi.Rect applyRect;
     private SignEditorUi.Rect cancelRect;
 
@@ -52,21 +55,33 @@ public class DA31CEditScreen extends Screen {
 
     public DA31CEditScreen(
             BlockPos blockPos,
-            String currentLine1,
-            String currentLine2,
+            String line1,
+            String line2,
+            String line3,
+            String line4,
+            CartoucheType cartoucheTopType,
+            String currentCartoucheTopText,
             CartoucheType cartoucheLeftType,
             String currentCartoucheLeftText,
             CartoucheType cartoucheRightType,
-            String currentCartoucheRightText
+            String currentCartoucheRightText,
+            DA31CArrowType arrowLeftType,
+            DA31CArrowType arrowRightType
     ) {
         super(Component.literal("DA31C — Autoroute"));
         this.blockPos = blockPos.immutable();
-        this.currentLine1 = currentLine1 == null ? "" : currentLine1;
-        this.currentLine2 = currentLine2 == null ? "" : currentLine2;
-        this.cartoucheLeftType = cartoucheLeftType == null ? CartoucheType.NONE : cartoucheLeftType;
-        this.currentCartoucheLeftText = currentCartoucheLeftText == null ? "" : currentCartoucheLeftText;
-        this.cartoucheRightType = cartoucheRightType == null ? CartoucheType.NONE : cartoucheRightType;
-        this.currentCartoucheRightText = currentCartoucheRightText == null ? "" : currentCartoucheRightText;
+        this.currentLines[0] = safe(line1);
+        this.currentLines[1] = safe(line2);
+        this.currentLines[2] = safe(line3);
+        this.currentLines[3] = safe(line4);
+        this.cartoucheTopType = safeType(cartoucheTopType);
+        this.currentCartoucheTopText = safe(currentCartoucheTopText);
+        this.cartoucheLeftType = safeType(cartoucheLeftType);
+        this.currentCartoucheLeftText = safe(currentCartoucheLeftText);
+        this.cartoucheRightType = safeType(cartoucheRightType);
+        this.currentCartoucheRightText = safe(currentCartoucheRightText);
+        this.arrowLeftType = safeArrow(arrowLeftType);
+        this.arrowRightType = safeArrow(arrowRightType);
     }
 
     @Override
@@ -82,8 +97,8 @@ public class DA31CEditScreen extends Screen {
         this.scale = SignEditorUi.adaptiveEditorScale(
                 this.windowWidth,
                 this.windowHeight,
-                1080.0F,
-                660.0F
+                1180.0F,
+                720.0F
         );
 
         boolean tight = SignEditorUi.tightForScale(this.scale, this.windowHeight);
@@ -95,7 +110,7 @@ public class DA31CEditScreen extends Screen {
         int bodyY = this.windowY + header;
         int bodyH = this.windowHeight - header - footer;
 
-        int leftW = Math.max(s(340), Math.round((this.windowWidth - pad * 2 - gap) * 0.52F));
+        int leftW = Math.max(s(360), Math.round((this.windowWidth - pad * 2 - gap) * 0.52F));
         int rightW = this.windowWidth - pad * 2 - gap - leftW;
         int leftX = this.windowX + pad;
         int rightX = leftX + leftW + gap;
@@ -105,73 +120,66 @@ public class DA31CEditScreen extends Screen {
 
         int innerX = this.contentRect.x() + s(12);
         int innerW = this.contentRect.width() - s(24);
-        int fieldH = pagedUi() ? 20 : s(24);
-        int selectorH = SignEditorUi.safeControlHeight(this.font, s(24));
-        int selectorW = Math.max(s(126), Math.round(innerW * 0.38F));
+        int fieldH = pagedUi() ? 20 : s(22);
+        int selectorH = SignEditorUi.safeControlHeight(this.font, s(22));
+        int selectorW = Math.max(s(118), Math.round(innerW * 0.35F));
         int rowGap = s(8);
-        int startY = this.contentRect.y() + (pagedUi() ? 30 : s(42));
+        int startY = this.contentRect.y() + (pagedUi() ? 28 : s(36));
+        int cartoucheStep = Math.max(fieldH, selectorH) + s(15);
 
-        this.cartoucheLeftTypeRect = new SignEditorUi.Rect(
-                innerX,
-                startY,
-                selectorW,
-                selectorH
-        );
-        this.cartoucheLeftTextField = new EditBox(
-                this.font,
+        this.cartoucheTopTypeRect = new SignEditorUi.Rect(innerX, startY, selectorW, selectorH);
+        this.cartoucheTopTextField = createCartoucheField(
                 innerX + selectorW + rowGap,
                 startY,
                 innerW - selectorW - rowGap,
                 fieldH,
-                Component.literal("Texte cartouche gauche")
+                "Cartouche haut",
+                this.currentCartoucheTopText
         );
-        this.cartoucheLeftTextField.setMaxLength(MAX_CARTOUCHE_LENGTH);
-        this.cartoucheLeftTextField.setValue(this.currentCartoucheLeftText);
-        this.addRenderableWidget(this.cartoucheLeftTextField);
 
-        int row2Y = startY + Math.max(selectorH, fieldH) + s(34);
-        this.cartoucheRightTypeRect = new SignEditorUi.Rect(
-                innerX,
-                row2Y,
-                selectorW,
-                selectorH
-        );
-        this.cartoucheRightTextField = new EditBox(
-                this.font,
+        int leftY = startY + cartoucheStep;
+        this.cartoucheLeftTypeRect = new SignEditorUi.Rect(innerX, leftY, selectorW, selectorH);
+        this.cartoucheLeftTextField = createCartoucheField(
                 innerX + selectorW + rowGap,
-                row2Y,
+                leftY,
                 innerW - selectorW - rowGap,
                 fieldH,
-                Component.literal("Texte cartouche droit")
+                "Cartouche bas gauche",
+                this.currentCartoucheLeftText
         );
-        this.cartoucheRightTextField.setMaxLength(MAX_CARTOUCHE_LENGTH);
-        this.cartoucheRightTextField.setValue(this.currentCartoucheRightText);
-        this.addRenderableWidget(this.cartoucheRightTextField);
 
-        int line1Y = row2Y + Math.max(selectorH, fieldH) + s(42);
-        this.line1Field = new EditBox(
-                this.font,
-                innerX,
-                line1Y,
-                innerW,
+        int rightY = leftY + cartoucheStep;
+        this.cartoucheRightTypeRect = new SignEditorUi.Rect(innerX, rightY, selectorW, selectorH);
+        this.cartoucheRightTextField = createCartoucheField(
+                innerX + selectorW + rowGap,
+                rightY,
+                innerW - selectorW - rowGap,
                 fieldH,
-                Component.literal("Ligne 1")
+                "Cartouche bas droite",
+                this.currentCartoucheRightText
         );
-        this.line1Field.setMaxLength(MAX_LINE_LENGTH);
-        this.line1Field.setValue(this.currentLine1);
-        this.addRenderableWidget(this.line1Field);
 
-        this.line2Field = new EditBox(
-                this.font,
-                innerX,
-                line1Y + fieldH + s(30),
-                innerW,
-                fieldH,
-                Component.literal("Ligne 2")
-        );
-        this.line2Field.setMaxLength(MAX_LINE_LENGTH);
-        this.line2Field.setValue(this.currentLine2);
-        this.addRenderableWidget(this.line2Field);
+        int arrowY = rightY + cartoucheStep;
+        int arrowGap = s(8);
+        int arrowW = (innerW - arrowGap) / 2;
+        this.arrowLeftTypeRect = new SignEditorUi.Rect(innerX, arrowY, arrowW, selectorH);
+        this.arrowRightTypeRect = new SignEditorUi.Rect(innerX + arrowW + arrowGap, arrowY, arrowW, selectorH);
+
+        int linesStartY = arrowY + selectorH + s(19);
+        int lineGap = s(8);
+        for (int i = 0; i < this.lineFields.length; i++) {
+            this.lineFields[i] = new EditBox(
+                    this.font,
+                    innerX,
+                    linesStartY + i * (fieldH + lineGap),
+                    innerW,
+                    fieldH,
+                    Component.literal("Ligne " + (i + 1))
+            );
+            this.lineFields[i].setMaxLength(MAX_LINE_LENGTH);
+            this.lineFields[i].setValue(this.currentLines[i]);
+            this.addRenderableWidget(this.lineFields[i]);
+        }
 
         int actionH = SignEditorUi.safeControlHeight(this.font, s(28));
         int actionW = Math.max(
@@ -197,16 +205,28 @@ public class DA31CEditScreen extends Screen {
         );
 
         updateFieldStates();
-        this.setInitialFocus(this.line1Field);
+        this.setInitialFocus(this.lineFields[0]);
+    }
+
+    private EditBox createCartoucheField(
+            int x,
+            int y,
+            int width,
+            int height,
+            String name,
+            String value
+    ) {
+        EditBox field = new EditBox(this.font, x, y, width, height, Component.literal(name));
+        field.setMaxLength(MAX_CARTOUCHE_LENGTH);
+        field.setValue(value);
+        this.addRenderableWidget(field);
+        return field;
     }
 
     private void updateFieldStates() {
-        if (this.cartoucheLeftTextField != null) {
-            this.cartoucheLeftTextField.active = this.cartoucheLeftType.isVisible();
-        }
-        if (this.cartoucheRightTextField != null) {
-            this.cartoucheRightTextField.active = this.cartoucheRightType.isVisible();
-        }
+        this.cartoucheTopTextField.active = this.cartoucheTopType.isVisible();
+        this.cartoucheLeftTextField.active = this.cartoucheLeftType.isVisible();
+        this.cartoucheRightTextField.active = this.cartoucheRightType.isVisible();
     }
 
     @Override
@@ -235,9 +255,7 @@ public class DA31CEditScreen extends Screen {
                 this.windowHeight,
                 "DA31C",
                 "Panneau autoroutier sur portique",
-                compactUi()
-                        ? ""
-                        : "Deux cartouches indépendants + montage arrière sur la traverse"
+                compactUi() ? "" : "1 à 4 lignes • hauteur automatique • 3 cartouches • 2 flèches au choix"
         );
 
         drawPreview(graphics);
@@ -247,76 +265,25 @@ public class DA31CEditScreen extends Screen {
                 this.font,
                 this.contentRect,
                 "CONTENU",
-                pagedUi()
-                        ? ""
-                        : "Clique sur le type pour choisir Aucun / Vert / Rouge / Jaune / Blanc / Bleu"
+                pagedUi() ? "" : "3 cartouches, 2 flèches indépendantes et jusqu'à quatre destinations"
         );
 
-        SignEditorUi.drawModernButton(
-                graphics,
-                this.font,
-                this.cartoucheLeftTypeRect,
-                SignEditorUi.cartoucheLabel(this.cartoucheLeftType),
-                this.cartoucheLeftType.isVisible(),
-                true,
-                mouseX,
-                mouseY
-        );
-
-        SignEditorUi.drawModernButton(
-                graphics,
-                this.font,
-                this.cartoucheRightTypeRect,
-                SignEditorUi.cartoucheLabel(this.cartoucheRightType),
-                this.cartoucheRightType.isVisible(),
-                true,
-                mouseX,
-                mouseY
-        );
+        drawTypeButton(graphics, this.cartoucheTopTypeRect, "Haut", this.cartoucheTopType, mouseX, mouseY);
+        drawTypeButton(graphics, this.cartoucheLeftTypeRect, "Bas G", this.cartoucheLeftType, mouseX, mouseY);
+        drawTypeButton(graphics, this.cartoucheRightTypeRect, "Bas D", this.cartoucheRightType, mouseX, mouseY);
+        drawArrowTypeButton(graphics, this.arrowLeftTypeRect, "Flèche G", this.arrowLeftType, mouseX, mouseY);
+        drawArrowTypeButton(graphics, this.arrowRightTypeRect, "Flèche D", this.arrowRightType, mouseX, mouseY);
 
         if (!compactUi()) {
-            SignEditorUi.drawFieldLabel(
-                    graphics,
-                    this.font,
-                    "Cartouche gauche — type",
-                    this.cartoucheLeftTypeRect.x(),
-                    this.cartoucheLeftTypeRect.y() - s(12)
-            );
-            SignEditorUi.drawFieldLabel(
-                    graphics,
-                    this.font,
-                    "Texte",
-                    this.cartoucheLeftTextField.getX(),
-                    this.cartoucheLeftTextField.getY() - s(12)
-            );
-            SignEditorUi.drawFieldLabel(
-                    graphics,
-                    this.font,
-                    "Cartouche droit — type",
-                    this.cartoucheRightTypeRect.x(),
-                    this.cartoucheRightTypeRect.y() - s(12)
-            );
-            SignEditorUi.drawFieldLabel(
-                    graphics,
-                    this.font,
-                    "Texte",
-                    this.cartoucheRightTextField.getX(),
-                    this.cartoucheRightTextField.getY() - s(12)
-            );
-            SignEditorUi.drawFieldLabel(
-                    graphics,
-                    this.font,
-                    "Destination — ligne 1",
-                    this.line1Field.getX(),
-                    this.line1Field.getY() - s(12)
-            );
-            SignEditorUi.drawFieldLabel(
-                    graphics,
-                    this.font,
-                    "Destination — ligne 2",
-                    this.line2Field.getX(),
-                    this.line2Field.getY() - s(12)
-            );
+            for (int i = 0; i < this.lineFields.length; i++) {
+                SignEditorUi.drawFieldLabel(
+                        graphics,
+                        this.font,
+                        "Ligne " + (i + 1),
+                        this.lineFields[i].getX(),
+                        this.lineFields[i].getY() - s(10)
+                );
+            }
         }
 
         SignEditorUi.drawModernButton(
@@ -343,13 +310,54 @@ public class DA31CEditScreen extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
+    private void drawTypeButton(
+            GuiGraphicsExtractor graphics,
+            SignEditorUi.Rect rect,
+            String slot,
+            CartoucheType type,
+            int mouseX,
+            int mouseY
+    ) {
+        SignEditorUi.drawModernButton(
+                graphics,
+                this.font,
+                rect,
+                slot + " : " + shortTypeName(type),
+                type.isVisible(),
+                true,
+                mouseX,
+                mouseY
+        );
+    }
+
+    private void drawArrowTypeButton(
+            GuiGraphicsExtractor graphics,
+            SignEditorUi.Rect rect,
+            String slot,
+            DA31CArrowType type,
+            int mouseX,
+            int mouseY
+    ) {
+        DA31CArrowType safe = safeArrow(type);
+        SignEditorUi.drawModernButton(
+                graphics,
+                this.font,
+                rect,
+                slot + " : " + safe.getDisplayName(),
+                safe != DA31CArrowType.NONE,
+                true,
+                mouseX,
+                mouseY
+        );
+    }
+
     private void drawPreview(GuiGraphicsExtractor graphics) {
         SignEditorUi.drawModernSection(
                 graphics,
                 this.font,
                 this.previewRect,
                 "APERÇU",
-                pagedUi() ? "" : "DA31C + cartouches + portique"
+                pagedUi() ? "" : "La hauteur de la plaque suit automatiquement la dernière ligne utilisée"
         );
 
         int pad = s(18);
@@ -360,15 +368,17 @@ public class DA31CEditScreen extends Screen {
 
         graphics.fill(x, y, x + w, y + h, 0xFFF0F3F6);
 
-        int signW = Math.max(s(250), (int) (w * 0.78F));
-        int signH = Math.max(s(140), (int) (h * 0.43F));
+        int count = getCurrentLineCount();
+        int signW = Math.max(s(270), (int) (w * 0.78F));
+        int baseSignH = Math.max(s(92), (int) (h * 0.25F));
+        int signH = baseSignH + (count - 1) * s(21);
+        signH = Math.min(signH, Math.max(s(150), h - s(120)));
         int signX = x + (w - signW) / 2;
-        int signY = y + h / 2 - signH / 2 + s(30);
+        int signY = y + Math.max(s(92), (h - signH) / 2);
 
         int poleX = x + w / 2;
         int footBottom = y + h - s(8);
         int beamY = signY - s(22);
-
         int supportGrey = 0xFF2D2D2D;
         int supportGreyLight = 0xFF353535;
 
@@ -384,45 +394,64 @@ public class DA31CEditScreen extends Screen {
             graphics.fill(bx, beamY + s(6), bx + s(3), beamY + s(15), supportGreyLight);
         }
 
-        /* Deux bras arrière reliant visuellement la plaque à la traverse. */
         graphics.fill(signX + signW / 4 - s(3), beamY + s(8), signX + signW / 4 + s(3), signY + s(6), supportGrey);
         graphics.fill(signX + signW * 3 / 4 - s(3), beamY + s(8), signX + signW * 3 / 4 + s(3), signY + s(6), supportGrey);
 
+        int lowerCartoucheY = signY - s(34);
+        int topCartoucheY = lowerCartoucheY - s(34);
+        int cartoucheW = s(74);
+        int cartoucheH = s(29);
+
+        drawPreviewCartouche(
+                graphics,
+                this.cartoucheTopType,
+                this.cartoucheTopTextField.getValue(),
+                signX + signW / 2 - cartoucheW / 2,
+                topCartoucheY,
+                cartoucheW,
+                cartoucheH
+        );
         drawPreviewCartouche(
                 graphics,
                 this.cartoucheLeftType,
-                this.cartoucheLeftTextField == null
-                        ? this.currentCartoucheLeftText
-                        : this.cartoucheLeftTextField.getValue(),
-                signX + signW / 2 - s(70),
-                signY - s(34),
-                s(64),
-                s(26)
+                this.cartoucheLeftTextField.getValue(),
+                signX + signW / 2 - cartoucheW - s(4),
+                lowerCartoucheY,
+                cartoucheW,
+                cartoucheH
         );
-
         drawPreviewCartouche(
                 graphics,
                 this.cartoucheRightType,
-                this.cartoucheRightTextField == null
-                        ? this.currentCartoucheRightText
-                        : this.cartoucheRightTextField.getValue(),
-                signX + signW / 2 + s(6),
-                signY - s(34),
-                s(64),
-                s(26)
+                this.cartoucheRightTextField.getValue(),
+                signX + signW / 2 + s(4),
+                lowerCartoucheY,
+                cartoucheW,
+                cartoucheH
         );
 
-        graphics.fill(signX, signY, signX + signW, signY + signH, 0xFF0B72B8);
-        graphics.fill(signX + s(2), signY + s(2), signX + signW - s(2), signY + signH - s(2), 0xFF0E6FB5);
+        graphics.fill(signX, signY, signX + signW, signY + signH, 0xFF0000FF);
+        graphics.fill(signX, signY, signX + signW, signY + s(3), 0xFFECECEC);
+        graphics.fill(signX, signY + signH - s(3), signX + signW, signY + signH, 0xFFECECEC);
+        graphics.fill(signX, signY, signX + s(3), signY + signH, 0xFFECECEC);
+        graphics.fill(signX + signW - s(3), signY, signX + signW, signY + signH, 0xFFECECEC);
 
-        String line1 = this.line1Field == null ? this.currentLine1 : this.line1Field.getValue();
-        String line2 = this.line2Field == null ? this.currentLine2 : this.line2Field.getValue();
-        drawCenteredPreviewText(graphics, line1, signX, signY + s(30), signW, 0xFFFFFFFF);
-        drawCenteredPreviewText(graphics, line2, signX, signY + s(64), signW, 0xFFFFFFFF);
+        int textTop = signY + s(19);
+        int textStep = s(20);
+        for (int i = 0; i < count; i++) {
+            drawCenteredPreviewText(
+                    graphics,
+                    this.lineFields[i].getValue(),
+                    signX,
+                    textTop + i * textStep,
+                    signW,
+                    0xFFFFFFFF
+            );
+        }
 
-        int arrowY = signY + signH - s(48);
-        drawArrow(graphics, signX + signW / 4, arrowY, s(68));
-        drawArrow(graphics, signX + signW * 3 / 4, arrowY, s(68));
+        int arrowPreviewY = signY + signH - s(29);
+        drawSelectedArrow(graphics, signX + signW / 4, arrowPreviewY, s(36), this.arrowLeftType);
+        drawSelectedArrow(graphics, signX + signW * 3 / 4, arrowPreviewY, s(36), this.arrowRightType);
     }
 
     private void drawPreviewCartouche(
@@ -438,29 +467,17 @@ public class DA31CEditScreen extends Screen {
             return;
         }
 
-        int bg = switch (type) {
-            case E41_45 -> 0xFF009B45;
-            case E42 -> 0xFFD71920;
-            case E43 -> 0xFFF2CF16;
-            case E44 -> 0xFFF4F4F4;
-            case E47 -> 0xFF1555A5;
-            default -> 0xFFF4F4F4;
-        };
-        int fg = type == CartoucheType.E43 || type == CartoucheType.E44
+        graphics.fill(x, y, x + width, y + height, cartoucheColor(type));
+        String display = SignEditorUi.fitText(this.font, safe(text), width - s(8));
+        int color = type == CartoucheType.E43 || type == CartoucheType.E44
                 ? 0xFF000000
                 : 0xFFFFFFFF;
-
-        graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, 0xFF252525);
-        graphics.fill(x, y, x + width, y + height, bg);
-
-        String safe = text == null ? "" : text;
-        String display = SignEditorUi.fitText(this.font, safe, width - s(8));
         graphics.text(
                 this.font,
                 Component.literal(display),
                 x + (width - this.font.width(display)) / 2,
-                y + Math.max(2, (height - this.font.lineHeight) / 2),
-                fg,
+                y + (height - this.font.lineHeight) / 2,
+                color,
                 false
         );
     }
@@ -473,61 +490,124 @@ public class DA31CEditScreen extends Screen {
             int width,
             int color
     ) {
-        String safe = text == null ? "" : text;
-        String display = SignEditorUi.fitText(this.font, safe, width - s(22));
+        String display = SignEditorUi.fitText(this.font, safe(text), width - s(22));
         int drawX = x + (width - this.font.width(display)) / 2;
         graphics.text(this.font, Component.literal(display), drawX, y, color, false);
     }
 
-    private void drawArrow(
+    private void drawSelectedArrow(
             GuiGraphicsExtractor graphics,
             int centerX,
             int centerY,
-            int size
+            int size,
+            DA31CArrowType type
     ) {
-        int headHalf = Math.max(10, size / 4);
-        int stemHalf = Math.max(4, size / 16);
-        int stemTop = centerY - size / 2;
-        int stemBottom = centerY - size / 8;
-        graphics.fill(centerX - stemHalf, stemTop, centerX + stemHalf, stemBottom, 0xFFECECEC);
-        for (int i = 0; i < headHalf; i++) {
+        DA31CArrowType safe = safeArrow(type);
+        if (safe == DA31CArrowType.NONE) {
+            return;
+        }
+        if (safe == DA31CArrowType.DOWN) {
+            int stemW = Math.max(4, size / 5);
+            int stemH = Math.max(10, size / 2);
             graphics.fill(
-                    centerX - headHalf + i,
-                    stemBottom + i / 2,
-                    centerX + headHalf - i,
-                    stemBottom + i / 2 + 1,
-                    0xFFECECEC
+                    centerX - stemW / 2,
+                    centerY - size / 2,
+                    centerX + stemW / 2,
+                    centerY - size / 2 + stemH,
+                    0xFFFFFFFF
             );
+            int tipY = centerY + size / 2;
+            for (int row = 0; row < size / 3; row++) {
+                int half = size / 3 - row;
+                graphics.fill(centerX - half, tipY - row, centerX + half, tipY - row + 1, 0xFFFFFFFF);
+            }
+            return;
+        }
+
+        boolean left = safe == DA31CArrowType.LEFT;
+        drawDiagonalArrow(graphics, centerX, centerY, size, left);
+    }
+
+    private void drawDiagonalArrow(
+            GuiGraphicsExtractor graphics,
+            int centerX,
+            int centerY,
+            int size,
+            boolean left
+    ) {
+        int direction = left ? -1 : 1;
+        int steps = Math.max(8, size / 3);
+        int thickness = Math.max(3, size / 9);
+        for (int i = 0; i < steps; i++) {
+            float t = i / (float) (steps - 1);
+            int px = centerX - direction * size / 4 + Math.round(direction * t * size / 2.0F);
+            int py = centerY - size / 3 + Math.round(t * size / 2.0F);
+            graphics.fill(
+                    px - thickness / 2,
+                    py - thickness / 2,
+                    px + thickness / 2 + 1,
+                    py + thickness / 2 + 1,
+                    0xFFFFFFFF
+            );
+        }
+        int tipX = centerX + direction * size / 4;
+        int tipY = centerY + size / 6;
+        for (int i = 0; i < size / 4; i++) {
+            int spread = size / 4 - i;
+            int rowY = tipY - i;
+            int startX = left ? tipX : tipX - spread;
+            int endX = left ? tipX + spread : tipX;
+            graphics.fill(startX, rowY, endX + 1, rowY + 1, 0xFFFFFFFF);
         }
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (event.button() == 0) {
+            if (this.cartoucheTopTypeRect.contains(event.x(), event.y())) {
+                this.cartoucheTopType = this.cartoucheTopType.next();
+                updateFieldStates();
+                return true;
+            }
             if (this.cartoucheLeftTypeRect.contains(event.x(), event.y())) {
                 this.cartoucheLeftType = this.cartoucheLeftType.next();
                 updateFieldStates();
                 return true;
             }
-
             if (this.cartoucheRightTypeRect.contains(event.x(), event.y())) {
                 this.cartoucheRightType = this.cartoucheRightType.next();
                 updateFieldStates();
                 return true;
             }
-
+            if (this.arrowLeftTypeRect.contains(event.x(), event.y())) {
+                this.arrowLeftType = this.arrowLeftType.next();
+                return true;
+            }
+            if (this.arrowRightTypeRect.contains(event.x(), event.y())) {
+                this.arrowRightType = this.arrowRightType.next();
+                return true;
+            }
             if (this.applyRect.contains(event.x(), event.y())) {
                 save();
                 return true;
             }
-
             if (this.cancelRect.contains(event.x(), event.y())) {
                 this.onClose();
                 return true;
             }
         }
-
         return super.mouseClicked(event, doubleClick);
+    }
+
+    private int getCurrentLineCount() {
+        for (int i = this.lineFields.length - 1; i >= 0; i--) {
+            EditBox field = this.lineFields[i];
+            String value = field == null ? this.currentLines[i] : field.getValue();
+            if (value != null && !value.isBlank()) {
+                return i + 1;
+            }
+        }
+        return 1;
     }
 
     private boolean compactUi() {
@@ -546,14 +626,54 @@ public class DA31CEditScreen extends Screen {
         ClientPacketDistributor.sendToServer(
                 new UpdateDA31CPayload(
                         this.blockPos,
-                        this.line1Field.getValue(),
-                        this.line2Field.getValue(),
+                        this.lineFields[0].getValue(),
+                        this.lineFields[1].getValue(),
+                        this.lineFields[2].getValue(),
+                        this.lineFields[3].getValue(),
+                        this.cartoucheTopType.getSerializedName(),
+                        this.cartoucheTopTextField.getValue(),
                         this.cartoucheLeftType.getSerializedName(),
                         this.cartoucheLeftTextField.getValue(),
                         this.cartoucheRightType.getSerializedName(),
-                        this.cartoucheRightTextField.getValue()
+                        this.cartoucheRightTextField.getValue(),
+                        this.arrowLeftType.getSerializedName(),
+                        this.arrowRightType.getSerializedName()
                 )
         );
         this.onClose();
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static CartoucheType safeType(CartoucheType type) {
+        return type == null ? CartoucheType.NONE : type;
+    }
+
+    private static DA31CArrowType safeArrow(DA31CArrowType type) {
+        return type == null ? DA31CArrowType.DOWN : type;
+    }
+
+    private static String shortTypeName(CartoucheType type) {
+        return switch (safeType(type)) {
+            case NONE -> "Aucun";
+            case E41_45 -> "Vert";
+            case E42 -> "Rouge";
+            case E43 -> "Jaune";
+            case E44 -> "Blanc";
+            case E47 -> "Bleu";
+        };
+    }
+
+    private static int cartoucheColor(CartoucheType type) {
+        return switch (safeType(type)) {
+            case E41_45 -> 0xFF1A8F2B;
+            case E42 -> 0xFFC40000;
+            case E43 -> 0xFFF0D800;
+            case E44 -> 0xFFF0F0F0;
+            case E47 -> 0xFF295AC8;
+            case NONE -> 0x00000000;
+        };
     }
 }

@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -24,39 +25,34 @@ import net.xelpy.moreroad.client.DA31CClientHooks;
 /**
  * Grand panneau autoroutier DA31C.
  *
- * V6 : les cartouches sont de vrais éléments du blockstate (deux emplacements
- * indépendants), exactement comme le principe des autres panneaux modifiables.
- * La plaque possède en plus deux bras arrière suffisamment longs pour rejoindre
- * une traverse placée dans le bloc directement derrière le panneau.
+ * V11 :
+ * - 1 à 4 lignes avec hauteur de plaque automatique et plus compacte ;
+ * - trois cartouches dynamiques rendus avec les modèles officiels du mod ;
+ * - deux flèches indépendantes choisies dans l'éditeur ;
+ * - les supports de portique restent indépendants.
  */
 public class DA31CBlock extends HorizontalDirectionalBlock implements EntityBlock {
 
     public static final MapCodec<DA31CBlock> CODEC = simpleCodec(DA31CBlock::new);
 
+    public static final EnumProperty<CartoucheType> CARTOUCHE_TOP =
+            EnumProperty.create("cartouche_top", CartoucheType.class);
+
+    /* Conservés sous leurs anciens noms pour ne pas casser les mondes V6/V9. */
     public static final EnumProperty<CartoucheType> CARTOUCHE_LEFT =
             EnumProperty.create("cartouche_left", CartoucheType.class);
 
     public static final EnumProperty<CartoucheType> CARTOUCHE_RIGHT =
             EnumProperty.create("cartouche_right", CartoucheType.class);
 
+    public static final IntegerProperty LINE_COUNT =
+            IntegerProperty.create("line_count", 1, 4);
+
     private static final double MIN_PANEL_X = -16.0D;
     private static final double MAX_PANEL_X = 32.0D;
-    private static final double PANEL_MIN_Y = 1.0D;
     private static final double PANEL_MAX_Y = 26.0D;
     private static final double PANEL_MIN_Z = 6.5D;
     private static final double PANEL_MAX_Z = 9.5D;
-
-    private static final VoxelShape PANEL_NORTH =
-            Block.box(MIN_PANEL_X, PANEL_MIN_Y, 6.5D, MAX_PANEL_X, PANEL_MAX_Y, PANEL_MAX_Z);
-    private static final VoxelShape PANEL_SOUTH =
-            Block.box(16.0D - MAX_PANEL_X, PANEL_MIN_Y, 16.0D - PANEL_MAX_Z,
-                    16.0D - MIN_PANEL_X, PANEL_MAX_Y, 16.0D - 6.5D);
-    private static final VoxelShape PANEL_EAST =
-            Block.box(16.0D - PANEL_MAX_Z, PANEL_MIN_Y, MIN_PANEL_X,
-                    16.0D - 6.5D, PANEL_MAX_Y, MAX_PANEL_X);
-    private static final VoxelShape PANEL_WEST =
-            Block.box(6.5D, PANEL_MIN_Y, 16.0D - MAX_PANEL_X,
-                    PANEL_MAX_Z, PANEL_MAX_Y, 16.0D - MIN_PANEL_X);
 
     @Override
     protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
@@ -68,8 +64,10 @@ public class DA31CBlock extends HorizontalDirectionalBlock implements EntityBloc
         this.registerDefaultState(
                 this.stateDefinition.any()
                         .setValue(FACING, Direction.NORTH)
+                        .setValue(CARTOUCHE_TOP, CartoucheType.NONE)
                         .setValue(CARTOUCHE_LEFT, CartoucheType.NONE)
                         .setValue(CARTOUCHE_RIGHT, CartoucheType.NONE)
+                        .setValue(LINE_COUNT, 2)
         );
     }
 
@@ -80,11 +78,53 @@ public class DA31CBlock extends HorizontalDirectionalBlock implements EntityBloc
             BlockPos pos,
             CollisionContext context
     ) {
-        return switch (state.getValue(FACING)) {
-            case SOUTH -> PANEL_SOUTH;
-            case EAST -> PANEL_EAST;
-            case WEST -> PANEL_WEST;
-            default -> PANEL_NORTH;
+        double minY = getPanelMinY(state.getValue(LINE_COUNT));
+        return panelShape(state.getValue(FACING), minY);
+    }
+
+    private static VoxelShape panelShape(Direction facing, double minY) {
+        return switch (facing) {
+            case SOUTH -> Block.box(
+                    16.0D - MAX_PANEL_X,
+                    minY,
+                    16.0D - PANEL_MAX_Z,
+                    16.0D - MIN_PANEL_X,
+                    PANEL_MAX_Y,
+                    16.0D - PANEL_MIN_Z
+            );
+            case EAST -> Block.box(
+                    16.0D - PANEL_MAX_Z,
+                    minY,
+                    MIN_PANEL_X,
+                    16.0D - PANEL_MIN_Z,
+                    PANEL_MAX_Y,
+                    MAX_PANEL_X
+            );
+            case WEST -> Block.box(
+                    PANEL_MIN_Z,
+                    minY,
+                    16.0D - MAX_PANEL_X,
+                    PANEL_MAX_Z,
+                    PANEL_MAX_Y,
+                    16.0D - MIN_PANEL_X
+            );
+            default -> Block.box(
+                    MIN_PANEL_X,
+                    minY,
+                    PANEL_MIN_Z,
+                    MAX_PANEL_X,
+                    PANEL_MAX_Y,
+                    PANEL_MAX_Z
+            );
+        };
+    }
+
+    public static double getPanelMinY(int lineCount) {
+        return switch (Math.max(1, Math.min(4, lineCount))) {
+            case 1 -> 8.0D;
+            case 2 -> 4.0D;
+            case 3 -> 0.0D;
+            default -> -4.0D;
         };
     }
 
@@ -96,7 +136,13 @@ public class DA31CBlock extends HorizontalDirectionalBlock implements EntityBloc
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, CARTOUCHE_LEFT, CARTOUCHE_RIGHT);
+        builder.add(
+                FACING,
+                CARTOUCHE_TOP,
+                CARTOUCHE_LEFT,
+                CARTOUCHE_RIGHT,
+                LINE_COUNT
+        );
     }
 
     @Override
@@ -121,10 +167,16 @@ public class DA31CBlock extends HorizontalDirectionalBlock implements EntityBloc
                     pos,
                     blockEntity.getLine1(),
                     blockEntity.getLine2(),
+                    blockEntity.getLine3(),
+                    blockEntity.getLine4(),
+                    blockEntity.getCartoucheTopType(),
+                    blockEntity.getCartoucheTopText(),
                     blockEntity.getCartoucheLeftType(),
                     blockEntity.getCartoucheLeftText(),
                     blockEntity.getCartoucheRightType(),
-                    blockEntity.getCartoucheRightText()
+                    blockEntity.getCartoucheRightText(),
+                    blockEntity.getArrowLeftType(),
+                    blockEntity.getArrowRightType()
             );
         }
 

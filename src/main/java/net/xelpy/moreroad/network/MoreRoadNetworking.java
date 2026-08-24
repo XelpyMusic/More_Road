@@ -14,6 +14,7 @@ import net.xelpy.moreroad.block.custom.D21ABlock;
 import net.xelpy.moreroad.block.custom.D21APanelData;
 import net.xelpy.moreroad.block.custom.D21AType;
 import net.xelpy.moreroad.block.custom.DA31CBlock;
+import net.xelpy.moreroad.block.custom.DA31CArrowType;
 import net.xelpy.moreroad.block.custom.D42bBranchData;
 import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.EB10Block;
@@ -420,26 +421,43 @@ public final class MoreRoadNetworking {
 
         String line1 = cleanText(payload.line1(), MAX_DA31C_LINE_LENGTH);
         String line2 = cleanText(payload.line2(), MAX_DA31C_LINE_LENGTH);
+        String line3 = cleanText(payload.line3(), MAX_DA31C_LINE_LENGTH);
+        String line4 = cleanText(payload.line4(), MAX_DA31C_LINE_LENGTH);
+
+        String topText = cleanText(payload.cartoucheTopText(), MAX_DA31C_CARTOUCHE_LENGTH);
         String leftText = cleanText(payload.cartoucheLeftText(), MAX_DA31C_CARTOUCHE_LENGTH);
         String rightText = cleanText(payload.cartoucheRightText(), MAX_DA31C_CARTOUCHE_LENGTH);
 
+        CartoucheType topType = CartoucheType.fromSerializedName(payload.cartoucheTopType());
         CartoucheType leftType = CartoucheType.fromSerializedName(payload.cartoucheLeftType());
         CartoucheType rightType = CartoucheType.fromSerializedName(payload.cartoucheRightType());
+        DA31CArrowType leftArrow = DA31CArrowType.fromSerializedName(payload.arrowLeftType());
+        DA31CArrowType rightArrow = DA31CArrowType.fromSerializedName(payload.arrowRightType());
 
         blockEntity.setData(
                 line1,
                 line2,
+                line3,
+                line4,
+                topType,
+                topText,
                 leftType,
                 leftText,
                 rightType,
-                rightText
+                rightText,
+                leftArrow,
+                rightArrow
         );
+
+        int lineCount = getDA31CLineCount(line1, line2, line3, line4);
 
         BlockState currentState = level.getBlockState(pos);
         if (currentState.getBlock() instanceof DA31CBlock) {
             BlockState newState = currentState
+                    .setValue(DA31CBlock.CARTOUCHE_TOP, topType)
                     .setValue(DA31CBlock.CARTOUCHE_LEFT, leftType)
-                    .setValue(DA31CBlock.CARTOUCHE_RIGHT, rightType);
+                    .setValue(DA31CBlock.CARTOUCHE_RIGHT, rightType)
+                    .setValue(DA31CBlock.LINE_COUNT, lineCount);
 
             if (!newState.equals(currentState)) {
                 level.setBlock(pos, newState, Block.UPDATE_ALL);
@@ -448,6 +466,24 @@ public final class MoreRoadNetworking {
 
         BlockState finalState = level.getBlockState(pos);
         level.sendBlockUpdated(pos, finalState, finalState, Block.UPDATE_ALL);
+    }
+
+    private static int getDA31CLineCount(
+            String line1,
+            String line2,
+            String line3,
+            String line4
+    ) {
+        if (line4 != null && !line4.isBlank()) {
+            return 4;
+        }
+        if (line3 != null && !line3.isBlank()) {
+            return 3;
+        }
+        if (line2 != null && !line2.isBlank()) {
+            return 2;
+        }
+        return 1;
     }
 
 
