@@ -59,6 +59,38 @@ import java.util.TreeMap;
 public class MotorwaySignBlockEntityRenderer
         implements BlockEntityRenderer<MotorwaySignBlockEntity, MotorwaySignRenderState> {
 
+    /*
+     * V11 - les textes principaux sont différés jusqu'à la fin du rendu du
+     * BlockEntity. Ils sont alors soumis depuis le repère racine du bloc,
+     * exactement comme CartoucheTextRenderer. Cela évite de laisser le texte
+     * dans la matrice WORLD_SCALE utilisée pour la géométrie des panneaux,
+     * contexte que certains shaders Iris/Complementary ignorent pour le texte.
+     */
+    private static final ThreadLocal<DeferredTextContext> DEFERRED_TEXT_CONTEXT = new ThreadLocal<>();
+
+    private static final class DeferredTextContext {
+        private final Direction facing;
+        private final float panelForward;
+        private final List<DeferredText> texts = new ArrayList<>();
+        private float yOffsetInternal;
+
+        private DeferredTextContext(Direction facing, float panelForward) {
+            this.facing = facing == null ? Direction.NORTH : facing;
+            this.panelForward = panelForward;
+        }
+    }
+
+    private record DeferredText(
+            String value,
+            float xInternal,
+            float yInternal,
+            RoadTextFont roadFont,
+            int color,
+            float scaleInternal,
+            int light
+    ) {
+    }
+
     private static final FontDescription.Resource ROAD_FONT_L1 = new FontDescription.Resource(
             Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l1")
     );
@@ -544,12 +576,12 @@ public class MotorwaySignBlockEntityRenderer
     private static final float BACK_Z = -PANEL_HALF_DEPTH;
     private static final float FACE_Z = FRONT_Z + 0.004F;
     /*
-     * Même profondeur et même mode de rendu que le renderer d'origine du mod.
-     * Le POLYGON_OFFSET est important avec Iris/Complementary : il garde les
-     * glyphes dans la passe de texte prévue par Minecraft tout en évitant le
-     * z-fighting avec la face du panneau.
+     * Le texte reste légèrement devant la face. Le submit lui-même est fait
+     * dans un repère monde sans l'échelle parent du panneau (voir drawText),
+     * comme le texte des cartouches qui reste correctement pris en charge par
+     * Iris/Complementary.
      */
-    private static final float TEXT_Z = FRONT_Z + 0.010F;
+    private static final float TEXT_Z = FRONT_Z + 0.020F;
     private static final float PANEL_GAP = 0.075F;
     private static final float LISTEL = 0.045F;
     private static final float MIN_PANEL_WIDTH = 2.30F;
@@ -732,6 +764,10 @@ public class MotorwaySignBlockEntityRenderer
     ) {
         Font font = Minecraft.getInstance().font;
         MotorwaySignPreset preset = state.preset == null ? MotorwaySignPreset.D31B_EX1 : state.preset;
+        DEFERRED_TEXT_CONTEXT.set(new DeferredTextContext(
+                state.facing,
+                state.mountedOnCrossbar ? 0.0F : MotorwaySignGeometry.D61B_PANEL_FORWARD
+        ));
         CustomStackLayout customLayout;
         if (preset == MotorwaySignPreset.D61B) {
             customLayout = buildD61BStackLayout(font, state.customPanels);
@@ -838,6 +874,7 @@ public class MotorwaySignBlockEntityRenderer
                     collector, poseStack, font, customLayout, customTop, state.lightCoords, true, false
             );
             poseStack.popPose();
+            flushDeferredTexts(state, poseStack, collector);
             return;
         }
 
@@ -869,6 +906,7 @@ public class MotorwaySignBlockEntityRenderer
                         originalShift + 0.12F, state.lightCoords
                 );
                 poseStack.translate(0.0F, originalShift, 0.0F);
+                addDeferredTextYOffset(originalShift);
             }
         }
 
@@ -877,6 +915,7 @@ public class MotorwaySignBlockEntityRenderer
                     collector, poseStack, font, state.lines, state.lightCoords, state.mountedOnCrossbar
             );
             poseStack.popPose();
+            flushDeferredTexts(state, poseStack, collector);
             return;
         }
         if (preset == MotorwaySignPreset.D64) {
@@ -890,6 +929,7 @@ public class MotorwaySignBlockEntityRenderer
                     state.mountedOnCrossbar
             );
             poseStack.popPose();
+            flushDeferredTexts(state, poseStack, collector);
             return;
         }
         if (preset == MotorwaySignPreset.D74A) {
@@ -903,6 +943,7 @@ public class MotorwaySignBlockEntityRenderer
                     state.mountedOnCrossbar
             );
             poseStack.popPose();
+            flushDeferredTexts(state, poseStack, collector);
             return;
         }
         if (preset == MotorwaySignPreset.D74B) {
@@ -912,6 +953,7 @@ public class MotorwaySignBlockEntityRenderer
                     state.mountedOnCrossbar
             );
             poseStack.popPose();
+            flushDeferredTexts(state, poseStack, collector);
             return;
         }
 
@@ -922,6 +964,7 @@ public class MotorwaySignBlockEntityRenderer
                     exactArtwork, state.mountedOnCrossbar
             );
             poseStack.popPose();
+            flushDeferredTexts(state, poseStack, collector);
             return;
         }
 
@@ -929,12 +972,11 @@ public class MotorwaySignBlockEntityRenderer
         if (state.mountedOnCrossbar) {
             // A portique panel is attached by its upper edge to a separately placed
             // crossbar. Keep the complete legacy layout below the attachment block.
-            poseStack.translate(
-                    0.0F,
+            float mountedTextShift =
                     MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
-                            - layout.overallTop(),
-                    0.0F
-            );
+                            - layout.overallTop();
+            poseStack.translate(0.0F, mountedTextShift, 0.0F);
+            addDeferredTextYOffset(mountedTextShift);
             drawCrossbarMounts(
                     collector, poseStack, layout.sharedWidth(),
                     layout.overallBottom(), layout.overallTop(), state.lightCoords
@@ -981,6 +1023,7 @@ public class MotorwaySignBlockEntityRenderer
 
         drawGraphic(collector, poseStack, layout, preset.getGraphic(), state.lightCoords);
         poseStack.popPose();
+        flushDeferredTexts(state, poseStack, collector);
     }
 
     /**
@@ -2710,28 +2753,152 @@ public class MotorwaySignBlockEntityRenderer
         if (value == null || value.isBlank()) {
             return;
         }
-        FormattedCharSequence sequence = styled(value.strip(), roadFont);
+
+        String cleaned = value.strip();
+        FormattedCharSequence sequence = styled(cleaned, roadFont);
         int width = font.width(sequence);
         if (width <= 0) {
             return;
         }
+
         float scale = Math.min(baseScale, maxWidth / width);
+        if (scale <= 0.0F) {
+            return;
+        }
+
+        /*
+         * Les textes D/DA sont collectés puis envoyés après la géométrie du
+         * panneau. Le rendu final passe par CartoucheTextRenderer afin de
+         * partager strictement le même chemin entityCutout que les textes des
+         * cartouches, qui sont visibles avec Iris/Complementary.
+         */
+        DeferredTextContext context = DEFERRED_TEXT_CONTEXT.get();
+        if (context != null) {
+            context.texts.add(new DeferredText(
+                    cleaned,
+                    x,
+                    y + context.yOffsetInternal,
+                    roadFont,
+                    color,
+                    scale,
+                    light
+            ));
+            return;
+        }
+
+        // Repli hors du renderer principal : rendu vanilla NORMAL, comme V9.0.
+        float worldScale = MotorwaySignGeometry.WORLD_SCALE;
+        float textScaleWorld = scale * worldScale;
         poseStack.pushPose();
-        poseStack.translate(x, y, TEXT_Z);
-        poseStack.scale(scale, -scale, scale);
+        poseStack.translate(
+                x * worldScale,
+                y * worldScale,
+                TEXT_Z * worldScale
+        );
+        poseStack.scale(textScaleWorld, -textScaleWorld, textScaleWorld);
         collector.submitText(
                 poseStack,
                 -width / 2.0F,
                 -font.lineHeight / 2.0F,
                 sequence,
                 false,
-                Font.DisplayMode.POLYGON_OFFSET,
+                Font.DisplayMode.NORMAL,
                 light,
                 color,
                 0x00000000,
                 0x00000000
         );
         poseStack.popPose();
+    }
+
+    private static void addDeferredTextYOffset(float deltaInternal) {
+        DeferredTextContext context = DEFERRED_TEXT_CONTEXT.get();
+        if (context != null) {
+            context.yOffsetInternal += deltaInternal;
+        }
+    }
+
+    /**
+     * Rendu texte compatible shaders calé sur le fonctionnement de More Road V9.0.
+     *
+     * Dans le JAR V9.0 (Minecraft 26.2 / NeoForge 26.2), les textes D21/D61 qui
+     * fonctionnent avec Complementary sont soumis avec Font.DisplayMode.NORMAL
+     * depuis le PoseStack RACINE du BlockEntityRenderer. Ils ne passent jamais
+     * dans une matrice globale réduite comme WORLD_SCALE.
+     *
+     * Le renderer autoroutier paramétrique garde WORLD_SCALE pour sa géométrie,
+     * mais les textes sont donc différés puis reconstruits ici en unités monde,
+     * après le popPose() de cette géométrie. On retrouve exactement la forme de
+     * matrice du renderer V9.0 : centre bloc -> rotation -> position face ->
+     * petite échelle de police -> submitText NORMAL.
+     */
+    private static void flushDeferredTexts(
+            MotorwaySignRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        DeferredTextContext context = DEFERRED_TEXT_CONTEXT.get();
+        DEFERRED_TEXT_CONTEXT.remove();
+        if (context == null || context.texts.isEmpty()) {
+            return;
+        }
+
+        Font font = Minecraft.getInstance().font;
+        float worldScale = MotorwaySignGeometry.WORLD_SCALE;
+        float textDepthWorld = context.panelForward + TEXT_Z * worldScale;
+
+        for (DeferredText deferred : context.texts) {
+            FormattedCharSequence sequence = styled(
+                    deferred.value(),
+                    deferred.roadFont()
+            );
+            int width = font.width(sequence);
+            if (width <= 0) {
+                continue;
+            }
+
+            float textScaleWorld = deferred.scaleInternal() * worldScale;
+            if (textScaleWorld <= 0.0F) {
+                continue;
+            }
+
+            poseStack.pushPose();
+
+            // Même repère racine que les anciens D21A/D61A de More Road V9.0.
+            poseStack.translate(
+                    0.5F,
+                    deferred.yInternal() * worldScale,
+                    0.5F
+            );
+            poseStack.mulPose(
+                    Axis.YP.rotationDegrees(getFacingRotation(context.facing))
+            );
+            poseStack.translate(
+                    deferred.xInternal() * worldScale,
+                    0.0F,
+                    textDepthWorld
+            );
+            poseStack.scale(
+                    textScaleWorld,
+                    -textScaleWorld,
+                    textScaleWorld
+            );
+
+            collector.submitText(
+                    poseStack,
+                    -width / 2.0F,
+                    -font.lineHeight / 2.0F,
+                    sequence,
+                    false,
+                    Font.DisplayMode.NORMAL,
+                    deferred.light(),
+                    deferred.color(),
+                    0x00000000,
+                    0x00000000
+            );
+
+            poseStack.popPose();
+        }
     }
 
     private static boolean isExitNumberSlot(MotorwaySignSlot slot) {

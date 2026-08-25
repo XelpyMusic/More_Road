@@ -14,6 +14,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.CartoucheLayout;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 
 /**
@@ -131,26 +132,96 @@ public final class CartoucheTextRenderer {
                 TEXT_Z * depthScale
         );
 
-        poseStack.scale(
-                scale,
-                -scale,
-                scale
+        RoadGlyphAtlasRenderer.submitCentered(
+                cleaned,
+                RoadTextFont.L1,
+                0.0F,
+                0.0F,
+                0.0F,
+                textWidth * scale,
+                getTextColor(type),
+                lightCoords,
+                poseStack,
+                collector,
+                -3
         );
 
-        float textX = -textWidth / 2.0F;
-        float textY = -font.lineHeight / 2.0F;
+        poseStack.popPose();
+    }
 
-        collector.submitText(
-                poseStack,
-                textX,
-                textY,
-                text,
-                false,
-                Font.DisplayMode.NORMAL,
+    /**
+     * Texte générique des panneaux D/DA rendu avec le même pipeline que les
+     * cartouches. Les translations latérale/avant sont effectuées AVANT le
+     * centrage et la rotation, exactement comme submitCartoucheModelScaled +
+     * submit(), afin qu'Iris voie la même structure de matrice.
+     *
+     * panelForward est la translation du centre de la plaque en unités monde.
+     * Le décalage Z est volontairement EXACTEMENT TEXT_Z (0,14), comme dans
+     * submit() pour les cartouches. C'est plus en avant que la face de la
+     * grande plaque (3/32 = 0,09375) et évite que le depth/parallax du shader
+     * ne masque les glyphes collés à la surface.
+     */
+    public static void submitPanelText(
+            String value,
+            RoadTextFont roadFont,
+            int color,
+            float lateralWorld,
+            float centerYWorld,
+            float panelForward,
+            float targetWorldWidth,
+            Direction facing,
+            int lightCoords,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        String cleaned = cleanText(value);
+        if (cleaned.isBlank() || targetWorldWidth <= 0.0F) {
+            return;
+        }
+
+        Direction safeFacing = facing == null ? Direction.NORTH : facing;
+        float directionX = safeFacing.getStepX();
+        float directionZ = safeFacing.getStepZ();
+
+        float lateralX = switch (safeFacing) {
+            case SOUTH -> lateralWorld;
+            case NORTH -> -lateralWorld;
+            default -> 0.0F;
+        };
+        float lateralZ = switch (safeFacing) {
+            case WEST -> lateralWorld;
+            case EAST -> -lateralWorld;
+            default -> 0.0F;
+        };
+
+        poseStack.pushPose();
+
+        // Même pré-translation monde que celle utilisée par les cartouches.
+        poseStack.translate(
+                lateralX + directionX * panelForward,
+                0.0F,
+                lateralZ + directionZ * panelForward
+        );
+
+        // Même centre de bloc + rotation horizontale que submit().
+        poseStack.translate(0.5F, centerYWorld, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(getFacingRotation(safeFacing)));
+
+        // Même profondeur post-rotation que les textes de cartouches.
+        poseStack.translate(0.0F, 0.0F, TEXT_Z);
+
+        RoadGlyphAtlasRenderer.submitCentered(
+                cleaned,
+                roadFont == null ? RoadTextFont.L1 : roadFont,
+                0.0F,
+                0.0F,
+                0.0F,
+                targetWorldWidth,
+                color,
                 lightCoords,
-                getTextColor(type),
-                0x00000000,
-                0x00000000
+                poseStack,
+                collector,
+                -3
         );
 
         poseStack.popPose();
