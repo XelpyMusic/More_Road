@@ -981,12 +981,12 @@ public final class MoreRoadNetworking {
                     requested.line3Font(),
                     requested.line4Font(),
                     background,
-                    index > 0
-                            ? CartoucheType.NONE
-                            : requested.cartoucheType(),
-                    index > 0
-                            ? ""
-                            : cleanText(requested.cartoucheText(), MAX_CARTOUCHE_TEXT_LENGTH),
+                    (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
+                            ? requested.cartoucheType()
+                            : CartoucheType.NONE,
+                    (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
+                            ? cleanText(requested.cartoucheText(), MAX_CARTOUCHE_TEXT_LENGTH)
+                            : "",
                     distancePanel ? net.xelpy.moreroad.block.custom.MotorwaySignGraphic.NONE : requested.graphic()
             );
         }

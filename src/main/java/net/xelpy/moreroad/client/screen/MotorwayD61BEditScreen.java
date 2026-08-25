@@ -158,11 +158,9 @@ public class MotorwayD61BEditScreen extends Screen {
         this.applyRect = new SignEditorUi.Rect(
                 this.cancelRect.x() - s(10) - actionW, actionY, actionW, actionH
         );
-        int modelW = Math.max(88, s(118));
+        int modelW = Math.max(190, s(244));
         this.previousModelRect = new SignEditorUi.Rect(this.windowX + pad, actionY, modelW, actionH);
-        this.nextModelRect = new SignEditorUi.Rect(
-                this.previousModelRect.x() + modelW + s(8), actionY, modelW, actionH
-        );
+        this.nextModelRect = new SignEditorUi.Rect(0, 0, 0, 0);
 
         loadPanelIntoWidgets();
         updateVisibility();
@@ -284,11 +282,7 @@ public class MotorwayD61BEditScreen extends Screen {
 
         SignEditorUi.drawModernButton(
                 graphics, this.font, this.previousModelRect,
-                "‹ Modèle", false, true, mouseX, mouseY
-        );
-        SignEditorUi.drawModernButton(
-                graphics, this.font, this.nextModelRect,
-                "Modèle ›", false, true, mouseX, mouseY
+                "▦  Choisir le modèle", false, true, mouseX, mouseY
         );
         SignEditorUi.drawModernButton(
                 graphics, this.font, this.applyRect,
@@ -558,11 +552,18 @@ public class MotorwayD61BEditScreen extends Screen {
                 return true;
             }
             if (this.previousModelRect.contains(x, y)) {
-                openOtherModel(MotorwaySignPreset.D61B.previous());
-                return true;
-            }
-            if (this.nextModelRect.contains(x, y)) {
-                openOtherModel(MotorwaySignPreset.D61B.next());
+                storeSelectedPanel();
+                this.panels[0] = withCartouche(
+                        this.panels[0], this.cartoucheType, this.cartoucheField.getValue()
+                );
+                Minecraft.getInstance().gui.setScreen(
+                        new MotorwayPresetGalleryScreen(
+                                this,
+                                this.blockPos,
+                                MotorwaySignPreset.D61B,
+                                this.panels
+                        )
+                );
                 return true;
             }
             if (this.applyRect.contains(x, y)) {

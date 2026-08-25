@@ -173,7 +173,7 @@ public final class MotorwayD63CEditScreen extends Screen {
         );
         int headerButtonH = SignEditorUi.safeControlHeight(this.font, s(26));
         int galleryW = Math.max(s(190), this.font.width("Choisir le modèle") + s(30));
-        int baseW = Math.max(s(178), this.font.width("Sortie + distance") + s(30));
+        int baseW = Math.max(s(225), this.font.width("Base D63c • sortie + distance") + s(30));
         int headerButtonY = this.windowY + s(10);
         this.modelGalleryRect = new SignEditorUi.Rect(
                 this.windowX + this.windowWidth - pad - galleryW,
@@ -323,7 +323,8 @@ public final class MotorwayD63CEditScreen extends Screen {
             String detail = switch (index) {
                 case 0 -> this.baseFields[2].getValue().isBlank() ? "BLOIS" : this.baseFields[2].getValue();
                 case 1 -> this.baseFields[3].getValue().isBlank() ? "SAUMUR" : this.baseFields[3].getValue();
-                default -> panel.lineCount() + " ville(s)";
+                case 2 -> panel.lineCount() + " destination(s)";
+                default -> "optionnel • " + panel.lineCount() + " ligne(s)";
             };
             SignEditorUi.drawModernButton(
                     graphics, this.font, this.panelTabRects[index],
@@ -353,7 +354,7 @@ public final class MotorwayD63CEditScreen extends Screen {
 
         SignEditorUi.drawModernButton(
                 graphics, this.font, this.baseModeRect,
-                "Sortie + distance", this.baseMode, true, mouseX, mouseY
+                "Base D63c • sortie + distance", this.baseMode, true, mouseX, mouseY
         );
         SignEditorUi.drawModernButton(
                 graphics, this.font, this.modelGalleryRect,
@@ -587,13 +588,15 @@ public final class MotorwayD63CEditScreen extends Screen {
         int panelWidth = Math.min(width - s(30), Math.max(s(220), Math.round(width * 0.80F)));
         boolean firstCartouche = this.cartoucheType.isVisible();
         boolean secondCartouche = this.secondCartoucheType.isVisible();
-        int cartH = firstCartouche || secondCartouche ? s(34) : 0;
+        int cartH = firstCartouche || secondCartouche ? s(42) : 0;
         int totalH = s(48 + 42 + 42) + gap * 2;
         if (cartH > 0) {
             totalH += cartH + gap;
         }
         for (MotorwaySignPanelData panel : enabled) {
-            totalH += gap + s(25 + panel.lineCount() * 18);
+            totalH += gap + (panel.lineCount() >= 3
+                    ? s(38 + panel.lineCount() * 31)
+                    : s(25 + panel.lineCount() * 18));
         }
         int centerX = x + width / 2;
         int cursorY = y + Math.max(s(16), (height - totalH) / 2);
@@ -604,8 +607,8 @@ public final class MotorwayD63CEditScreen extends Screen {
             int visibleCount = (firstCartouche ? 1 : 0) + (secondCartouche ? 1 : 0);
             int cartGap = visibleCount == 2 ? gap : 0;
             int cartW = visibleCount == 2
-                    ? Math.min((panelWidth - cartGap) / 2, s(150))
-                    : Math.min(panelWidth, s(190));
+                    ? Math.min((panelWidth - cartGap) / 2, s(180))
+                    : Math.min(panelWidth, s(220));
             int cartX = centerX - (visibleCount * cartW + cartGap) / 2;
             if (firstCartouche) {
                 drawPlate(graphics, cartX, cursorY, cartW, cartH, cartoucheColor(this.cartoucheType));
@@ -641,7 +644,7 @@ public final class MotorwayD63CEditScreen extends Screen {
         for (MotorwaySignPanelData panel : enabled) {
             cursorY += gap;
             int panelH = panel.lineCount() >= 3
-                    ? s(31 + panel.lineCount() * 22)
+                    ? s(38 + panel.lineCount() * 31)
                     : s(25 + panel.lineCount() * 18);
             drawPlate(graphics, centerX - panelWidth / 2, cursorY, panelWidth, panelH, panel.background());
             int lineH = panelH / panel.lineCount();
@@ -677,7 +680,7 @@ public final class MotorwayD63CEditScreen extends Screen {
     private void drawRightText(GuiGraphicsExtractor graphics, String value, RoadTextFont roadFont,
                                MotorwaySignColor color, int x, int y, int width, int height) {
         Component text = roadText(value, roadFont, width - s(20));
-        graphics.text(this.font, text, x + width - this.font.width(text) - s(10),
+        graphics.text(this.font, text, x + width - this.font.width(text) - s(18),
                 y + (height - this.font.lineHeight) / 2, color.getTextArgb(), false);
     }
 
@@ -706,6 +709,19 @@ public final class MotorwayD63CEditScreen extends Screen {
         if (event.button() == 0) {
             double x = event.x();
             double y = event.y();
+            if (this.modelGalleryRect.contains(x, y)) {
+                storePanel();
+                syncBaseLinesFromFields();
+                net.minecraft.client.Minecraft.getInstance().gui.setScreen(
+                        new MotorwayPresetGalleryScreen(
+                                this,
+                                this.blockPos,
+                                MotorwaySignPreset.D63C,
+                                previewPanels()
+                        )
+                );
+                return true;
+            }
             if (this.baseModeRect.contains(x, y)) {
                 storePanel();
                 this.baseMode = true;
@@ -714,12 +730,16 @@ public final class MotorwayD63CEditScreen extends Screen {
                 return true;
             }
             for (int index = 0; index < this.panelTabRects.length; index++) {
-                if (this.panelToggleRects[index].contains(x, y)) {
+                if (index >= 2 && this.panelToggleRects[index].contains(x, y)) {
+                    int customIndex = index - 2;
                     if (!this.baseMode && index == this.selectedPanel) {
-                        this.panels[index] = withEnabled(currentPanelFromWidgets(), !currentPanelFromWidgets().enabled());
+                        MotorwaySignPanelData current = currentPanelFromWidgets();
+                        this.panels[customIndex] = withEnabled(current, !current.enabled());
                         loadPanelIntoWidgets();
                     } else {
-                        this.panels[index] = withEnabled(this.panels[index], !this.panels[index].enabled());
+                        this.panels[customIndex] = withEnabled(
+                                this.panels[customIndex], !this.panels[customIndex].enabled()
+                        );
                     }
                     return true;
                 }
@@ -729,7 +749,11 @@ public final class MotorwayD63CEditScreen extends Screen {
                     this.baseMode = false;
                     loadPanelIntoWidgets();
                     updateVisibility();
-                    this.setInitialFocus(this.cityFields[0]);
+                    if (index < 2) {
+                        this.setInitialFocus(this.baseFields[index + 2]);
+                    } else {
+                        this.setInitialFocus(this.cityFields[0]);
+                    }
                     return true;
                 }
             }
@@ -762,35 +786,64 @@ public final class MotorwayD63CEditScreen extends Screen {
                         }
                     }
                 }
+            } else if (this.selectedPanel < 2) {
+                int lineIndex = this.selectedPanel + 2;
+                if (this.settingsPage == 0) {
+                    if (this.baseFontRects[lineIndex].contains(x, y)) {
+                        this.baseLines[lineIndex] = withFont(
+                                this.baseLines[lineIndex], this.baseLines[lineIndex].font().next()
+                        );
+                        return true;
+                    }
+                    if (this.baseColorRects[lineIndex].contains(x, y)) {
+                        this.baseLines[lineIndex] = withColor(
+                                this.baseLines[lineIndex], nextBaseColor(this.baseLines[lineIndex].color())
+                        );
+                        return true;
+                    }
+                } else if (this.settingsPage == 1) {
+                    if (this.whiteRect.contains(x, y)) {
+                        this.baseLines[lineIndex] = withColor(this.baseLines[lineIndex], MotorwaySignColor.WHITE);
+                        return true;
+                    }
+                    if (this.greenRect.contains(x, y)) {
+                        this.baseLines[lineIndex] = withColor(this.baseLines[lineIndex], MotorwaySignColor.GREEN);
+                        return true;
+                    }
+                    if (this.blueRect.contains(x, y)) {
+                        this.baseLines[lineIndex] = withColor(this.baseLines[lineIndex], MotorwaySignColor.BLUE);
+                        return true;
+                    }
+                }
             } else {
                 MotorwaySignPanelData current = currentPanelFromWidgets();
                 if (this.settingsPage == 0) {
                     for (int index = 0; index < current.lineCount(); index++) {
                         if (this.cityFontRects[index].contains(x, y)) {
-                            this.panels[this.selectedPanel] = withPanelFont(current, index, current.font(index).next());
+                            this.panels[selectedCustomPanelIndex()] = withPanelFont(current, index, current.font(index).next());
                             loadPanelIntoWidgets();
                             return true;
                         }
                     }
                 } else if (this.settingsPage == 1) {
                     if (this.whiteRect.contains(x, y)) {
-                        this.panels[this.selectedPanel] = withBackground(current, MotorwaySignColor.WHITE);
+                        this.panels[selectedCustomPanelIndex()] = withBackground(current, MotorwaySignColor.WHITE);
                         loadPanelIntoWidgets();
                         return true;
                     }
                     if (this.greenRect.contains(x, y)) {
-                        this.panels[this.selectedPanel] = withBackground(current, MotorwaySignColor.GREEN);
+                        this.panels[selectedCustomPanelIndex()] = withBackground(current, MotorwaySignColor.GREEN);
                         loadPanelIntoWidgets();
                         return true;
                     }
                     if (this.blueRect.contains(x, y)) {
-                        this.panels[this.selectedPanel] = withBackground(current, MotorwaySignColor.BLUE);
+                        this.panels[selectedCustomPanelIndex()] = withBackground(current, MotorwaySignColor.BLUE);
                         loadPanelIntoWidgets();
                         return true;
                     }
                 } else if (this.settingsPage == 2 && this.graphicRect.contains(x, y)) {
                     MotorwaySignGraphic[] values = MotorwaySignGraphic.values();
-                    this.panels[this.selectedPanel] = withGraphic(
+                    this.panels[selectedCustomPanelIndex()] = withGraphic(
                             current, values[(current.graphic().ordinal() + 1) % values.length]
                     );
                     loadPanelIntoWidgets();
@@ -798,7 +851,7 @@ public final class MotorwayD63CEditScreen extends Screen {
                 } else if (this.settingsPage == 4) {
                     for (int index = 0; index < 4; index++) {
                         if (this.formatRects[index].contains(x, y)) {
-                            this.panels[this.selectedPanel] = withLineCount(current, index + 1);
+                            this.panels[selectedCustomPanelIndex()] = withLineCount(current, index + 1);
                             loadPanelIntoWidgets();
                             updateVisibility();
                             return true;
@@ -808,6 +861,11 @@ public final class MotorwayD63CEditScreen extends Screen {
             }
             if (this.settingsPage == 3 && this.cartoucheTypeRect.contains(x, y)) {
                 this.cartoucheType = this.cartoucheType.next();
+                updateVisibility();
+                return true;
+            }
+            if (this.settingsPage == 3 && this.secondCartoucheTypeRect.contains(x, y)) {
+                this.secondCartoucheType = this.secondCartoucheType.next();
                 updateVisibility();
                 return true;
             }
@@ -825,10 +883,15 @@ public final class MotorwayD63CEditScreen extends Screen {
 
     private void updateVisibility() {
         for (int index = 0; index < 4; index++) {
-            boolean baseVisible = this.baseMode && this.settingsPage == 0;
+            boolean fullBaseVisible = this.baseMode && this.settingsPage == 0;
+            boolean originalDestinationVisible = !this.baseMode && this.settingsPage == 0
+                    && this.selectedPanel < 2 && index == this.selectedPanel + 2;
+            boolean baseVisible = fullBaseVisible || originalDestinationVisible;
             this.baseFields[index].visible = baseVisible;
             this.baseFields[index].active = baseVisible;
-            boolean panelVisible = !this.baseMode && this.settingsPage == 0
+
+            boolean panelVisible = !this.baseMode && this.selectedPanel >= 2
+                    && this.settingsPage == 0
                     && index < currentPanelFromWidgets().lineCount();
             this.cityFields[index].visible = panelVisible;
             this.cityFields[index].active = panelVisible;
@@ -838,11 +901,13 @@ public final class MotorwayD63CEditScreen extends Screen {
         boolean cartVisible = this.settingsPage == 3;
         this.cartoucheField.visible = cartVisible;
         this.cartoucheField.active = cartVisible && this.cartoucheType.isVisible();
+        this.secondCartoucheField.visible = cartVisible;
+        this.secondCartoucheField.active = cartVisible && this.secondCartoucheType.isVisible();
     }
 
     private void storePanel() {
-        if (!this.baseMode && this.cityFields[0] != null) {
-            this.panels[this.selectedPanel] = currentPanelFromWidgets();
+        if (!this.baseMode && this.selectedPanel >= 2 && this.cityFields[0] != null) {
+            this.panels[selectedCustomPanelIndex()] = currentPanelFromWidgets();
         }
     }
 
@@ -850,7 +915,10 @@ public final class MotorwayD63CEditScreen extends Screen {
         if (this.cityFields[0] == null) {
             return;
         }
-        MotorwaySignPanelData panel = this.panels[this.selectedPanel];
+        if (this.selectedPanel < 2) {
+            return;
+        }
+        MotorwaySignPanelData panel = this.panels[selectedCustomPanelIndex()];
         for (int index = 0; index < 4; index++) {
             this.cityFields[index].setValue(panel.line(index));
             this.distanceFields[index].setValue(panel.distance(index));
@@ -858,7 +926,7 @@ public final class MotorwayD63CEditScreen extends Screen {
     }
 
     private MotorwaySignPanelData currentPanelFromWidgets() {
-        MotorwaySignPanelData stored = this.panels[this.selectedPanel];
+        MotorwaySignPanelData stored = this.panels[selectedCustomPanelIndex()];
         if (this.cityFields[0] == null) {
             return stored;
         }
@@ -875,22 +943,20 @@ public final class MotorwayD63CEditScreen extends Screen {
 
     private MotorwaySignPanelData[] previewPanels() {
         MotorwaySignPanelData[] result = this.panels.clone();
-        if (!this.baseMode) {
-            result[this.selectedPanel] = currentPanelFromWidgets();
+        if (!this.baseMode && this.selectedPanel >= 2) {
+            result[selectedCustomPanelIndex()] = currentPanelFromWidgets();
         }
         return result;
     }
 
     private void save() {
         storePanel();
-        for (int index = 0; index < 4; index++) {
-            this.baseLines[index] = new MotorwaySignLineData(
-                    this.baseFields[index].getValue(),
-                    this.baseLines[index].font(), this.baseLines[index].color()
-            );
-        }
+        syncBaseLinesFromFields();
         this.panels[0] = withCartouche(
                 this.panels[0], this.cartoucheType, this.cartoucheField.getValue()
+        );
+        this.panels[1] = withCartouche(
+                this.panels[1], this.secondCartoucheType, this.secondCartoucheField.getValue()
         );
         ClientPacketDistributor.sendToServer(new UpdateMotorwaySignPayload(
                 this.blockPos, MotorwaySignPreset.D63C.getSerializedName(),
@@ -900,6 +966,19 @@ public final class MotorwayD63CEditScreen extends Screen {
                 this.panels[0], this.panels[1], this.panels[2], this.panels[3]
         ));
         this.onClose();
+    }
+
+    private int selectedCustomPanelIndex() {
+        return Math.max(0, Math.min(1, this.selectedPanel - 2));
+    }
+
+    private void syncBaseLinesFromFields() {
+        for (int index = 0; index < 4; index++) {
+            this.baseLines[index] = new MotorwaySignLineData(
+                    this.baseFields[index].getValue(),
+                    this.baseLines[index].font(), this.baseLines[index].color()
+            );
+        }
     }
 
     private boolean compactUi() {

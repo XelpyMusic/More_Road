@@ -160,15 +160,14 @@ public class MotorwaySignEditScreen extends Screen {
         int innerW = this.contentRect.width() - s(20);
         int selectorY = this.contentRect.y() + s(34);
         int selectorH = SignEditorUi.safeControlHeight(this.font, s(25));
-        int navW = Math.max(26, s(34));
         int resetW = Math.max(70, s(98));
         int selectorGap = Math.max(3, s(6));
-        int presetW = innerW - navW * 2 - resetW - selectorGap * 3;
+        int presetW = innerW - resetW - selectorGap;
 
-        this.previousPresetRect = new SignEditorUi.Rect(innerX, selectorY, navW, selectorH);
-        this.presetRect = new SignEditorUi.Rect(innerX + navW + selectorGap, selectorY, presetW, selectorH);
-        this.nextPresetRect = new SignEditorUi.Rect(this.presetRect.x() + presetW + selectorGap, selectorY, navW, selectorH);
-        this.resetRect = new SignEditorUi.Rect(this.nextPresetRect.x() + navW + selectorGap, selectorY, resetW, selectorH);
+        this.previousPresetRect = new SignEditorUi.Rect(0, 0, 0, 0);
+        this.presetRect = new SignEditorUi.Rect(innerX, selectorY, presetW, selectorH);
+        this.nextPresetRect = new SignEditorUi.Rect(0, 0, 0, 0);
+        this.resetRect = new SignEditorUi.Rect(this.presetRect.x() + presetW + selectorGap, selectorY, resetW, selectorH);
 
         int editorTabsY = selectorY + selectorH + s(6);
         int editorTabGap = Math.max(2, s(4));
@@ -392,10 +391,9 @@ public class MotorwaySignEditScreen extends Screen {
                 compactUi() ? "" : "Chaque champ conserve sa police et la couleur de sa plaque"
         );
 
-        SignEditorUi.drawModernButton(graphics, this.font, this.previousPresetRect, "‹", false, true, mouseX, mouseY);
         SignEditorUi.drawModernButton(graphics, this.font, this.presetRect,
-                fitText(this.preset.getDisplayName(), this.presetRect.width() - 8), true, true, mouseX, mouseY);
-        SignEditorUi.drawModernButton(graphics, this.font, this.nextPresetRect, "›", false, true, mouseX, mouseY);
+                fitText("▦  " + this.preset.getDisplayName() + " — choisir le modèle", this.presetRect.width() - 8),
+                true, true, mouseX, mouseY);
         SignEditorUi.drawModernButton(graphics, this.font, this.resetRect, "Réinitialiser", false, true, mouseX, mouseY);
         SignEditorUi.drawModernButton(
                 graphics, this.font, this.modeRect,
@@ -408,7 +406,7 @@ public class MotorwaySignEditScreen extends Screen {
                     : this.customPanels[index];
             SignEditorUi.drawModernButton(
                     graphics, this.font, this.customTabRects[index],
-                    "Panneau " + (index + 1),
+                    "Ajout " + (index + 1),
                     this.customMode && index == this.selectedCustomPanel,
                     true, mouseX, mouseY
             );
@@ -426,7 +424,7 @@ public class MotorwaySignEditScreen extends Screen {
                 MotorwaySignSlot slot = this.preset.getSlot(i);
                 if (!compactUi()) {
                     SignEditorUi.drawFieldLabel(
-                            graphics, this.font, fitText(slot.label(), this.fields[i].getWidth()),
+                            graphics, this.font, fitText(slotEditorLabel(slot), this.fields[i].getWidth()),
                             this.fields[i].getX(), this.fields[i].getY() - s(10)
                     );
                 }
@@ -802,6 +800,18 @@ public class MotorwaySignEditScreen extends Screen {
         graphics.text(this.font, component, drawX, drawY, this.lineColors[index].getTextArgb(), false);
     }
 
+    private static String slotEditorLabel(MotorwaySignSlot slot) {
+        if (slot == null) {
+            return "Champ";
+        }
+        return switch (slot.role()) {
+            case ROUTE, DISTANCE -> "Base • " + slot.label();
+            case DESTINATION, INFO -> slot.panelGroup() >= 0
+                    ? "Panneau " + (slot.panelGroup() + 1) + " • " + slot.label()
+                    : "Base • " + slot.label();
+        };
+    }
+
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (event.button() == 0) {
@@ -870,23 +880,8 @@ public class MotorwaySignEditScreen extends Screen {
                 updateVisibleFields();
                 return true;
             }
-            if (this.previousPresetRect.contains(event.x(), event.y())) {
-                if (this.customMode) {
-                    storeSelectedCustomPanel();
-                } else {
-                    storeContentCartouche();
-                }
-                changePreset(this.preset.previous());
-                return true;
-            }
-            if (this.presetRect.contains(event.x(), event.y())
-                    || this.nextPresetRect.contains(event.x(), event.y())) {
-                if (this.customMode) {
-                    storeSelectedCustomPanel();
-                } else {
-                    storeContentCartouche();
-                }
-                changePreset(this.preset.next());
+            if (this.presetRect.contains(event.x(), event.y())) {
+                openPresetGallery();
                 return true;
             }
             if (this.resetRect.contains(event.x(), event.y())) {
@@ -913,6 +908,22 @@ public class MotorwaySignEditScreen extends Screen {
             }
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    private void openPresetGallery() {
+        if (this.customMode) {
+            storeSelectedCustomPanel();
+        } else {
+            storeContentCartouche();
+        }
+        net.minecraft.client.Minecraft.getInstance().gui.setScreen(
+                new MotorwayPresetGalleryScreen(
+                        this,
+                        this.blockPos,
+                        this.preset,
+                        this.customPanels
+                )
+        );
     }
 
     private void changePreset(MotorwaySignPreset newPreset) {

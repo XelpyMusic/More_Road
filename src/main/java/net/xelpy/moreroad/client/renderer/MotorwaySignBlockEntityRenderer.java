@@ -199,7 +199,7 @@ public class MotorwaySignBlockEntityRenderer
             },
             new ExactTextPlacement[]{
                     text(0, 3068.5F, 2032.5F, 3900.0F, 1095.0F),
-                    text(1, 11845.5F, 1953.0F, 2700.0F, 1350.0F),
+                    text(1, 11480.0F, 1953.0F, 3100.0F, 1550.0F),
                     text(2, 6396.0F, 5995.0F, 12000.0F, 1486.0F),
                     text(3, 6704.0F, 9025.0F, 12400.0F, 1348.0F)
             },
@@ -543,6 +543,12 @@ public class MotorwaySignBlockEntityRenderer
     private static final float FRONT_Z = PANEL_HALF_DEPTH;
     private static final float BACK_Z = -PANEL_HALF_DEPTH;
     private static final float FACE_Z = FRONT_Z + 0.004F;
+    /*
+     * Même profondeur et même mode de rendu que le renderer d'origine du mod.
+     * Le POLYGON_OFFSET est important avec Iris/Complementary : il garde les
+     * glyphes dans la passe de texte prévue par Minecraft tout en évitant le
+     * z-fighting avec la face du panneau.
+     */
     private static final float TEXT_Z = FRONT_Z + 0.010F;
     private static final float PANEL_GAP = 0.075F;
     private static final float LISTEL = 0.045F;
@@ -556,6 +562,10 @@ public class MotorwaySignBlockEntityRenderer
     private static final float D61_CARTOUCHE_HEIGHT = (float) (
             CartoucheLayout.CARTOUCHE_RENDER_HEIGHT / MotorwaySignGeometry.WORLD_SCALE
     );
+    /** Cartouches D63c volontairement plus grands que ceux des petites pancartes. */
+    private static final float D63C_CARTOUCHE_SCALE = 1.12F;
+    private static final float D63C_CARTOUCHE_HEIGHT = D61_CARTOUCHE_HEIGHT
+            * (D63C_CARTOUCHE_SCALE / CartoucheLayout.MODEL_SCALE);
     /* Aligne la face des cartouches 3D sur celle d'une plaque de 3/16. */
     private static final float CARTOUCHE_MODEL_FORWARD_OFFSET =
             3.0F / 32.0F - 0.135F;
@@ -730,7 +740,7 @@ public class MotorwaySignBlockEntityRenderer
                     preset, state.lines, state.mountedOnCrossbar
             ).width() / MotorwaySignGeometry.WORLD_SCALE;
             customLayout = withSharedPanelWidth(
-                    buildCustomStackLayout(font, state.customPanels, false),
+                    buildCustomStackLayout(font, state.customPanels, false, preset == MotorwaySignPreset.D63C),
                     presetWidth
             );
         }
@@ -749,30 +759,48 @@ public class MotorwaySignBlockEntityRenderer
                     : 2.05F + customPanelHeight;
         }
 
-        MotorwaySignPanelData cartouchePanel = preset == MotorwaySignPreset.D61B
-                ? customLayout.panels().getFirst()
-                : firstConfiguredPanel(state.customPanels);
-        if (cartouchePanel != null && cartouchePanel.cartoucheType().isVisible()) {
-            float cartoucheTop = customTop;
-            if (preset != MotorwaySignPreset.D61B) {
-                float originalHeight = MotorwaySignGeometry.forPreset(
-                        preset, state.lines, state.mountedOnCrossbar
-                ).height() / MotorwaySignGeometry.WORLD_SCALE;
-                float originalTop = state.mountedOnCrossbar
-                        ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
-                        : 2.05F + customPanelHeight
-                        + (customLayout.panels().isEmpty() ? 0.0F : PANEL_GAP)
-                        + originalHeight;
-                cartoucheTop = originalTop + PANEL_GAP + D61_CARTOUCHE_HEIGHT;
-            }
-            submitCustomCartouche(
+        if (preset == MotorwaySignPreset.D63C) {
+            float originalHeight = MotorwaySignGeometry.forPreset(
+                    preset, state.lines, state.mountedOnCrossbar
+            ).height() / MotorwaySignGeometry.WORLD_SCALE;
+            float originalTop = state.mountedOnCrossbar
+                    ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
+                    : 2.05F + customPanelHeight
+                    + (customLayout.panels().isEmpty() ? 0.0F : PANEL_GAP)
+                    + originalHeight;
+            submitD63CCartouches(
                     state,
-                    cartouchePanel,
-                    cartoucheTop,
+                    originalTop,
                     state.mountedOnCrossbar ? 0.0F : MotorwaySignGeometry.D61B_PANEL_FORWARD,
                     poseStack,
                     collector
             );
+        } else {
+            MotorwaySignPanelData cartouchePanel = preset == MotorwaySignPreset.D61B
+                    ? customLayout.panels().getFirst()
+                    : firstConfiguredPanel(state.customPanels);
+            if (cartouchePanel != null && cartouchePanel.cartoucheType().isVisible()) {
+                float cartoucheTop = customTop;
+                if (preset != MotorwaySignPreset.D61B) {
+                    float originalHeight = MotorwaySignGeometry.forPreset(
+                            preset, state.lines, state.mountedOnCrossbar
+                    ).height() / MotorwaySignGeometry.WORLD_SCALE;
+                    float originalTop = state.mountedOnCrossbar
+                            ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
+                            : 2.05F + customPanelHeight
+                            + (customLayout.panels().isEmpty() ? 0.0F : PANEL_GAP)
+                            + originalHeight;
+                    cartoucheTop = originalTop + PANEL_GAP + D61_CARTOUCHE_HEIGHT;
+                }
+                submitCustomCartouche(
+                        state,
+                        cartouchePanel,
+                        cartoucheTop,
+                        state.mountedOnCrossbar ? 0.0F : MotorwaySignGeometry.D61B_PANEL_FORWARD,
+                        poseStack,
+                        collector
+                );
+            }
         }
         if (preset != MotorwaySignPreset.D61B) {
             submitOriginalCartouches(
@@ -807,7 +835,7 @@ public class MotorwaySignBlockEntityRenderer
 
         if (preset == MotorwaySignPreset.D61B) {
             drawCustomStack(
-                    collector, poseStack, font, customLayout, customTop, state.lightCoords, true
+                    collector, poseStack, font, customLayout, customTop, state.lightCoords, true, false
             );
             poseStack.popPose();
             return;
@@ -823,13 +851,15 @@ public class MotorwaySignBlockEntityRenderer
                         / MotorwaySignGeometry.WORLD_SCALE - originalHeight;
                 drawCustomStack(
                         collector, poseStack, font, additions,
-                        originalBottom - PANEL_GAP, state.lightCoords, false
+                        originalBottom - PANEL_GAP, state.lightCoords, false,
+                        preset == MotorwaySignPreset.D63C
                 );
             } else {
                 float originalShift = customPanelHeight + PANEL_GAP;
                 drawCustomStack(
                         collector, poseStack, font, additions,
-                        2.05F + customPanelHeight, state.lightCoords, false
+                        2.05F + customPanelHeight, state.lightCoords, false,
+                        preset == MotorwaySignPreset.D63C
                 );
                 drawAdditionalSupport(
                         collector, poseStack,
@@ -1554,7 +1584,8 @@ public class MotorwaySignBlockEntityRenderer
     private static CustomStackLayout buildCustomStackLayout(
             Font font,
             MotorwaySignPanelData[] configuredPanels,
-            boolean includeCartoucheOnlyPanel
+            boolean includeCartoucheOnlyPanel,
+            boolean spaciousMultiline
     ) {
         List<MotorwaySignPanelData> panels = new ArrayList<>();
         if (configuredPanels != null) {
@@ -1567,9 +1598,11 @@ public class MotorwaySignBlockEntityRenderer
                         continue;
                     }
                     MotorwaySignPanelData normalized = withAllowedCustomBackground(panel);
-                    panels.add(configuredIndex == 0
+                    panels.add(spaciousMultiline
+                            ? withoutCartouche(normalized)
+                            : (configuredIndex == 0
                             ? normalized
-                            : withoutCartouche(normalized));
+                            : withoutCartouche(normalized)));
                 }
             }
         }
@@ -1602,7 +1635,9 @@ public class MotorwaySignBlockEntityRenderer
                     MIN_PANEL_WIDTH,
                     MAX_PANEL_WIDTH
             );
-            heights[index] = 0.48F + 0.40F * panel.lineCount();
+            heights[index] = spaciousMultiline && panel.lineCount() >= 3
+                    ? 0.64F + 0.58F * panel.lineCount()
+                    : 0.48F + 0.40F * panel.lineCount();
             if (usesBottomArrow(panel.graphic())) {
                 heights[index] += 0.50F;
             }
@@ -1674,7 +1709,7 @@ public class MotorwaySignBlockEntityRenderer
                 MotorwaySignColor.BLUE, topCartouche, topCartoucheText, MotorwaySignGraphic.NONE
         ));
         CustomStackLayout layout = buildCustomStackLayout(
-                font, enabled.toArray(MotorwaySignPanelData[]::new), true
+                font, enabled.toArray(MotorwaySignPanelData[]::new), true, false
         );
         float[] sharedWidths = layout.widths().clone();
         java.util.Arrays.fill(sharedWidths, 6.20F);
@@ -1748,7 +1783,8 @@ public class MotorwaySignBlockEntityRenderer
             CustomStackLayout layout,
             float top,
             int light,
-            boolean d61Style
+            boolean d61Style,
+            boolean d63cStyle
     ) {
         float cursorTop = top;
         for (int index = 0; index < layout.panels().size(); index++) {
@@ -1772,6 +1808,8 @@ public class MotorwaySignBlockEntityRenderer
             );
             if (d61Style) {
                 drawD61PanelText(collector, poseStack, font, data, panelLayout, light);
+            } else if (d63cStyle) {
+                drawD63CPanelText(collector, poseStack, font, data, panelLayout, light);
             } else {
                 drawCustomPanelText(collector, poseStack, font, data, panelLayout, light);
             }
@@ -1809,6 +1847,61 @@ public class MotorwaySignBlockEntityRenderer
         }
 
         float y = panel.centerY() + (data.lineCount() - 1) * lineStep / 2.0F - 0.055F;
+        if (usesBottomArrow(data.graphic())) {
+            y += 0.22F;
+        }
+
+        for (int index = 0; index < data.lineCount(); index++) {
+            float lineY = y - index * lineStep;
+            FormattedCharSequence distanceSequence = styled(data.distance(index), data.font(index));
+            int distancePixels = font.width(distanceSequence);
+            float distanceWidth = data.distance(index).isBlank()
+                    ? 0.0F
+                    : distancePixels * textScale;
+            if (distanceWidth > 0.0F) {
+                drawText(
+                        collector, poseStack, font, data.distance(index),
+                        panel.right() - rightMargin - distanceWidth / 2.0F, lineY,
+                        distanceWidth + 0.002F, data.font(index),
+                        panel.color().getTextArgb(), textScale, light
+                );
+            }
+
+            FormattedCharSequence citySequence = styled(data.line(index), data.font(index));
+            int cityPixels = font.width(citySequence);
+            if (cityPixels <= 0) {
+                continue;
+            }
+            float cityLeft = panel.left() + leftMargin;
+            float cityRight = panel.right() - rightMargin
+                    - (distanceWidth > 0.0F ? distanceWidth + distanceGap : 0.0F);
+            float maximumWidth = Math.max(0.20F, cityRight - cityLeft);
+            float actualScale = Math.min(textScale, maximumWidth / cityPixels);
+            float actualWidth = cityPixels * actualScale;
+            drawText(
+                    collector, poseStack, font, data.line(index),
+                    cityLeft + actualWidth / 2.0F, lineY, maximumWidth,
+                    data.font(index), panel.color().getTextArgb(), textScale, light
+            );
+        }
+    }
+
+    /** D63c : les panneaux multilignes gardent une taille et un interligne généreux. */
+    private static void drawD63CPanelText(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            Font font,
+            MotorwaySignPanelData data,
+            PanelLayout panel,
+            int light
+    ) {
+        final boolean multi = data.lineCount() >= 3;
+        final float textScale = multi ? 0.064F : 0.046F;
+        final float lineStep = multi ? 0.68F : 0.47F;
+        final float distanceGap = 0.34F;
+        final float leftMargin = 0.34F;
+        final float rightMargin = 0.38F;
+        float y = panel.centerY() + (data.lineCount() - 1) * lineStep / 2.0F - 0.045F;
         if (usesBottomArrow(data.graphic())) {
             y += 0.22F;
         }
@@ -2113,9 +2206,52 @@ public class MotorwaySignBlockEntityRenderer
     }
 
     /**
-     * Rend les vrais cartouches E41 à E47 au-dessus de chaque pancarte qui
-     * en demande un. La position suit la pile, quelle que soit sa hauteur.
+     * D63c : jusqu'à deux grands cartouches, centrés s'il n'y en a qu'un et
+     * répartis symétriquement s'ils sont tous les deux actifs.
      */
+    private static void submitD63CCartouches(
+            MotorwaySignRenderState state,
+            float originalTopInternal,
+            float panelForward,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        MotorwaySignPanelData first = state.customPanels.length > 0
+                ? state.customPanels[0] : null;
+        MotorwaySignPanelData second = state.customPanels.length > 1
+                ? state.customPanels[1] : null;
+        boolean firstVisible = first != null && first.cartoucheType().isVisible();
+        boolean secondVisible = second != null && second.cartoucheType().isVisible();
+        if (!firstVisible && !secondVisible) {
+            return;
+        }
+
+        float cartoucheTopInternal = originalTopInternal + PANEL_GAP + D63C_CARTOUCHE_HEIGHT;
+        float cartoucheBottom = (cartoucheTopInternal - D63C_CARTOUCHE_HEIGHT)
+                * MotorwaySignGeometry.WORLD_SCALE;
+        float panelTop = originalTopInternal * MotorwaySignGeometry.WORLD_SCALE;
+        float lateral = firstVisible && secondVisible ? 0.48F : 0.0F;
+
+        if (firstVisible) {
+            submitCartoucheModelScaled(
+                    state, first.cartoucheType(), first.cartoucheText(),
+                    cartoucheBottom, panelTop, panelForward,
+                    secondVisible ? -lateral : 0.0F,
+                    D63C_CARTOUCHE_SCALE,
+                    poseStack, collector
+            );
+        }
+        if (secondVisible) {
+            submitCartoucheModelScaled(
+                    state, second.cartoucheType(), second.cartoucheText(),
+                    cartoucheBottom, panelTop, panelForward,
+                    firstVisible ? lateral : 0.0F,
+                    D63C_CARTOUCHE_SCALE,
+                    poseStack, collector
+            );
+        }
+    }
+
     private static void submitCustomCartouche(
             MotorwaySignRenderState state,
             MotorwaySignPanelData panel,
@@ -2151,6 +2287,24 @@ public class MotorwaySignBlockEntityRenderer
             PoseStack poseStack,
             SubmitNodeCollector collector
     ) {
+        submitCartoucheModelScaled(
+                state, type, text, cartoucheBottom, panelTop, panelForward,
+                lateral, CartoucheLayout.MODEL_SCALE, poseStack, collector
+        );
+    }
+
+    private static void submitCartoucheModelScaled(
+            MotorwaySignRenderState state,
+            CartoucheType type,
+            String text,
+            float cartoucheBottom,
+            float panelTop,
+            float panelForward,
+            float lateral,
+            float modelScale,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
         if (type == null || !type.isVisible()) {
             return;
         }
@@ -2171,7 +2325,8 @@ public class MotorwaySignBlockEntityRenderer
 
         float supportBottom = panelTop - 0.05F;
         float supportTop = cartoucheBottom
-                + (float) CartoucheLayout.CARTOUCHE_RENDER_HEIGHT;
+                + (float) CartoucheLayout.CARTOUCHE_RENDER_HEIGHT
+                * (modelScale / CartoucheLayout.MODEL_SCALE);
         poseStack.pushPose();
         poseStack.translate(
                 lateralX + directionX * supportForward,
@@ -2198,9 +2353,9 @@ public class MotorwaySignBlockEntityRenderer
         poseStack.pushPose();
         poseStack.translate(0.5F, cartoucheBottom, 0.5F);
         poseStack.scale(
-                CartoucheLayout.MODEL_SCALE,
-                CartoucheLayout.MODEL_SCALE,
-                CartoucheLayout.MODEL_SCALE
+                modelScale,
+                modelScale,
+                modelScale
         );
         poseStack.translate(-0.5F, 0.0F, -0.5F);
         state.cartoucheModels[type.ordinal()].submit(
@@ -2211,7 +2366,7 @@ public class MotorwaySignBlockEntityRenderer
 
         CartoucheTextRenderer.submit(
                 text, type, cartoucheBottom,
-                CartoucheLayout.MODEL_SCALE, state.facing,
+                modelScale, state.facing,
                 state.lightCoords, poseStack, collector
         );
         poseStack.popPose();

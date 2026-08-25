@@ -13,6 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.CartoucheType;
+import net.xelpy.moreroad.block.custom.CartoucheLayout;
 
 
 /**
@@ -117,10 +118,17 @@ public final class CartoucheTextRenderer {
                 )
         );
 
+        /*
+         * La profondeur doit suivre la même échelle que le modèle 3D.
+         * Avec les grands cartouches du D63c (échelle > MODEL_SCALE),
+         * l'ancienne constante plaçait le texte à l'intérieur du modèle :
+         * il était donc entièrement masqué par la face colorée.
+         */
+        float depthScale = scaleFactor / CartoucheLayout.MODEL_SCALE;
         poseStack.translate(
                 CENTER_X_NUDGE * scaleFactor,
                 0.0F,
-                TEXT_Z
+                TEXT_Z * depthScale
         );
 
         poseStack.scale(
