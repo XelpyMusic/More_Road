@@ -98,7 +98,8 @@ public class D21ABlockEntityRenderer
     private static final float RIGHT_DESTINATION_LEFT_EDGE = -0.31F;
 
     private static final float LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 0.90F;
-    private static final float RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.22F;
+    /* Miroir exact de 0.90 autour du centre X = 0.5. */
+    private static final float RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.10F;
 
     private static final float DISTANCE_MAX_WIDTH = 0.28F;
 
@@ -175,7 +176,7 @@ public class D21ABlockEntityRenderer
     private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE = -0.31F;
 
     private static final float TWO_LINE_LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO = 0.90F;
-    private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.22F;
+    private static final float TWO_LINE_RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO = 0.10F;
 
     private final BlockModelResolver blockResolver;
 

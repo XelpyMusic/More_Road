@@ -29,6 +29,7 @@ import net.xelpy.moreroad.block.custom.CartoucheModelBlock;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.DA31CArrowType;
 import net.xelpy.moreroad.block.custom.DA31CBlock;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.DA31CBlockEntity;
 
 /**
@@ -38,8 +39,8 @@ import net.xelpy.moreroad.block.entity.DA31CBlockEntity;
  *   normale et sans passer par les multiparts du panneau ;
  * - association type/texte strictement conservée par emplacement ;
  * - deux flèches indépendantes à partir des PNG fournis par l'utilisateur ;
- * - fond bleu opaque très légèrement devant la plaque sous chaque texte afin
- *   d'empêcher définitivement le décor de traverser les pixels anti-aliasés.
+ * - texte rendu comme sur les autres panneaux du mod : une seule passe
+ *   POLYGON_OFFSET, sans rectangle de fond ajouté derrière les glyphes.
  */
 public class DA31CBlockEntityRenderer
         implements BlockEntityRenderer<DA31CBlockEntity, DA31CRenderState> {
@@ -48,12 +49,14 @@ public class DA31CBlockEntityRenderer
             new FontDescription.Resource(
                     Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l1")
             );
+    private static final FontDescription.Resource ROAD_FONT_L4 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
+            );
 
     private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT =
             BlockDisplayContext.create();
 
-    private static final Identifier SOLID_WHITE_TEXTURE =
-            texture("da31c_solid_white.png");
     private static final Identifier ARROW_DOWN_TEXTURE =
             texture("panneau_autoroute_fleche_bas.png");
     private static final Identifier ARROW_LEFT_TEXTURE =
@@ -61,11 +64,9 @@ public class DA31CBlockEntityRenderer
     private static final Identifier ARROW_RIGHT_TEXTURE =
             texture("panneau_autoroute_fleche_droite.png");
 
-    private static final int PANEL_BLUE = 0xFF0000FF;
-
-    private static final float TEXT_Z = 0.1115F;
+    private static final float TEXT_Z = 0.1180F;
     private static final float ARROW_Z = 0.1080F;
-    private static final float CARTOUCHE_TEXT_Z = 0.2050F;
+    private static final float CARTOUCHE_TEXT_Z = 0.2070F;
 
     private static final float LINE_BASE_SCALE = 0.0275F;
     private static final float LINE_MAX_WIDTH = 2.58F;
@@ -122,6 +123,10 @@ public class DA31CBlockEntityRenderer
         renderState.line2 = cleanText(blockEntity.getLine2());
         renderState.line3 = cleanText(blockEntity.getLine3());
         renderState.line4 = cleanText(blockEntity.getLine4());
+        renderState.line1Font = blockEntity.getLine1Font();
+        renderState.line2Font = blockEntity.getLine2Font();
+        renderState.line3Font = blockEntity.getLine3Font();
+        renderState.line4Font = blockEntity.getLine4Font();
 
         /* La BlockEntity est la source unique des trois couples type + texte. */
         renderState.cartoucheTopType = blockEntity.getCartoucheTopType();
@@ -192,6 +197,12 @@ public class DA31CBlockEntityRenderer
                 renderState.line3,
                 renderState.line4
         };
+        RoadTextFont[] lineFonts = {
+                renderState.line1Font,
+                renderState.line2Font,
+                renderState.line3Font,
+                renderState.line4Font
+        };
 
         int count = Math.max(1, Math.min(4, renderState.lineCount));
         for (int i = 0; i < count; i++) {
@@ -200,6 +211,7 @@ public class DA31CBlockEntityRenderer
                     poseStack,
                     font,
                     lines[i],
+                    lineFonts[i],
                     getLineY(count, i),
                     renderState.lightCoords
             );
@@ -327,7 +339,7 @@ public class DA31CBlockEntityRenderer
         poseStack.popPose();
 
         float textY = bottomY + CARTOUCHE_TEXT_Y_FROM_BOTTOM;
-        drawTextWithBacking(
+        drawText(
                 collector,
                 poseStack,
                 font,
@@ -337,8 +349,8 @@ public class DA31CBlockEntityRenderer
                 CARTOUCHE_TEXT_Z,
                 CARTOUCHE_BASE_SCALE,
                 CARTOUCHE_MAX_WIDTH,
+                RoadTextFont.L1,
                 getCartoucheTextColor(type),
-                getCartoucheBackingColor(type),
                 lightCoords
         );
     }
@@ -376,10 +388,11 @@ public class DA31CBlockEntityRenderer
             PoseStack poseStack,
             Font font,
             String value,
+            RoadTextFont roadFont,
             float y,
             int lightCoords
     ) {
-        drawTextWithBacking(
+        drawText(
                 collector,
                 poseStack,
                 font,
@@ -389,19 +402,19 @@ public class DA31CBlockEntityRenderer
                 TEXT_Z,
                 LINE_BASE_SCALE,
                 LINE_MAX_WIDTH,
+                roadFont,
                 0xFFFFFFFF,
-                PANEL_BLUE,
                 lightCoords
         );
     }
 
     /**
-     * Le quad opaque placé juste derrière le texte est volontairement limité
-     * à l'emprise réelle de la ligne. Même si le RenderType de la police écrit
-     * de la profondeur dans les pixels transparents, le pixel visible derrière
-     * reste donc toujours le bleu du panneau et jamais le décor du monde.
+     * Même principe que les autres panneaux personnalisables de More Road :
+     * le texte est légèrement décollé de la face et rendu en POLYGON_OFFSET.
+     * Aucun rectangle bleu n'est ajouté derrière le texte, ce qui évite les
+     * aplats plus foncés visibles autour des mots.
      */
-    private static void drawTextWithBacking(
+    private static void drawText(
             SubmitNodeCollector collector,
             PoseStack poseStack,
             Font font,
@@ -411,8 +424,8 @@ public class DA31CBlockEntityRenderer
             float z,
             float baseScale,
             float maxWidth,
+            RoadTextFont roadFont,
             int textColor,
-            int backingColor,
             int lightCoords
     ) {
         if (value == null || value.isBlank()) {
@@ -420,7 +433,7 @@ public class DA31CBlockEntityRenderer
         }
 
         FormattedCharSequence text = Component.literal(value)
-                .withStyle(Style.EMPTY.withFont(ROAD_FONT_L1))
+                .withStyle(Style.EMPTY.withFont(getRoadFont(roadFont)))
                 .getVisualOrderText();
 
         int textWidth = font.width(text);
@@ -429,22 +442,6 @@ public class DA31CBlockEntityRenderer
         }
 
         float scale = Math.min(baseScale, maxWidth / textWidth);
-        float worldWidth = textWidth * scale;
-        float worldHeight = font.lineHeight * scale;
-        float marginX = 0.020F;
-        float marginY = 0.012F;
-
-        submitColoredRect(
-                x - worldWidth / 2.0F - marginX,
-                x + worldWidth / 2.0F + marginX,
-                y - worldHeight / 2.0F - marginY,
-                y + worldHeight / 2.0F + marginY,
-                z - 0.006F,
-                backingColor,
-                lightCoords,
-                poseStack,
-                collector
-        );
 
         poseStack.pushPose();
         poseStack.translate(x, y, z);
@@ -455,7 +452,7 @@ public class DA31CBlockEntityRenderer
                 -font.lineHeight / 2.0F,
                 text,
                 false,
-                Font.DisplayMode.NORMAL,
+                Font.DisplayMode.POLYGON_OFFSET,
                 lightCoords,
                 textColor,
                 0x00000000,
@@ -464,20 +461,24 @@ public class DA31CBlockEntityRenderer
         poseStack.popPose();
     }
 
+    private static FontDescription.Resource getRoadFont(RoadTextFont roadFont) {
+        return roadFont == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1;
+    }
+
     private static float getLineY(int count, int index) {
         return switch (count) {
             case 1 -> 1.145F;
             case 2 -> index == 0 ? 1.315F : 0.955F;
             case 3 -> switch (index) {
-                case 0 -> 1.330F;
-                case 1 -> 1.050F;
-                default -> 0.770F;
+                case 0 -> 1.370F;
+                case 1 -> 1.010F;
+                default -> 0.650F;
             };
             default -> switch (index) {
-                case 0 -> 1.335F;
-                case 1 -> 1.075F;
-                case 2 -> 0.815F;
-                default -> 0.555F;
+                case 0 -> 1.370F;
+                case 1 -> 1.020F;
+                case 2 -> 0.670F;
+                default -> 0.320F;
             };
         };
     }
@@ -529,40 +530,6 @@ public class DA31CBlockEntityRenderer
                 poseStack,
                 collector
         );
-    }
-
-    private static void submitColoredRect(
-            float left,
-            float right,
-            float bottom,
-            float top,
-            float z,
-            int color,
-            int light,
-            PoseStack poseStack,
-            SubmitNodeCollector collector
-    ) {
-        if (right <= left || top <= bottom) {
-            return;
-        }
-
-        poseStack.pushPose();
-        poseStack.translate(0.0F, 0.0F, z);
-        collector.order(-20).submitCustomGeometry(
-                poseStack,
-                RenderTypes.entityCutout(SOLID_WHITE_TEXTURE),
-                (pose, consumer) -> addQuad(
-                        pose,
-                        consumer,
-                        left,
-                        right,
-                        bottom,
-                        top,
-                        color,
-                        light
-                )
-        );
-        poseStack.popPose();
     }
 
     private static void submitTexturedRect(
@@ -642,17 +609,6 @@ public class DA31CBlockEntityRenderer
         return type == CartoucheType.E43 || type == CartoucheType.E44
                 ? 0xFF000000
                 : 0xFFFFFFFF;
-    }
-
-    private static int getCartoucheBackingColor(CartoucheType type) {
-        return switch (type) {
-            case E41_45 -> 0xFF35B135;
-            case E42 -> 0xFFFF0000;
-            case E43 -> 0xFFFFE72C;
-            case E44 -> 0xFFFEFEFE;
-            case E47 -> 0xFF2A7FFF;
-            case NONE -> PANEL_BLUE;
-        };
     }
 
     private static float getFacingRotation(Direction facing) {

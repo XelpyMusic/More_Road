@@ -20,6 +20,10 @@ import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.EB10Block;
 import net.xelpy.moreroad.block.custom.PanonceauEntry;
 import net.xelpy.moreroad.block.custom.PanonceauVariant;
+import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
+import net.xelpy.moreroad.block.custom.MotorwaySignColor;
+import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
+import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.block.entity.DA31CBlockEntity;
 import net.xelpy.moreroad.block.entity.D42bBlockEntity;
@@ -27,6 +31,7 @@ import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 import net.xelpy.moreroad.block.entity.E31BlockEntity;
 import net.xelpy.moreroad.block.entity.PanonceauBlockEntity;
+import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
 import net.xelpy.moreroad.item.MoreRoadItems;
 import net.xelpy.moreroad.item.RoadBuilderItem;
 
@@ -57,6 +62,8 @@ public final class MoreRoadNetworking {
     private static final int MAX_CARTOUCHE_TEXT_LENGTH = 24;
 
     private static final int MAX_PANONCEAU_VALUE_LENGTH = 73;
+
+    private static final int MAX_MOTORWAY_SIGN_TEXT_LENGTH = 64;
 
     private static final int MAX_EDIT_DISTANCE = 8;
 
@@ -161,6 +168,12 @@ public final class MoreRoadNetworking {
                 UpdatePanonceauPayload.TYPE,
                 UpdatePanonceauPayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdatePanonceau
+        );
+
+        registrar.playToServer(
+                UpdateMotorwaySignPayload.TYPE,
+                UpdateMotorwaySignPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateMotorwaySign
         );
 
         /*
@@ -439,6 +452,10 @@ public final class MoreRoadNetworking {
                 line2,
                 line3,
                 line4,
+                payload.line1Font(),
+                payload.line2Font(),
+                payload.line3Font(),
+                payload.line4Font(),
                 topType,
                 topText,
                 leftType,
@@ -898,6 +915,83 @@ public final class MoreRoadNetworking {
         }
 
         blockEntity.setEntries(entries);
+        BlockState state = level.getBlockState(pos);
+        level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
+    }
+
+    /*
+     * ============================================================
+     * PANNEAUX AUTOROUTIERS D31 À DA52
+     * ============================================================
+     */
+
+    private static void handleUpdateMotorwaySign(
+            UpdateMotorwaySignPayload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+        if (!level.hasChunkAt(pos)
+                || player.blockPosition().distManhattan(pos) > MAX_EDIT_DISTANCE
+                || !(level.getBlockEntity(pos) instanceof MotorwaySignBlockEntity blockEntity)) {
+            return;
+        }
+
+        MotorwaySignPreset preset = MotorwaySignPreset.fromSerializedName(payload.presetName());
+        MotorwaySignLineData[] lines = new MotorwaySignLineData[MotorwaySignBlockEntity.MAX_SLOTS];
+        for (int i = 0; i < lines.length; i++) {
+            MotorwaySignLineData requested = payload.line(i);
+            lines[i] = new MotorwaySignLineData(
+                    cleanText(requested.text(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    requested.font(),
+                    requested.color()
+            );
+        }
+
+        MotorwaySignPanelData[] panels =
+                new MotorwaySignPanelData[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
+        for (int index = 0; index < panels.length; index++) {
+            MotorwaySignPanelData requested = payload.panel(index);
+            boolean distancePanel = preset == MotorwaySignPreset.D61B;
+            MotorwaySignColor requestedBackground = requested.background();
+            MotorwaySignColor background = distancePanel
+                    ? MotorwaySignColor.BLUE
+                    : requestedBackground == MotorwaySignColor.GREEN
+                    || requestedBackground == MotorwaySignColor.WHITE
+                    ? requestedBackground
+                    : MotorwaySignColor.BLUE;
+            panels[index] = new MotorwaySignPanelData(
+                    requested.enabled(),
+                    requested.lineCount(),
+                    cleanText(requested.line1(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    cleanText(requested.line2(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    cleanText(requested.line3(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    cleanText(requested.line4(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    cleanText(requested.distance1(), MAX_D21A_DISTANCE_LENGTH),
+                    cleanText(requested.distance2(), MAX_D21A_DISTANCE_LENGTH),
+                    cleanText(requested.distance3(), MAX_D21A_DISTANCE_LENGTH),
+                    cleanText(requested.distance4(), MAX_D21A_DISTANCE_LENGTH),
+                    requested.line1Font(),
+                    requested.line2Font(),
+                    requested.line3Font(),
+                    requested.line4Font(),
+                    background,
+                    index > 0
+                            ? CartoucheType.NONE
+                            : requested.cartoucheType(),
+                    index > 0
+                            ? ""
+                            : cleanText(requested.cartoucheText(), MAX_CARTOUCHE_TEXT_LENGTH),
+                    distancePanel ? net.xelpy.moreroad.block.custom.MotorwaySignGraphic.NONE : requested.graphic()
+            );
+        }
+
+        blockEntity.setConfiguration(preset, lines, payload.customMode(), panels);
         BlockState state = level.getBlockState(pos);
         level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
     }

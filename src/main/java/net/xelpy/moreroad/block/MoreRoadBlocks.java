@@ -1290,6 +1290,11 @@ public class MoreRoadBlocks {
             (properties) -> new J5Block(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    /** Catalogue paramétrique des panneaux autoroutiers D31 à DA52. */
+    public static final DeferredBlock<Block> MOTORWAY_SIGN = registerBlock("motorway_sign",
+            (properties) -> new MotorwaySignBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
     public static final DeferredBlock<Block> DA31C = registerBlock("da31c",
             (properties) -> new DA31CBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));

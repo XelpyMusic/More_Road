@@ -6,21 +6,36 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.DA31CArrowType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.network.UpdateDA31CPayload;
 
 /**
- * Éditeur DA31C V11 : 4 lignes, 3 cartouches à taille normale et 2 flèches sélectionnables.
+ * Éditeur DA31C V12 : 4 lignes avec police indépendante, 3 cartouches à taille normale
+ * et 2 flèches sélectionnables.
  */
 public class DA31CEditScreen extends Screen {
 
     private static final int MAX_LINE_LENGTH = 48;
     private static final int MAX_CARTOUCHE_LENGTH = 24;
+    private static final FontDescription.Resource ROAD_FONT_L1 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l1")
+            );
+    private static final FontDescription.Resource ROAD_FONT_L4 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
+            );
 
     private final BlockPos blockPos;
     private final String[] currentLines = new String[4];
+    private final RoadTextFont[] lineFonts = new RoadTextFont[4];
 
     private CartoucheType cartoucheTopType;
     private final String currentCartoucheTopText;
@@ -44,6 +59,7 @@ public class DA31CEditScreen extends Screen {
     private SignEditorUi.Rect cartoucheRightTypeRect;
     private SignEditorUi.Rect arrowLeftTypeRect;
     private SignEditorUi.Rect arrowRightTypeRect;
+    private final SignEditorUi.Rect[] lineFontRects = new SignEditorUi.Rect[4];
     private SignEditorUi.Rect applyRect;
     private SignEditorUi.Rect cancelRect;
 
@@ -59,6 +75,10 @@ public class DA31CEditScreen extends Screen {
             String line2,
             String line3,
             String line4,
+            RoadTextFont line1Font,
+            RoadTextFont line2Font,
+            RoadTextFont line3Font,
+            RoadTextFont line4Font,
             CartoucheType cartoucheTopType,
             String currentCartoucheTopText,
             CartoucheType cartoucheLeftType,
@@ -74,6 +94,10 @@ public class DA31CEditScreen extends Screen {
         this.currentLines[1] = safe(line2);
         this.currentLines[2] = safe(line3);
         this.currentLines[3] = safe(line4);
+        this.lineFonts[0] = safeFont(line1Font);
+        this.lineFonts[1] = safeFont(line2Font);
+        this.lineFonts[2] = safeFont(line3Font);
+        this.lineFonts[3] = safeFont(line4Font);
         this.cartoucheTopType = safeType(cartoucheTopType);
         this.currentCartoucheTopText = safe(currentCartoucheTopText);
         this.cartoucheLeftType = safeType(cartoucheLeftType);
@@ -167,18 +191,27 @@ public class DA31CEditScreen extends Screen {
 
         int linesStartY = arrowY + selectorH + s(19);
         int lineGap = s(8);
+        int fontW = Math.max(s(96), Math.round(innerW * 0.26F));
+        int lineFieldW = innerW - fontW - rowGap;
         for (int i = 0; i < this.lineFields.length; i++) {
+            int lineY = linesStartY + i * (fieldH + lineGap);
             this.lineFields[i] = new EditBox(
                     this.font,
                     innerX,
-                    linesStartY + i * (fieldH + lineGap),
-                    innerW,
+                    lineY,
+                    lineFieldW,
                     fieldH,
                     Component.literal("Ligne " + (i + 1))
             );
             this.lineFields[i].setMaxLength(MAX_LINE_LENGTH);
             this.lineFields[i].setValue(this.currentLines[i]);
             this.addRenderableWidget(this.lineFields[i]);
+            this.lineFontRects[i] = new SignEditorUi.Rect(
+                    innerX + lineFieldW + rowGap,
+                    lineY,
+                    fontW,
+                    fieldH
+            );
         }
 
         int actionH = SignEditorUi.safeControlHeight(this.font, s(28));
@@ -265,7 +298,7 @@ public class DA31CEditScreen extends Screen {
                 this.font,
                 this.contentRect,
                 "CONTENU",
-                pagedUi() ? "" : "3 cartouches, 2 flèches indépendantes et jusqu'à quatre destinations"
+                pagedUi() ? "" : "3 cartouches, 2 flèches et jusqu'à quatre destinations avec police indépendante"
         );
 
         drawTypeButton(graphics, this.cartoucheTopTypeRect, "Haut", this.cartoucheTopType, mouseX, mouseY);
@@ -274,14 +307,31 @@ public class DA31CEditScreen extends Screen {
         drawArrowTypeButton(graphics, this.arrowLeftTypeRect, "Flèche G", this.arrowLeftType, mouseX, mouseY);
         drawArrowTypeButton(graphics, this.arrowRightTypeRect, "Flèche D", this.arrowRightType, mouseX, mouseY);
 
-        if (!compactUi()) {
-            for (int i = 0; i < this.lineFields.length; i++) {
+        for (int i = 0; i < this.lineFields.length; i++) {
+            SignEditorUi.drawModernButton(
+                    graphics,
+                    this.font,
+                    this.lineFontRects[i],
+                    SignEditorUi.fontLabel(this.lineFonts[i]),
+                    false,
+                    true,
+                    mouseX,
+                    mouseY
+            );
+            if (!compactUi()) {
                 SignEditorUi.drawFieldLabel(
                         graphics,
                         this.font,
                         "Ligne " + (i + 1),
                         this.lineFields[i].getX(),
                         this.lineFields[i].getY() - s(10)
+                );
+                SignEditorUi.drawFieldLabel(
+                        graphics,
+                        this.font,
+                        "Police",
+                        this.lineFontRects[i].x(),
+                        this.lineFontRects[i].y() - s(10)
                 );
             }
         }
@@ -436,8 +486,8 @@ public class DA31CEditScreen extends Screen {
         graphics.fill(signX, signY, signX + s(3), signY + signH, 0xFFECECEC);
         graphics.fill(signX + signW - s(3), signY, signX + signW, signY + signH, 0xFFECECEC);
 
-        int textTop = signY + s(19);
-        int textStep = s(20);
+        int textTop = signY + s(count >= 4 ? 15 : count == 3 ? 17 : 19);
+        int textStep = s(count >= 3 ? 24 : 20);
         for (int i = 0; i < count; i++) {
             drawCenteredPreviewText(
                     graphics,
@@ -445,7 +495,8 @@ public class DA31CEditScreen extends Screen {
                     signX,
                     textTop + i * textStep,
                     signW,
-                    0xFFFFFFFF
+                    0xFFFFFFFF,
+                    this.lineFonts[i]
             );
         }
 
@@ -488,11 +539,17 @@ public class DA31CEditScreen extends Screen {
             int x,
             int y,
             int width,
-            int color
+            int color,
+            RoadTextFont roadFont
     ) {
         String display = SignEditorUi.fitText(this.font, safe(text), width - s(22));
-        int drawX = x + (width - this.font.width(display)) / 2;
-        graphics.text(this.font, Component.literal(display), drawX, y, color, false);
+        Component component = Component.literal(display).withStyle(
+                Style.EMPTY.withFont(
+                        safeFont(roadFont) == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1
+                )
+        );
+        int drawX = x + (width - this.font.width(component)) / 2;
+        graphics.text(this.font, component, drawX, y, color, false);
     }
 
     private void drawSelectedArrow(
@@ -587,6 +644,12 @@ public class DA31CEditScreen extends Screen {
                 this.arrowRightType = this.arrowRightType.next();
                 return true;
             }
+            for (int i = 0; i < this.lineFontRects.length; i++) {
+                if (this.lineFontRects[i].contains(event.x(), event.y())) {
+                    this.lineFonts[i] = this.lineFonts[i].next();
+                    return true;
+                }
+            }
             if (this.applyRect.contains(event.x(), event.y())) {
                 save();
                 return true;
@@ -630,6 +693,10 @@ public class DA31CEditScreen extends Screen {
                         this.lineFields[1].getValue(),
                         this.lineFields[2].getValue(),
                         this.lineFields[3].getValue(),
+                        this.lineFonts[0],
+                        this.lineFonts[1],
+                        this.lineFonts[2],
+                        this.lineFonts[3],
                         this.cartoucheTopType.getSerializedName(),
                         this.cartoucheTopTextField.getValue(),
                         this.cartoucheLeftType.getSerializedName(),
@@ -649,6 +716,10 @@ public class DA31CEditScreen extends Screen {
 
     private static CartoucheType safeType(CartoucheType type) {
         return type == null ? CartoucheType.NONE : type;
+    }
+
+    private static RoadTextFont safeFont(RoadTextFont font) {
+        return font == null ? RoadTextFont.L1 : font;
     }
 
     private static DA31CArrowType safeArrow(DA31CArrowType type) {

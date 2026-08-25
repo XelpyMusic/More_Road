@@ -7,6 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.xelpy.moreroad.MoreRoad;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public record UpdateDA31CPayload(
         BlockPos pos,
@@ -14,6 +15,10 @@ public record UpdateDA31CPayload(
         String line2,
         String line3,
         String line4,
+        RoadTextFont line1Font,
+        RoadTextFont line2Font,
+        RoadTextFont line3Font,
+        RoadTextFont line4Font,
         String cartoucheTopType,
         String cartoucheTopText,
         String cartoucheLeftType,
@@ -37,6 +42,10 @@ public record UpdateDA31CPayload(
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
+                            RoadTextFont.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer)),
+                            RoadTextFont.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer)),
+                            RoadTextFont.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer)),
+                            RoadTextFont.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer)),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
                             ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -55,6 +64,10 @@ public record UpdateDA31CPayload(
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line2());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line3());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.line4());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, safeFont(payload.line1Font()).getSerializedName());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, safeFont(payload.line2Font()).getSerializedName());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, safeFont(payload.line3Font()).getSerializedName());
+                    ByteBufCodecs.STRING_UTF8.encode(buffer, safeFont(payload.line4Font()).getSerializedName());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheTopType());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheTopText());
                     ByteBufCodecs.STRING_UTF8.encode(buffer, payload.cartoucheLeftType());
@@ -71,6 +84,10 @@ public record UpdateDA31CPayload(
         line2 = safe(line2);
         line3 = safe(line3);
         line4 = safe(line4);
+        line1Font = safeFont(line1Font);
+        line2Font = safeFont(line2Font);
+        line3Font = safeFont(line3Font);
+        line4Font = safeFont(line4Font);
         cartoucheTopType = safeType(cartoucheTopType);
         cartoucheTopText = safe(cartoucheTopText);
         cartoucheLeftType = safeType(cartoucheLeftType);
@@ -83,6 +100,10 @@ public record UpdateDA31CPayload(
 
     private static String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private static RoadTextFont safeFont(RoadTextFont font) {
+        return font == null ? RoadTextFont.L1 : font;
     }
 
     private static String safeType(String value) {

@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.Direction;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.DA31CArrowType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public class DA31CRenderState extends BlockEntityRenderState {
 
@@ -12,6 +13,10 @@ public class DA31CRenderState extends BlockEntityRenderState {
     public String line2 = "";
     public String line3 = "";
     public String line4 = "";
+    public RoadTextFont line1Font = RoadTextFont.L1;
+    public RoadTextFont line2Font = RoadTextFont.L1;
+    public RoadTextFont line3Font = RoadTextFont.L1;
+    public RoadTextFont line4Font = RoadTextFont.L1;
     public int lineCount = 2;
 
     public CartoucheType cartoucheTopType = CartoucheType.NONE;

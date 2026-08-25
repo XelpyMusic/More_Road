@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "moreroad:block/motorway_sign_anchor" },
+    "facing=east": { "model": "moreroad:block/motorway_sign_anchor", "y": 90 },
+    "facing=south": { "model": "moreroad:block/motorway_sign_anchor", "y": 180 },
+    "facing=west": { "model": "moreroad:block/motorway_sign_anchor", "y": 270 }
+  }
+}

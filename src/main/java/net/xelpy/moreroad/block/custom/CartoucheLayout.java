@@ -58,7 +58,7 @@ public final class CartoucheLayout {
     private static final double MODEL_MAX_Z = 7.0D;
     private static final double MODEL_MAX_Y = 5.2D;
 
-    private static final double CARTOUCHE_RENDER_HEIGHT =
+    public static final double CARTOUCHE_RENDER_HEIGHT =
             (MODEL_MAX_Y * MODEL_SCALE) / 16.0D;
 
     /*

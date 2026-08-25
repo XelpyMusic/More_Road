@@ -72,6 +72,17 @@ public class MoreRoadBlockEntities {
                     )
             );
 
+    public static final Supplier<BlockEntityType<MotorwaySignBlockEntity>>
+            MOTORWAY_SIGN =
+            BLOCK_ENTITY_TYPES.register(
+                    "motorway_sign",
+                    () -> new BlockEntityType<>(
+                            MotorwaySignBlockEntity::new,
+                            false,
+                            MoreRoadBlocks.MOTORWAY_SIGN.get()
+                    )
+            );
+
 
     /*
      * ============================================================

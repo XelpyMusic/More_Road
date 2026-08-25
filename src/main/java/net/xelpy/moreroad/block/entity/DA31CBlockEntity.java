@@ -12,6 +12,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.DA31CArrowType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 public class DA31CBlockEntity extends BlockEntity {
 
@@ -19,6 +20,10 @@ public class DA31CBlockEntity extends BlockEntity {
     private String line2 = "";
     private String line3 = "";
     private String line4 = "";
+    private RoadTextFont line1Font = RoadTextFont.L1;
+    private RoadTextFont line2Font = RoadTextFont.L1;
+    private RoadTextFont line3Font = RoadTextFont.L1;
+    private RoadTextFont line4Font = RoadTextFont.L1;
 
     private CartoucheType cartoucheTopType = CartoucheType.NONE;
     private String cartoucheTopText = "";
@@ -40,6 +45,10 @@ public class DA31CBlockEntity extends BlockEntity {
     public String getLine2() { return this.line2; }
     public String getLine3() { return this.line3; }
     public String getLine4() { return this.line4; }
+    public RoadTextFont getLine1Font() { return this.line1Font; }
+    public RoadTextFont getLine2Font() { return this.line2Font; }
+    public RoadTextFont getLine3Font() { return this.line3Font; }
+    public RoadTextFont getLine4Font() { return this.line4Font; }
 
     public CartoucheType getCartoucheTopType() { return this.cartoucheTopType; }
     public String getCartoucheTopText() { return this.cartoucheTopText; }
@@ -58,6 +67,10 @@ public class DA31CBlockEntity extends BlockEntity {
             String line2,
             String line3,
             String line4,
+            RoadTextFont line1Font,
+            RoadTextFont line2Font,
+            RoadTextFont line3Font,
+            RoadTextFont line4Font,
             CartoucheType cartoucheTopType,
             String cartoucheTopText,
             CartoucheType cartoucheLeftType,
@@ -71,6 +84,10 @@ public class DA31CBlockEntity extends BlockEntity {
         this.line2 = line2 == null ? "" : line2;
         this.line3 = line3 == null ? "" : line3;
         this.line4 = line4 == null ? "" : line4;
+        this.line1Font = line1Font == null ? RoadTextFont.L1 : line1Font;
+        this.line2Font = line2Font == null ? RoadTextFont.L1 : line2Font;
+        this.line3Font = line3Font == null ? RoadTextFont.L1 : line3Font;
+        this.line4Font = line4Font == null ? RoadTextFont.L1 : line4Font;
         this.cartoucheTopType = cartoucheTopType == null ? CartoucheType.NONE : cartoucheTopType;
         this.cartoucheTopText = cartoucheTopText == null ? "" : cartoucheTopText;
         this.cartoucheLeftType = cartoucheLeftType == null ? CartoucheType.NONE : cartoucheLeftType;
@@ -90,6 +107,10 @@ public class DA31CBlockEntity extends BlockEntity {
         this.line2 = input.getStringOr("line2", "");
         this.line3 = input.getStringOr("line3", "");
         this.line4 = input.getStringOr("line4", "");
+        this.line1Font = RoadTextFont.fromSerializedName(input.getStringOr("line1_font", "l1"));
+        this.line2Font = RoadTextFont.fromSerializedName(input.getStringOr("line2_font", "l1"));
+        this.line3Font = RoadTextFont.fromSerializedName(input.getStringOr("line3_font", "l1"));
+        this.line4Font = RoadTextFont.fromSerializedName(input.getStringOr("line4_font", "l1"));
 
         this.cartoucheTopType = CartoucheType.fromSerializedName(
                 input.getStringOr("cartouche_top_type", "none")
@@ -135,6 +156,10 @@ public class DA31CBlockEntity extends BlockEntity {
         output.putString("line2", this.line2);
         output.putString("line3", this.line3);
         output.putString("line4", this.line4);
+        output.putString("line1_font", this.line1Font.getSerializedName());
+        output.putString("line2_font", this.line2Font.getSerializedName());
+        output.putString("line3_font", this.line3Font.getSerializedName());
+        output.putString("line4_font", this.line4Font.getSerializedName());
 
         output.putString("cartouche_top_type", this.cartoucheTopType.getSerializedName());
         output.putString("cartouche_top_text", this.cartoucheTopText);

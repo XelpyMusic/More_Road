@@ -256,6 +256,7 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.J4A);
                         output.accept(MoreRoadBlocks.J4B);
                         output.accept(MoreRoadBlocks.J5);
+                        output.accept(MoreRoadBlocks.MOTORWAY_SIGN);
                         output.accept(MoreRoadBlocks.DA31C);
                     }).build());
 

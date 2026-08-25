@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.DA31CArrowType;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.client.screen.DA31CEditScreen;
 
 public final class DA31CClientHooks {
@@ -17,6 +18,10 @@ public final class DA31CClientHooks {
             String line2,
             String line3,
             String line4,
+            RoadTextFont line1Font,
+            RoadTextFont line2Font,
+            RoadTextFont line3Font,
+            RoadTextFont line4Font,
             CartoucheType cartoucheTopType,
             String cartoucheTopText,
             CartoucheType cartoucheLeftType,
@@ -33,6 +38,10 @@ public final class DA31CClientHooks {
                         line2,
                         line3,
                         line4,
+                        line1Font,
+                        line2Font,
+                        line3Font,
+                        line4Font,
                         cartoucheTopType,
                         cartoucheTopText,
                         cartoucheLeftType,
