@@ -602,7 +602,7 @@ public final class MotorwayPresetGalleryScreen extends Screen {
                 new MotorwaySignLineData[MotorwaySignBlockEntity.MAX_SLOTS];
         for (int index = 0; index < defaults.length; index++) {
             defaults[index] = index < preset.getSlotCount()
-                    ? MotorwaySignLineData.fromSlot(preset.getSlot(index))
+                    ? MotorwaySignLineData.blankForSlot(preset.getSlot(index))
                     : MotorwaySignLineData.empty();
         }
         return defaults;

@@ -1046,6 +1046,10 @@ public class MoreRoadBlocks {
             (properties) -> new PoteauBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    public static final DeferredBlock<Block> PLAQUE_RUE = registerBlock("plaque_rue",
+            (properties) -> new PlaqueRueBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
     public static final DeferredBlock<Block> PIEDLAMPADAIRE = registerBlock("pied_lampadaire",
             (properties) -> new PiedLampadaireBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));

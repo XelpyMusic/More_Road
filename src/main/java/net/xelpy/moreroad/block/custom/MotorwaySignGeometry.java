@@ -237,7 +237,7 @@ public record MotorwaySignGeometry(
             MotorwaySignSlot slot = preset.getSlot(index);
             MotorwaySignLineData line = values != null && index < values.length && values[index] != null
                     ? values[index]
-                    : MotorwaySignLineData.fromSlot(slot);
+                    : MotorwaySignLineData.blankForSlot(slot);
             float textWidth = estimatedTextWidth(line);
             if (slot.role() == MotorwaySignRole.ROUTE) {
                 routeWidth += clamp(textWidth + 0.38F, 1.02F, 2.20F);

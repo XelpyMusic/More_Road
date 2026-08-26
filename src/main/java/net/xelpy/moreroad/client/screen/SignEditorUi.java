@@ -40,7 +40,7 @@ public final class SignEditorUi {
     public static final int COLOR_BLACK = 0xFF111111;
     public static final int COLOR_WHITE = 0xFFF2F2F2;
     public static final int COLOR_GREEN = 0xFF16823A;
-    public static final int COLOR_BLUE = 0xFF1647B8;
+    public static final int COLOR_BLUE = 0xFF2A7FFF;
     public static final int COLOR_RED = 0xFFC72828;
     public static final int COLOR_YELLOW = 0xFFE5C42D;
 
@@ -1556,7 +1556,14 @@ public final class SignEditorUi {
     }
 
     public static String fontLabel(RoadTextFont font) {
-        return font == RoadTextFont.L4 ? "Italique" : "Standard";
+        if (font == null) {
+            return "Standard";
+        }
+        return switch (font) {
+            case NORMAL -> "Normal";
+            case L1 -> "Standard";
+            case L4 -> "Italique";
+        };
     }
 
     public static String cartoucheLabel(CartoucheType type) {

@@ -86,7 +86,7 @@ public class MotorwaySignBlockEntity extends BlockEntity {
             if (values != null && i < values.length && values[i] != null) {
                 this.lines[i] = values[i];
             } else if (i < this.preset.getSlotCount()) {
-                this.lines[i] = MotorwaySignLineData.fromSlot(this.preset.getSlot(i));
+                this.lines[i] = MotorwaySignLineData.blankForSlot(this.preset.getSlot(i));
             } else {
                 this.lines[i] = MotorwaySignLineData.empty();
             }
@@ -109,7 +109,7 @@ public class MotorwaySignBlockEntity extends BlockEntity {
     private void applyPresetDefaults(MotorwaySignPreset targetPreset) {
         for (int i = 0; i < MAX_SLOTS; i++) {
             this.lines[i] = i < targetPreset.getSlotCount()
-                    ? MotorwaySignLineData.fromSlot(targetPreset.getSlot(i))
+                    ? MotorwaySignLineData.blankForSlot(targetPreset.getSlot(i))
                     : MotorwaySignLineData.empty();
         }
     }
@@ -122,7 +122,7 @@ public class MotorwaySignBlockEntity extends BlockEntity {
         );
         for (int i = 0; i < MAX_SLOTS; i++) {
             MotorwaySignLineData fallback = i < this.preset.getSlotCount()
-                    ? MotorwaySignLineData.fromSlot(this.preset.getSlot(i))
+                    ? MotorwaySignLineData.blankForSlot(this.preset.getSlot(i))
                     : MotorwaySignLineData.empty();
             String prefix = "slot_" + i + "_";
             this.lines[i] = new MotorwaySignLineData(

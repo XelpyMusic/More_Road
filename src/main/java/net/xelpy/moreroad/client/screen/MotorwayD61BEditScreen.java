@@ -636,7 +636,7 @@ public class MotorwayD61BEditScreen extends Screen {
         MotorwaySignLineData[] defaults = new MotorwaySignLineData[MotorwaySignBlockEntity.MAX_SLOTS];
         for (int index = 0; index < defaults.length; index++) {
             defaults[index] = index < target.getSlotCount()
-                    ? MotorwaySignLineData.fromSlot(target.getSlot(index))
+                    ? MotorwaySignLineData.blankForSlot(target.getSlot(index))
                     : MotorwaySignLineData.empty();
         }
         MotorwaySignPanelData[] noAdditions = new MotorwaySignPanelData[

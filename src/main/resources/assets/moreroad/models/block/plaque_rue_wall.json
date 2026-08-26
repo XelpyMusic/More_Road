@@ -1,0 +1,22 @@
+{
+  "credit": "More Road - plaque de rue murale",
+  "textures": {
+    "particle": "moreroad:block/plaque_rue",
+    "panel": "moreroad:block/plaque_rue",
+    "metal": "moreroad:block/poteau_block"
+  },
+  "elements": [
+    {
+      "from": [2, 5, 14],
+      "to": [14, 11, 16],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#panel" },
+        "east": { "uv": [0, 0, 2, 8], "texture": "#metal" },
+        "south": { "uv": [0, 0, 16, 8], "texture": "#metal" },
+        "west": { "uv": [0, 0, 2, 8], "texture": "#metal" },
+        "up": { "uv": [0, 0, 16, 2], "texture": "#metal" },
+        "down": { "uv": [0, 0, 16, 2], "texture": "#metal" }
+      }
+    }
+  ]
+}

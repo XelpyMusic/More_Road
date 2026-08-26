@@ -14,6 +14,7 @@ import net.xelpy.moreroad.client.renderer.EB10BlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.E31BlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.MotorwaySignBlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.PanonceauBlockEntityRenderer;
+import net.xelpy.moreroad.client.renderer.PlaqueRueBlockEntityRenderer;
 
 @EventBusSubscriber(
         modid = MoreRoad.MODID,
@@ -31,6 +32,11 @@ public final class MoreRoadClientEvents {
         event.registerBlockEntityRenderer(
                 MoreRoadBlockEntities.E31.get(),
                 E31BlockEntityRenderer::new
+        );
+
+        event.registerBlockEntityRenderer(
+                MoreRoadBlockEntities.PLAQUE_RUE.get(),
+                PlaqueRueBlockEntityRenderer::new
         );
 
         event.registerBlockEntityRenderer(

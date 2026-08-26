@@ -49,7 +49,7 @@ public final class CartoucheTextRenderer {
      * visuel plus naturel, tout en conservant le recentrage horizontal
      * optique déjà validé.
      */
-    private static final float TEXT_Y_FROM_BOTTOM = 0.132F;
+    private static final float TEXT_Y_FROM_BOTTOM = 0.142F;
     private static final float TEXT_Z = 0.1400F;
     private static final float CENTER_X_NUDGE = 0.000F;
 

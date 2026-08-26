@@ -20,6 +20,22 @@ public record MotorwaySignLineData(
         );
     }
 
+    /**
+     * Valeur vide pour un nouveau panneau : le SVG reste uniquement le gabarit
+     * graphique. On conserve toutefois la police et la couleur prévues par le
+     * type de champ afin que l'éditeur parte avec les bons réglages.
+     */
+    public static MotorwaySignLineData blankForSlot(MotorwaySignSlot slot) {
+        if (slot == null) {
+            return empty();
+        }
+        return new MotorwaySignLineData(
+                "",
+                slot.defaultFont(),
+                slot.defaultColor()
+        );
+    }
+
     public static MotorwaySignLineData empty() {
         return new MotorwaySignLineData("", RoadTextFont.L1, MotorwaySignColor.BLUE);
     }

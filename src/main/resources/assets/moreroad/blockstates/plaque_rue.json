@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "face=floor,facing=north": {
+      "model": "moreroad:block/plaque_rue_standing"
+    },
+    "face=floor,facing=east": {
+      "model": "moreroad:block/plaque_rue_standing",
+      "y": 90
+    },
+    "face=floor,facing=south": {
+      "model": "moreroad:block/plaque_rue_standing",
+      "y": 180
+    },
+    "face=floor,facing=west": {
+      "model": "moreroad:block/plaque_rue_standing",
+      "y": 270
+    },
+    "face=wall,facing=north": {
+      "model": "moreroad:block/plaque_rue_wall"
+    },
+    "face=wall,facing=east": {
+      "model": "moreroad:block/plaque_rue_wall",
+      "y": 90
+    },
+    "face=wall,facing=south": {
+      "model": "moreroad:block/plaque_rue_wall",
+      "y": 180
+    },
+    "face=wall,facing=west": {
+      "model": "moreroad:block/plaque_rue_wall",
+      "y": 270
+    },
+    "face=ceiling,facing=north": {
+      "model": "moreroad:block/plaque_rue_wall"
+    },
+    "face=ceiling,facing=east": {
+      "model": "moreroad:block/plaque_rue_wall",
+      "y": 90
+    },
+    "face=ceiling,facing=south": {
+      "model": "moreroad:block/plaque_rue_wall",
+      "y": 180
+    },
+    "face=ceiling,facing=west": {
+      "model": "moreroad:block/plaque_rue_wall",
+      "y": 270
+    }
+  }
+}

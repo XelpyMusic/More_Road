@@ -109,7 +109,7 @@ public class MotorwaySignEditScreen extends Screen {
         this.customMode = false;
         for (int i = 0; i < MotorwaySignBlockEntity.MAX_SLOTS; i++) {
             MotorwaySignLineData fallback = i < this.preset.getSlotCount()
-                    ? MotorwaySignLineData.fromSlot(this.preset.getSlot(i))
+                    ? MotorwaySignLineData.blankForSlot(this.preset.getSlot(i))
                     : MotorwaySignLineData.empty();
             MotorwaySignLineData data = values != null && i < values.length && values[i] != null
                     ? values[i]
@@ -607,7 +607,8 @@ public class MotorwaySignEditScreen extends Screen {
                 );
             }
             case 2 -> {
-                boolean cartoucheAllowed = this.selectedCustomPanel == 0;
+                boolean cartoucheAllowed = this.selectedCustomPanel == 0
+                        && allowsCustomCartouche(this.preset);
                 SignEditorUi.drawModernButton(
                         graphics, this.font, this.customCartoucheRect,
                         cartoucheAllowed
@@ -894,7 +895,7 @@ public class MotorwaySignEditScreen extends Screen {
                     return true;
                 }
                 if (this.colorRects[i].contains(event.x(), event.y())) {
-                    setGroupColor(i, this.lineColors[i].next());
+                    setGroupColor(i, nextSlotColor(i));
                     return true;
                 }
             }
@@ -933,7 +934,7 @@ public class MotorwaySignEditScreen extends Screen {
             ];
             for (int index = 0; index < defaults.length; index++) {
                 defaults[index] = index < newPreset.getSlotCount()
-                        ? MotorwaySignLineData.fromSlot(newPreset.getSlot(index))
+                        ? MotorwaySignLineData.blankForSlot(newPreset.getSlot(index))
                         : MotorwaySignLineData.empty();
             }
             MotorwaySignPanelData[] emptyPanels = new MotorwaySignPanelData[
@@ -956,7 +957,7 @@ public class MotorwaySignEditScreen extends Screen {
     private void applyPresetDefaults() {
         for (int i = 0; i < MotorwaySignBlockEntity.MAX_SLOTS; i++) {
             MotorwaySignLineData data = i < this.preset.getSlotCount()
-                    ? MotorwaySignLineData.fromSlot(this.preset.getSlot(i))
+                    ? MotorwaySignLineData.blankForSlot(this.preset.getSlot(i))
                     : MotorwaySignLineData.empty();
             this.fields[i].setValue(data.text());
             this.lineFonts[i] = data.font();
@@ -990,7 +991,8 @@ public class MotorwaySignEditScreen extends Screen {
             this.customDistance4Field.visible = textPage && panel.lineCount() >= 4;
             this.customDistance4Field.active = textPage && panel.lineCount() >= 4;
             boolean cartouchePage = this.customMode && this.customSettingsPage == 2
-                    && this.selectedCustomPanel == 0;
+                    && this.selectedCustomPanel == 0
+                    && allowsCustomCartouche(this.preset);
             this.customCartoucheField.visible = cartouchePage;
             this.customCartoucheField.active = cartouchePage && panel.cartoucheType().isVisible();
         }
@@ -1000,6 +1002,11 @@ public class MotorwaySignEditScreen extends Screen {
             this.contentCartoucheField.active = visible
                     && this.customPanels[0].cartoucheType().isVisible();
         }
+    }
+
+    private static boolean allowsCustomCartouche(MotorwaySignPreset preset) {
+        return preset != MotorwaySignPreset.D31B_EX1
+                && preset != MotorwaySignPreset.D31B_EX2;
     }
 
     private boolean handleCustomClick(double x, double y) {
@@ -1041,6 +1048,7 @@ public class MotorwaySignEditScreen extends Screen {
             return true;
         }
         if (this.customSettingsPage == 2 && this.selectedCustomPanel == 0
+                && allowsCustomCartouche(this.preset)
                 && this.customCartoucheRect.contains(x, y)) {
             setCurrentCustomPanel(copyPanel(
                     current, null, null, null, null, null, current.cartoucheType().next(), null
@@ -1204,8 +1212,28 @@ public class MotorwaySignEditScreen extends Screen {
             case E42 -> MotorwaySignColor.RED;
             case E43 -> MotorwaySignColor.YELLOW;
             case E44 -> MotorwaySignColor.WHITE;
+            case E47 -> MotorwaySignColor.METROPOLITAN_BLUE;
             default -> MotorwaySignColor.BLUE;
         };
+    }
+
+    private MotorwaySignColor nextSlotColor(int index) {
+        MotorwaySignSlot slot = this.preset.getSlot(index);
+        if (slot.role() == MotorwaySignRole.ROUTE || slot.role() == MotorwaySignRole.DISTANCE) {
+            return this.lineColors[index].next();
+        }
+        MotorwaySignColor allowed = allowedMainPanelColor(this.lineColors[index]);
+        return switch (allowed) {
+            case WHITE -> MotorwaySignColor.BLUE;
+            case BLUE -> MotorwaySignColor.GREEN;
+            default -> MotorwaySignColor.WHITE;
+        };
+    }
+
+    private static MotorwaySignColor allowedMainPanelColor(MotorwaySignColor color) {
+        return color == MotorwaySignColor.GREEN || color == MotorwaySignColor.BLUE
+                ? color
+                : MotorwaySignColor.WHITE;
     }
 
     private static MotorwaySignColor allowedCustomBackground(MotorwaySignColor background) {

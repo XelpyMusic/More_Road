@@ -20,6 +20,7 @@ public class MoreRoadCreativeModeTabs2 {
                     .title(Component.translatable("creativetab.moreroad.logo2"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(MoreRoadBlocks.POTEAU);
+                        output.accept(MoreRoadBlocks.PLAQUE_RUE);
                         output.accept(MoreRoadBlocks.POTEAU_D42B);
                         output.accept(MoreRoadBlocks.SUPPORT_DA31C_PIED);
                         output.accept(MoreRoadBlocks.SUPPORT_DA31C_POTEAU);

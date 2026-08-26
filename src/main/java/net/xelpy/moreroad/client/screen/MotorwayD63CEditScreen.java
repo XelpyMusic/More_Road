@@ -88,7 +88,7 @@ public final class MotorwayD63CEditScreen extends Screen {
         this.blockPos = blockPos.immutable();
         for (int index = 0; index < this.baseLines.length; index++) {
             MotorwaySignLineData fallback = index < MotorwaySignPreset.D63C.getSlotCount()
-                    ? MotorwaySignLineData.fromSlot(MotorwaySignPreset.D63C.getSlot(index))
+                    ? MotorwaySignLineData.blankForSlot(MotorwaySignPreset.D63C.getSlot(index))
                     : MotorwaySignLineData.empty();
             this.baseLines[index] = lines != null && index < lines.length && lines[index] != null
                     ? lines[index]
@@ -1095,6 +1095,7 @@ public final class MotorwayD63CEditScreen extends Screen {
             case E42 -> MotorwaySignColor.RED;
             case E43 -> MotorwaySignColor.YELLOW;
             case E44 -> MotorwaySignColor.WHITE;
+            case E47 -> MotorwaySignColor.METROPOLITAN_BLUE;
             default -> MotorwaySignColor.BLUE;
         };
     }

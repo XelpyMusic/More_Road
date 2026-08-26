@@ -419,9 +419,22 @@ public class MotorwaySignBlockEntityRenderer
             7832.0F, 4993.0F, 4.20F, artwork("d31b_ex1_frame.png"), artwork("d31b_ex1_graphics.png"),
             new ExactTintedLayer[]{layer("d31b_ex1_route.png", 0)},
             new ExactTextPlacement[]{
-                    text(0, 1781.5F, 860.0F, 2400.0F, 641.0F),
-                    text(1, 3916.0F, 3045.0F, 7000.0F, 640.0F),
-                    text(2, 3916.0F, 3970.0F, 7000.0F, 682.0F)
+                    /*
+                     * D31b ex.1 :
+                     * - numéro de route recentré dans le cadre jaune du SVG ;
+                     * - destinations descendues et légèrement réduites pour
+                     *   rester entièrement dans le panneau inférieur, même
+                     *   avec des noms un peu plus longs.
+                     */
+                    /* D31b ex.1 : conserver le centrage initial du numéro de route. */
+                    text(0, 1778.3F, 952.0F, 2500.0F, 620.0F),
+                    /*
+                     * Destinations davantage alignées à gauche et légèrement
+                     * agrandies pour retrouver une taille proche de la lame
+                     * "TOULOUSE / AGEN" tout en gardant davantage d'espace.
+                     */
+                    text(1, 3700.0F, 3550.0F, 7300.0F, 600.0F),
+                    text(2, 3550.0F, 4325.0F, 7000.0F, 600.0F)
             },
             new ExactBody[]{
                     body(0.0F, 0.0F, 7832.0F, 2349.0F),
@@ -436,9 +449,15 @@ public class MotorwaySignBlockEntityRenderer
                     layer("d31b_ex2_route.png", 0), layer("d31b_ex2_panel_bottom.png", 1)
             },
             new ExactTextPlacement[]{
-                    text(0, 1952.5F, 1783.5F, 2300.0F, 969.0F),
-                    text(1, 7693.5F, 6500.0F, 13800.0F, 1450.0F),
-                    text(2, 7693.5F, 8500.0F, 13800.0F, 1450.0F),
+                    /* D31b ex.2 : route recentrée dans le cartouche rouge. */
+                    text(0, 1963.0F, 1842.0F, 2550.0F, 969.0F),
+                    /*
+                     * Les destinations doivent partir du même bord gauche,
+                     * comme sur le SVG, au lieu d'être centrées dans chaque
+                     * panneau.
+                     */
+                    text(1, 7693.5F, 6660.0F, 13800.0F, 1450.0F),
+                    text(2, 7693.5F, 8690.0F, 13800.0F, 1450.0F),
                     text(3, 7693.5F, 10500.0F, 13800.0F, 1450.0F)
             },
             new ExactBody[]{
@@ -584,6 +603,20 @@ public class MotorwaySignBlockEntityRenderer
     private static final float TEXT_Z = FRONT_Z + 0.020F;
     private static final float PANEL_GAP = 0.075F;
     private static final float LISTEL = 0.045F;
+    private static final float MIN_CORNER_RADIUS = 0.08F;
+    private static final float MAX_CORNER_RADIUS = 0.18F;
+    private static final int ROUNDED_CORNER_SEGMENTS = 5;
+    /*
+     * Les panneaux issus des SVG ont des bords transparents arrondis. Le corps
+     * 3D doit rester légèrement sous le listel du SVG afin que sa texture métal
+     * ne puisse jamais apparaître dans les pixels transparents des coins.
+     */
+    private static final float TEXTURED_BODY_CORNER_RADIUS = 0.085F;
+    /*
+     * Le dos est volontairement plus petit que la face avant : le corps 3D
+     * forme ainsi un léger biseau vers l'arrière et ne dépasse plus de la
+     * silhouette du SVG lorsqu'on regarde le panneau de biais ou par derrière.
+     */
     private static final float MIN_PANEL_WIDTH = 2.30F;
     private static final float MAX_PANEL_WIDTH = 6.80F;
     private static final float DARK_TEXT_SCALE = 0.032F;
@@ -815,7 +848,11 @@ public class MotorwaySignBlockEntityRenderer
             MotorwaySignPanelData cartouchePanel = preset == MotorwaySignPreset.D61B
                     ? customLayout.panels().getFirst()
                     : firstConfiguredPanel(state.customPanels);
-            if (cartouchePanel != null && cartouchePanel.cartoucheType().isVisible()) {
+            boolean d31bWithoutTopCartouche = preset == MotorwaySignPreset.D31B_EX1
+                    || preset == MotorwaySignPreset.D31B_EX2;
+            if (!d31bWithoutTopCartouche
+                    && cartouchePanel != null
+                    && cartouchePanel.cartoucheType().isVisible()) {
                 float cartoucheTop = customTop;
                 if (preset != MotorwaySignPreset.D61B) {
                     float originalHeight = MotorwaySignGeometry.forPreset(
@@ -871,7 +908,8 @@ public class MotorwaySignBlockEntityRenderer
 
         if (preset == MotorwaySignPreset.D61B) {
             drawCustomStack(
-                    collector, poseStack, font, customLayout, customTop, state.lightCoords, true, false
+                    collector, poseStack, font, customLayout, customTop, state.lightCoords,
+                    true, false, false
             );
             poseStack.popPose();
             flushDeferredTexts(state, poseStack, collector);
@@ -889,14 +927,16 @@ public class MotorwaySignBlockEntityRenderer
                 drawCustomStack(
                         collector, poseStack, font, additions,
                         originalBottom - PANEL_GAP, state.lightCoords, false,
-                        preset == MotorwaySignPreset.D63C
+                        preset == MotorwaySignPreset.D63C,
+                        preset == MotorwaySignPreset.D31B_EX1
                 );
             } else {
                 float originalShift = customPanelHeight + PANEL_GAP;
                 drawCustomStack(
                         collector, poseStack, font, additions,
                         2.05F + customPanelHeight, state.lightCoords, false,
-                        preset == MotorwaySignPreset.D63C
+                        preset == MotorwaySignPreset.D63C,
+                        preset == MotorwaySignPreset.D31B_EX1
                 );
                 drawAdditionalSupport(
                         collector, poseStack,
@@ -1060,10 +1100,10 @@ public class MotorwaySignBlockEntityRenderer
         float bottomPanelBottom = bottom;
         float bottomPanelTop = exactY(top, height, 5236.0F);
 
-        submitBox(collector, poseStack, left, right, topPanelBottom, topPanelTop,
-                BACK_Z, FRONT_Z, PANEL_EDGE, light, -30);
-        submitBox(collector, poseStack, left, right, bottomPanelBottom, bottomPanelTop,
-                BACK_Z, FRONT_Z, PANEL_EDGE, light, -30);
+        submitTexturedPanelBody(collector, poseStack, left, right, topPanelBottom, topPanelTop,
+                BACK_Z, FRONT_Z, light, -30);
+        submitTexturedPanelBody(collector, poseStack, left, right, bottomPanelBottom, bottomPanelTop,
+                BACK_Z, FRONT_Z, light, -30);
 
         if (mountedOnCrossbar) {
             drawCrossbarMounts(collector, poseStack, width, bottom, top, light);
@@ -1236,15 +1276,15 @@ public class MotorwaySignBlockEntityRenderer
             int light
     ) {
         if (includeTopBody) {
-            submitBox(collector, poseStack, left, right,
+            submitTexturedPanelBody(collector, poseStack, left, right,
                     sourceY(top, height, 1662.0F, sourceHeight),
                     sourceY(top, height, 8.0F, sourceHeight),
-                    BACK_Z, FRONT_Z, PANEL_EDGE, light, -30);
+                    BACK_Z, FRONT_Z, light, -30);
         }
-        submitBox(collector, poseStack, left, right,
+        submitTexturedPanelBody(collector, poseStack, left, right,
                 sourceY(top, height, sourceHeight - 5.0F, sourceHeight),
                 sourceY(top, height, 1837.0F, sourceHeight),
-                BACK_Z, FRONT_Z, PANEL_EDGE, light, -30);
+                BACK_Z, FRONT_Z, light, -30);
     }
 
     private static void drawExactJunctionSupports(
@@ -1388,8 +1428,8 @@ public class MotorwaySignBlockEntityRenderer
             float bodyRight = sourceX(left, width, body.x() + body.width(), artwork.sourceWidth());
             float bodyTop = sourceY(top, height, body.y(), artwork.sourceHeight());
             float bodyBottom = sourceY(top, height, body.y() + body.height(), artwork.sourceHeight());
-            submitBox(collector, poseStack, bodyLeft, bodyRight, bodyBottom, bodyTop,
-                    BACK_Z, FRONT_Z, PANEL_EDGE, light, -30);
+            submitTexturedPanelBody(collector, poseStack, bodyLeft, bodyRight, bodyBottom, bodyTop,
+                    BACK_Z, FRONT_Z, light, -30);
         }
 
         drawArtworkLayer(collector, poseStack, artwork.frame(), left, right, bottom, top,
@@ -1423,20 +1463,33 @@ public class MotorwaySignBlockEntityRenderer
             float panelBottom = sourceY(
                     top, height, 9935.0F, artwork.sourceHeight()
             );
-            submitQuad(
+            float roundedRadius = panelCornerRadius(left, right, panelBottom, panelTop);
+            submitRoundedFace(
                     collector, poseStack,
                     left, right,
                     panelBottom, panelTop,
                     FRONT_Z + 0.0065F,
-                    MotorwaySignColor.WHITE.getArgb(), light, -14
+                    MotorwaySignColor.WHITE.getArgb(), light, -14,
+                    roundedRadius
             );
-            submitQuad(
-                    collector, poseStack,
-                    left + LISTEL, right - LISTEL,
-                    panelBottom + LISTEL, panelTop - LISTEL,
-                    FRONT_Z + 0.0070F,
-                    bottomPanel.color().getArgb(), light, -13
-            );
+            float innerLeft = left + LISTEL;
+            float innerRight = right - LISTEL;
+            float innerBottom = panelBottom + LISTEL;
+            float innerTop = panelTop - LISTEL;
+            if (innerRight > innerLeft && innerTop > innerBottom) {
+                submitRoundedFace(
+                        collector, poseStack,
+                        innerLeft, innerRight,
+                        innerBottom, innerTop,
+                        FRONT_Z + 0.0070F,
+                        bottomPanel.color().getArgb(), light, -13,
+                        clamp(
+                                roundedRadius - LISTEL,
+                                0.0F,
+                                panelCornerRadius(innerLeft, innerRight, innerBottom, innerTop)
+                        )
+                );
+            }
         }
         if (artwork.graphics() != null) {
             drawArtworkLayer(collector, poseStack, artwork.graphics(), left, right, bottom, top,
@@ -1465,6 +1518,30 @@ public class MotorwaySignBlockEntityRenderer
                         : Math.min(scale, availableWidth / pixelWidth);
                 x = left + 0.32F + pixelWidth * actualScale / 2.0F;
                 maximumWidth = availableWidth;
+            }
+            if (preset == MotorwaySignPreset.D31B_EX1
+                    && (placement.slotIndex() == 1 || placement.slotIndex() == 2)) {
+                /*
+                 * D31b ex.1 : même verticale ET même taille que les lames
+                 * personnalisées ajoutées sous le panneau. La marge de 0,13
+                 * est mesurée depuis le bord gauche physique du panneau.
+                 */
+                float leftX = left + 0.13F;
+                float availableWidth = Math.max(0.20F, right - 0.28F - leftX);
+                drawLeftAlignedText(collector, poseStack, font, data.text(),
+                        leftX, y, availableWidth,
+                        data.font(), data.color().getTextArgb(), 0.044F, light);
+                continue;
+            }
+            if (preset == MotorwaySignPreset.D31B_EX2
+                    && (placement.slotIndex() == 1
+                    || placement.slotIndex() == 2
+                    || placement.slotIndex() == 3)) {
+                float leftAlignedX = x - maximumWidth / 2.0F;
+                drawLeftAlignedText(collector, poseStack, font, data.text(),
+                        leftAlignedX + 0.04F, y, maximumWidth,
+                        data.font(), data.color().getTextArgb(), scale, light);
+                continue;
             }
             if (isExitNumberSlot(slot)) {
                 drawExitNumber(collector, poseStack, font, data.text(), x, y, maximumWidth,
@@ -1524,6 +1601,331 @@ public class MotorwaySignBlockEntityRenderer
     }
 
     private record ExactBody(float x, float y, float width, float height) {
+    }
+
+    private static float panelCornerRadius(
+            float left,
+            float right,
+            float bottom,
+            float top
+    ) {
+        float width = Math.max(0.0F, right - left);
+        float height = Math.max(0.0F, top - bottom);
+        if (width <= 0.0F || height <= 0.0F) {
+            return 0.0F;
+        }
+        return clamp(
+                Math.min(width, height) * 0.18F,
+                MIN_CORNER_RADIUS,
+                Math.min(MAX_CORNER_RADIUS, Math.min(width, height) / 2.0F)
+        );
+    }
+
+    private static RoundedPath roundedPath(
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float radius
+    ) {
+        float clampedRadius = clamp(
+                radius,
+                0.0F,
+                Math.min(right - left, top - bottom) / 2.0F
+        );
+        if (clampedRadius <= 0.001F) {
+            return new RoundedPath(
+                    new float[]{left, right, right, left},
+                    new float[]{top, top, bottom, bottom}
+            );
+        }
+        int segments = Math.max(1, ROUNDED_CORNER_SEGMENTS);
+        int pointCount = 4 * segments + 1;
+        float[] xs = new float[pointCount];
+        float[] ys = new float[pointCount];
+        int index = 0;
+        index = appendArc(xs, ys, index, left + clampedRadius, top - clampedRadius,
+                clampedRadius, 180.0F, 90.0F, segments, true);
+        index = appendArc(xs, ys, index, right - clampedRadius, top - clampedRadius,
+                clampedRadius, 90.0F, 0.0F, segments, false);
+        index = appendArc(xs, ys, index, right - clampedRadius, bottom + clampedRadius,
+                clampedRadius, 0.0F, -90.0F, segments, false);
+        appendArc(xs, ys, index, left + clampedRadius, bottom + clampedRadius,
+                clampedRadius, -90.0F, -180.0F, segments, false);
+        return new RoundedPath(xs, ys);
+    }
+
+    private static int appendArc(
+            float[] xs,
+            float[] ys,
+            int startIndex,
+            float centerX,
+            float centerY,
+            float radius,
+            float startAngle,
+            float endAngle,
+            int segments,
+            boolean includeStart
+    ) {
+        int firstStep = includeStart ? 0 : 1;
+        int index = startIndex;
+        for (int step = firstStep; step <= segments; step++) {
+            float progress = step / (float) segments;
+            double radians = Math.toRadians(startAngle + (endAngle - startAngle) * progress);
+            xs[index] = centerX + (float) Math.cos(radians) * radius;
+            ys[index] = centerY + (float) Math.sin(radians) * radius;
+            index++;
+        }
+        return index;
+    }
+
+    private static void submitRoundedFace(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float z,
+            int color,
+            int light,
+            int order,
+            float radius
+    ) {
+        RoundedPath path = roundedPath(left, right, bottom, top, radius);
+        collector.order(order).submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(SOLID_TEXTURE),
+                (pose, consumer) -> addPolygonFace(
+                        pose, consumer,
+                        path.xs(), path.ys(),
+                        left, right, bottom, top,
+                        z, color, light,
+                        0.0F, 0.0F, 1.0F,
+                        true
+                )
+        );
+    }
+
+    private static void submitTexturedPanelBody(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float back,
+            float front,
+            int light,
+            int order
+    ) {
+        float width = right - left;
+        float height = top - bottom;
+        float minimumSize = Math.min(width, height);
+        if (minimumSize <= 0.001F) {
+            return;
+        }
+
+        /*
+         * Les plaques issues des textures/SVG doivent avoir exactement la
+         * même emprise X/Y que leur face texturée. Une réduction du corps
+         * faisait dépasser le listel/texture tout autour du panneau, surtout
+         * visible de profil. Le corps reprend donc maintenant les limites
+         * exactes du registre.
+         *
+         * Leur arrondi est volontairement plus petit que celui des pancartes
+         * générées : les SVG réglementaires ont un rayon de coin proche de
+         * 0,08 bloc à cette échelle. Cela évite à la fois le coin carré qui
+         * ressort derrière la transparence ET la texture qui flotte au-delà
+         * du modèle.
+         */
+        float bodyLeft = left;
+        float bodyRight = right;
+        float bodyBottom = bottom;
+        float bodyTop = top;
+
+        float radius = Math.min(
+                TEXTURED_BODY_CORNER_RADIUS,
+                Math.min(bodyRight - bodyLeft, bodyTop - bodyBottom) / 2.0F
+        );
+        RoundedPath path = roundedPath(
+                bodyLeft, bodyRight, bodyBottom, bodyTop, radius
+        );
+
+        collector.order(order).submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(PANEL_METAL_TEXTURE),
+                (pose, consumer) -> {
+                    /* Dos : même silhouette que l'avant, sans déformation. */
+                    addPolygonFace(
+                            pose, consumer,
+                            path.xs(), path.ys(),
+                            bodyLeft, bodyRight, bodyBottom, bodyTop,
+                            back, 0xFFFFFFFF, light,
+                            0.0F, 0.0F, -1.0F,
+                            false
+                    );
+
+                    /* Chant droit/arrondi : extrusion parfaitement parallèle. */
+                    for (int index = 0; index < path.xs().length; index++) {
+                        int next = (index + 1) % path.xs().length;
+                        float x1 = path.xs()[index];
+                        float y1 = path.ys()[index];
+                        float x2 = path.xs()[next];
+                        float y2 = path.ys()[next];
+                        float dx = x2 - x1;
+                        float dy = y2 - y1;
+                        float length = (float) Math.sqrt(dx * dx + dy * dy);
+                        float nx = length <= 0.0001F ? 0.0F : -dy / length;
+                        float ny = length <= 0.0001F ? 0.0F : dx / length;
+                        addFace(
+                                pose, consumer,
+                                x1, y1, back,
+                                x2, y2, back,
+                                x2, y2, front,
+                                x1, y1, front,
+                                0xFFFFFFFF, light,
+                                nx, ny, 0.0F
+                        );
+                    }
+                }
+        );
+    }
+
+    private static void submitRoundedBody(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float back,
+            float front,
+            int color,
+            int light,
+            int order
+    ) {
+        float radius = panelCornerRadius(left, right, bottom, top);
+        if (radius <= 0.001F) {
+            submitBox(collector, poseStack, left, right, bottom, top, back, front, color, light, order);
+            return;
+        }
+
+        boolean panelBody = color == PANEL_EDGE;
+        boolean metalBody = panelBody || color == SUPPORT_COLOR;
+        Identifier boxTexture = metalBody ? PANEL_METAL_TEXTURE : SOLID_TEXTURE;
+        int boxColor = metalBody ? 0xFFFFFFFF : color;
+        RoundedPath path = roundedPath(left, right, bottom, top, radius);
+
+        collector.order(order).submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(boxTexture),
+                (pose, consumer) -> {
+                    addPolygonFace(
+                            pose, consumer,
+                            path.xs(), path.ys(),
+                            left, right, bottom, top,
+                            back, boxColor, light,
+                            0.0F, 0.0F, -1.0F,
+                            false
+                    );
+                    for (int index = 0; index < path.xs().length; index++) {
+                        int next = (index + 1) % path.xs().length;
+                        float x1 = path.xs()[index];
+                        float y1 = path.ys()[index];
+                        float x2 = path.xs()[next];
+                        float y2 = path.ys()[next];
+                        float dx = x2 - x1;
+                        float dy = y2 - y1;
+                        float length = (float) Math.sqrt(dx * dx + dy * dy);
+                        float nx = length <= 0.0001F ? 0.0F : -dy / length;
+                        float ny = length <= 0.0001F ? 0.0F : dx / length;
+                        addFace(
+                                pose, consumer,
+                                x1, y1, back,
+                                x2, y2, back,
+                                x2, y2, front,
+                                x1, y1, front,
+                                boxColor, light,
+                                nx, ny, 0.0F
+                        );
+                    }
+                }
+        );
+    }
+
+    private static void addPolygonFace(
+            PoseStack.Pose pose,
+            VertexConsumer consumer,
+            float[] xs,
+            float[] ys,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float z,
+            int color,
+            int light,
+            float normalX,
+            float normalY,
+            float normalZ,
+            boolean clockwise
+    ) {
+        if (xs.length < 3 || ys.length < 3 || xs.length != ys.length) {
+            return;
+        }
+        float centerX = 0.0F;
+        float centerY = 0.0F;
+        for (int index = 0; index < xs.length; index++) {
+            centerX += xs[index];
+            centerY += ys[index];
+        }
+        centerX /= xs.length;
+        centerY /= ys.length;
+
+        for (int index = 0; index < xs.length; index++) {
+            int next = (index + 1) % xs.length;
+            if (clockwise) {
+                addVertex(pose, consumer, centerX, centerY, z,
+                        uvX(centerX, left, right), uvY(centerY, bottom, top),
+                        color, light, normalX, normalY, normalZ);
+                addVertex(pose, consumer, xs[index], ys[index], z,
+                        uvX(xs[index], left, right), uvY(ys[index], bottom, top),
+                        color, light, normalX, normalY, normalZ);
+                addVertex(pose, consumer, xs[next], ys[next], z,
+                        uvX(xs[next], left, right), uvY(ys[next], bottom, top),
+                        color, light, normalX, normalY, normalZ);
+                addVertex(pose, consumer, xs[next], ys[next], z,
+                        uvX(xs[next], left, right), uvY(ys[next], bottom, top),
+                        color, light, normalX, normalY, normalZ);
+            } else {
+                addVertex(pose, consumer, centerX, centerY, z,
+                        uvX(centerX, left, right), uvY(centerY, bottom, top),
+                        color, light, normalX, normalY, normalZ);
+                addVertex(pose, consumer, xs[next], ys[next], z,
+                        uvX(xs[next], left, right), uvY(ys[next], bottom, top),
+                        color, light, normalX, normalY, normalZ);
+                addVertex(pose, consumer, xs[index], ys[index], z,
+                        uvX(xs[index], left, right), uvY(ys[index], bottom, top),
+                        color, light, normalX, normalY, normalZ);
+                addVertex(pose, consumer, xs[index], ys[index], z,
+                        uvX(xs[index], left, right), uvY(ys[index], bottom, top),
+                        color, light, normalX, normalY, normalZ);
+            }
+        }
+    }
+
+    private static float uvX(float x, float left, float right) {
+        float width = right - left;
+        return Math.abs(width) <= 0.0001F ? 0.5F : (x - left) / width;
+    }
+
+    private static float uvY(float y, float bottom, float top) {
+        float height = top - bottom;
+        return Math.abs(height) <= 0.0001F ? 0.5F : (top - y) / height;
+    }
+
+    private record RoundedPath(float[] xs, float[] ys) {
     }
 
     private static SignLayout buildLayout(
@@ -1827,7 +2229,8 @@ public class MotorwaySignBlockEntityRenderer
             float top,
             int light,
             boolean d61Style,
-            boolean d63cStyle
+            boolean d63cStyle,
+            boolean d31bStyle
     ) {
         float cursorTop = top;
         for (int index = 0; index < layout.panels().size(); index++) {
@@ -1854,7 +2257,7 @@ public class MotorwaySignBlockEntityRenderer
             } else if (d63cStyle) {
                 drawD63CPanelText(collector, poseStack, font, data, panelLayout, light);
             } else {
-                drawCustomPanelText(collector, poseStack, font, data, panelLayout, light);
+                drawCustomPanelText(collector, poseStack, font, data, panelLayout, light, d31bStyle);
             }
             drawGraphic(
                     collector, poseStack,
@@ -1874,12 +2277,13 @@ public class MotorwaySignBlockEntityRenderer
             Font font,
             MotorwaySignPanelData data,
             PanelLayout panel,
-            int light
+            int light,
+            boolean d31bStyle
     ) {
         final float textScale = 0.044F;
         final float lineStep = 0.45F;
         final float distanceGap = 0.30F;
-        float leftMargin = 0.32F;
+        float leftMargin = d31bStyle ? 0.13F : 0.32F;
         float rightMargin = 0.28F;
         float reserve = sideGraphicReserve(data.graphic());
         float graphicOffset = textCenterOffset(data.graphic(), reserve);
@@ -2421,8 +2825,8 @@ public class MotorwaySignBlockEntityRenderer
             case RED -> CartoucheType.E42;
             case YELLOW -> CartoucheType.E43;
             case WHITE -> CartoucheType.E44;
-            case BLUE -> CartoucheType.E47;
-            case BLACK, BROWN -> CartoucheType.E47;
+            case BLUE, METROPOLITAN_BLUE -> CartoucheType.E47;
+            case BLACK, BROWN -> CartoucheType.E44;
         };
     }
 
@@ -2484,7 +2888,7 @@ public class MotorwaySignBlockEntityRenderer
             case E42 -> MotorwaySignColor.RED;
             case E43 -> MotorwaySignColor.YELLOW;
             case E44 -> MotorwaySignColor.WHITE;
-            case E47 -> MotorwaySignColor.BLUE;
+            case E47 -> MotorwaySignColor.METROPOLITAN_BLUE;
             default -> MotorwaySignColor.BLUE;
         };
     }
@@ -2508,13 +2912,47 @@ public class MotorwaySignBlockEntityRenderer
             MotorwaySignColor color,
             int light
     ) {
-        submitBox(collector, poseStack, left, right, bottom, top, BACK_Z, FRONT_Z, PANEL_EDGE, light, -20);
-        submitQuad(collector, poseStack,
+        float radius = panelCornerRadius(left, right, bottom, top);
+        if (radius <= 0.001F) {
+            submitBox(collector, poseStack, left, right, bottom, top, BACK_Z, FRONT_Z, PANEL_EDGE, light, -20);
+            submitQuad(collector, poseStack,
+                    left, right, bottom, top,
+                    FACE_Z, panelBorderColor(color), light, -16);
+            submitQuad(collector, poseStack,
+                    left + LISTEL, right - LISTEL, bottom + LISTEL, top - LISTEL,
+                    FACE_Z + 0.001F, color.getArgb(), light, -15);
+            return;
+        }
+
+        submitRoundedBody(
+                collector, poseStack,
                 left, right, bottom, top,
-                FACE_Z, panelBorderColor(color), light, -16);
-        submitQuad(collector, poseStack,
-                left + LISTEL, right - LISTEL, bottom + LISTEL, top - LISTEL,
-                FACE_Z + 0.001F, color.getArgb(), light, -15);
+                BACK_Z, FRONT_Z, PANEL_EDGE, light, -20
+        );
+        submitRoundedFace(
+                collector, poseStack,
+                left, right, bottom, top,
+                FACE_Z, panelBorderColor(color), light, -16,
+                radius
+        );
+
+        float innerLeft = left + LISTEL;
+        float innerRight = right - LISTEL;
+        float innerBottom = bottom + LISTEL;
+        float innerTop = top - LISTEL;
+        if (innerRight > innerLeft && innerTop > innerBottom) {
+            float innerRadius = clamp(
+                    radius - LISTEL,
+                    0.0F,
+                    panelCornerRadius(innerLeft, innerRight, innerBottom, innerTop)
+            );
+            submitRoundedFace(
+                    collector, poseStack,
+                    innerLeft, innerRight, innerBottom, innerTop,
+                    FACE_Z + 0.001F, color.getArgb(), light, -15,
+                    innerRadius
+            );
+        }
     }
 
     private static int panelBorderColor(MotorwaySignColor color) {
@@ -2737,6 +3175,136 @@ public class MotorwaySignBlockEntityRenderer
         submitBar(collector, poseStack, tipX, tipY, backX - px * arm * 0.62F, backY - py * arm * 0.62F, 0.080F, color, light, -7);
     }
 
+    private static int widestStyledLineWidth(Font font, String value, RoadTextFont roadFont) {
+        if (value == null || value.isBlank()) {
+            return 0;
+        }
+        String[] lines = value.strip().split("\\R");
+        int widest = 0;
+        for (String line : lines) {
+            String cleaned = line.strip();
+            if (!cleaned.isEmpty()) {
+                widest = Math.max(widest, font.width(styled(cleaned, roadFont)));
+            }
+        }
+        if (widest == 0) {
+            widest = font.width(styled(value.strip(), roadFont));
+        }
+        return widest;
+    }
+
+    private static void drawLeftAlignedText(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            Font font,
+            String value,
+            float leftX,
+            float y,
+            float maxWidth,
+            RoadTextFont roadFont,
+            int color,
+            float baseScale,
+            int light
+    ) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+
+        List<String> lines = new ArrayList<>();
+        for (String rawLine : value.strip().split("\\R")) {
+            String cleaned = rawLine.strip();
+            if (!cleaned.isEmpty()) {
+                lines.add(cleaned);
+            }
+        }
+        if (lines.isEmpty()) {
+            return;
+        }
+
+        int widest = 0;
+        for (String line : lines) {
+            widest = Math.max(widest, font.width(styled(line, roadFont)));
+        }
+        if (widest <= 0) {
+            return;
+        }
+
+        float scale = Math.min(baseScale, maxWidth / widest);
+        if (scale <= 0.0F) {
+            return;
+        }
+
+        float lineAdvance = font.lineHeight * scale;
+        float firstCenterY = y - ((lines.size() - 1) * lineAdvance) / 2.0F;
+        for (int index = 0; index < lines.size(); index++) {
+            String line = lines.get(index);
+            int lineWidth = font.width(styled(line, roadFont));
+            if (lineWidth <= 0) {
+                continue;
+            }
+            float centerX = leftX + lineWidth * scale / 2.0F;
+            float centerY = firstCenterY + index * lineAdvance;
+            drawTextLine(collector, poseStack, font, line, centerX, centerY,
+                    roadFont, color, scale, light);
+        }
+    }
+
+    private static void drawTextLine(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            Font font,
+            String cleaned,
+            float x,
+            float y,
+            RoadTextFont roadFont,
+            int color,
+            float scale,
+            int light
+    ) {
+        FormattedCharSequence sequence = styled(cleaned, roadFont);
+        int width = font.width(sequence);
+        if (width <= 0 || scale <= 0.0F) {
+            return;
+        }
+
+        DeferredTextContext context = DEFERRED_TEXT_CONTEXT.get();
+        if (context != null) {
+            context.texts.add(new DeferredText(
+                    cleaned,
+                    x,
+                    y + context.yOffsetInternal,
+                    roadFont,
+                    color,
+                    scale,
+                    light
+            ));
+            return;
+        }
+
+        float worldScale = MotorwaySignGeometry.WORLD_SCALE;
+        float textScaleWorld = scale * worldScale;
+        poseStack.pushPose();
+        poseStack.translate(
+                x * worldScale,
+                y * worldScale,
+                TEXT_Z * worldScale
+        );
+        poseStack.scale(textScaleWorld, -textScaleWorld, textScaleWorld);
+        collector.submitText(
+                poseStack,
+                -width / 2.0F,
+                -font.lineHeight / 2.0F,
+                sequence,
+                false,
+                Font.DisplayMode.NORMAL,
+                light,
+                color,
+                0x00000000,
+                0x00000000
+        );
+        poseStack.popPose();
+    }
+
     private static void drawText(
             SubmitNodeCollector collector,
             PoseStack poseStack,
@@ -2772,43 +3340,8 @@ public class MotorwaySignBlockEntityRenderer
          * partager strictement le même chemin entityCutout que les textes des
          * cartouches, qui sont visibles avec Iris/Complementary.
          */
-        DeferredTextContext context = DEFERRED_TEXT_CONTEXT.get();
-        if (context != null) {
-            context.texts.add(new DeferredText(
-                    cleaned,
-                    x,
-                    y + context.yOffsetInternal,
-                    roadFont,
-                    color,
-                    scale,
-                    light
-            ));
-            return;
-        }
-
-        // Repli hors du renderer principal : rendu vanilla NORMAL, comme V9.0.
-        float worldScale = MotorwaySignGeometry.WORLD_SCALE;
-        float textScaleWorld = scale * worldScale;
-        poseStack.pushPose();
-        poseStack.translate(
-                x * worldScale,
-                y * worldScale,
-                TEXT_Z * worldScale
-        );
-        poseStack.scale(textScaleWorld, -textScaleWorld, textScaleWorld);
-        collector.submitText(
-                poseStack,
-                -width / 2.0F,
-                -font.lineHeight / 2.0F,
-                sequence,
-                false,
-                Font.DisplayMode.NORMAL,
-                light,
-                color,
-                0x00000000,
-                0x00000000
-        );
-        poseStack.popPose();
+        drawTextLine(collector, poseStack, font, cleaned, x, y,
+                roadFont, color, scale, light);
     }
 
     private static void addDeferredTextYOffset(float deltaInternal) {
@@ -3218,7 +3751,7 @@ public class MotorwaySignBlockEntityRenderer
     ) {
         return values != null && index >= 0 && index < values.length && values[index] != null
                 ? values[index]
-                : MotorwaySignLineData.fromSlot(fallback);
+                : MotorwaySignLineData.blankForSlot(fallback);
     }
 
     private static float renderedTextWidth(Font font, MotorwaySignLineData line) {

@@ -20,10 +20,13 @@ import net.xelpy.moreroad.block.custom.D61APanelData;
 import net.xelpy.moreroad.block.custom.EB10Block;
 import net.xelpy.moreroad.block.custom.PanonceauEntry;
 import net.xelpy.moreroad.block.custom.PanonceauVariant;
+import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignColor;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
+import net.xelpy.moreroad.block.custom.MotorwaySignRole;
+import net.xelpy.moreroad.block.custom.MotorwaySignSlot;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.block.entity.DA31CBlockEntity;
 import net.xelpy.moreroad.block.entity.D42bBlockEntity;
@@ -31,6 +34,7 @@ import net.xelpy.moreroad.block.entity.D61ABlockEntity;
 import net.xelpy.moreroad.block.entity.EB10BlockEntity;
 import net.xelpy.moreroad.block.entity.E31BlockEntity;
 import net.xelpy.moreroad.block.entity.PanonceauBlockEntity;
+import net.xelpy.moreroad.block.entity.PlaqueRueBlockEntity;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
 import net.xelpy.moreroad.item.MoreRoadItems;
 import net.xelpy.moreroad.item.RoadBuilderItem;
@@ -46,6 +50,8 @@ public final class MoreRoadNetworking {
     private static final int MAX_EB10_LINE_LENGTH = 32;
 
     private static final int MAX_E31_TEXT_LENGTH = 48;
+
+    private static final int MAX_PLAQUE_RUE_TEXT_LENGTH = 64;
 
     private static final int MAX_DA31C_LINE_LENGTH = 48;
 
@@ -115,6 +121,12 @@ public final class MoreRoadNetworking {
                 UpdateE31TextPayload.TYPE,
                 UpdateE31TextPayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateE31Text
+        );
+
+        registrar.playToServer(
+                UpdatePlaqueRueTextPayload.TYPE,
+                UpdatePlaqueRueTextPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdatePlaqueRueText
         );
 
         registrar.playToServer(
@@ -397,6 +409,34 @@ public final class MoreRoadNetworking {
                 state,
                 Block.UPDATE_ALL
         );
+    }
+
+
+    private static void handleUpdatePlaqueRueText(
+            UpdatePlaqueRueTextPayload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+        if (!level.hasChunkAt(pos)
+                || player.blockPosition().distManhattan(pos) > MAX_EDIT_DISTANCE
+                || !(level.getBlockEntity(pos) instanceof PlaqueRueBlockEntity blockEntity)) {
+            return;
+        }
+
+        blockEntity.setContent(
+                cleanText(payload.line1(), MAX_PLAQUE_RUE_TEXT_LENGTH),
+                cleanText(payload.line2(), MAX_PLAQUE_RUE_TEXT_LENGTH),
+                payload.line1Font(),
+                payload.line2Font()
+        );
+        BlockState state = level.getBlockState(pos);
+        level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
     }
 
 
@@ -925,6 +965,22 @@ public final class MoreRoadNetworking {
      * ============================================================
      */
 
+    private static MotorwaySignColor sanitizeMotorwayLineColor(
+            MotorwaySignPreset preset,
+            int slotIndex,
+            MotorwaySignColor color
+    ) {
+        if (preset != null && slotIndex >= 0 && slotIndex < preset.getSlotCount()) {
+            MotorwaySignSlot slot = preset.getSlot(slotIndex);
+            if (slot.role() == MotorwaySignRole.ROUTE || slot.role() == MotorwaySignRole.DISTANCE) {
+                return color == null ? slot.defaultColor() : color;
+            }
+        }
+        return color == MotorwaySignColor.GREEN || color == MotorwaySignColor.WHITE
+                ? color
+                : MotorwaySignColor.BLUE;
+    }
+
     private static void handleUpdateMotorwaySign(
             UpdateMotorwaySignPayload payload,
             IPayloadContext context
@@ -949,7 +1005,7 @@ public final class MoreRoadNetworking {
             lines[i] = new MotorwaySignLineData(
                     cleanText(requested.text(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
                     requested.font(),
-                    requested.color()
+                    sanitizeMotorwayLineColor(preset, i, requested.color())
             );
         }
 

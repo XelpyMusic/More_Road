@@ -61,6 +61,17 @@ public class MoreRoadBlockEntities {
                     )
             );
 
+    public static final Supplier<BlockEntityType<PlaqueRueBlockEntity>>
+            PLAQUE_RUE =
+            BLOCK_ENTITY_TYPES.register(
+                    "plaque_rue",
+                    () -> new BlockEntityType<>(
+                            PlaqueRueBlockEntity::new,
+                            false,
+                            MoreRoadBlocks.PLAQUE_RUE.get()
+                    )
+            );
+
     public static final Supplier<BlockEntityType<DA31CBlockEntity>>
             DA31C =
             BLOCK_ENTITY_TYPES.register(

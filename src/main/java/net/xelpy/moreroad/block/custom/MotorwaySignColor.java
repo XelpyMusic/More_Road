@@ -7,8 +7,9 @@ package net.xelpy.moreroad.block.custom;
 public enum MotorwaySignColor {
 
     WHITE("white", "Blanc", 0xFFF2F2EE, 0xFF111111),
-    BLUE("blue", "Bleu", 0xFF063AA7, 0xFFFFFFFF),
+    BLUE("blue", "Bleu", 0xFF0000FF, 0xFFFFFFFF),
     GREEN("green", "Vert", 0xFF14833B, 0xFFFFFFFF),
+    METROPOLITAN_BLUE("metropolitan_blue", "Bleu métropolitain", 0xFF2A7FFF, 0xFFFFFFFF),
     YELLOW("yellow", "Jaune", 0xFFF0CF22, 0xFF111111),
     RED("red", "Rouge", 0xFFC51D20, 0xFFFFFFFF),
     BLACK("black", "Noir", 0xFF111111, 0xFFFFFFFF),
@@ -47,8 +48,14 @@ public enum MotorwaySignColor {
     }
 
     public MotorwaySignColor next() {
-        MotorwaySignColor[] values = values();
-        return values[(this.ordinal() + 1) % values.length];
+        return switch (this) {
+            case WHITE -> BLUE;
+            case BLUE -> GREEN;
+            case GREEN -> YELLOW;
+            case YELLOW -> RED;
+            case RED -> WHITE;
+            case METROPOLITAN_BLUE, BLACK, BROWN -> WHITE;
+        };
     }
 
     public static MotorwaySignColor fromSerializedName(String value) {

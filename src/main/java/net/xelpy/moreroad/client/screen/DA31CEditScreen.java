@@ -743,7 +743,7 @@ public class DA31CEditScreen extends Screen {
             case E42 -> 0xFFC40000;
             case E43 -> 0xFFF0D800;
             case E44 -> 0xFFF0F0F0;
-            case E47 -> 0xFF295AC8;
+            case E47 -> 0xFF2A7FFF;
             case NONE -> 0x00000000;
         };
     }
