@@ -285,7 +285,7 @@
   "block.moreroad.e31b": "E31b — Watercourse name",
   "item.moreroad.road_builder": "Road Builder",
   "block.moreroad.panonceau": "Configurable road supplementary plate",
-  "block.moreroad.motorway_sign": "Configurable motorway sign — D31 to DA52",
+  "block.moreroad.motorway_sign": "Custom motorway sign",
   "block.moreroad.da31c": "DA31C — Large motorway sign",
   "block.moreroad.support_da31c_pied": "DA31C — Gantry base",
   "block.moreroad.support_da31c_poteau": "DA31C — Gantry post",

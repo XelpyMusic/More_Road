@@ -16,6 +16,7 @@ import net.xelpy.moreroad.block.custom.MotorwaySignColor;
 import net.xelpy.moreroad.block.custom.MotorwaySignGraphic;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
@@ -963,7 +964,9 @@ public final class MotorwayD63CEditScreen extends Screen {
                 this.baseLines[0], this.baseLines[1], this.baseLines[2],
                 this.baseLines[3], this.baseLines[4], this.baseLines[5],
                 false,
-                this.panels[0], this.panels[1], this.panels[2], this.panels[3]
+                this.panels[0], this.panels[1], this.panels[2], this.panels[3],
+                MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE,
+                MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE
         ));
         this.onClose();
     }

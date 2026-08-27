@@ -62,7 +62,7 @@ public class MotorwaySignBlock extends HorizontalDirectionalBlock implements Ent
         MotorwaySignBlockEntity blockEntity = level.getBlockEntity(pos) instanceof MotorwaySignBlockEntity sign
                 ? sign
                 : null;
-        MotorwaySignPreset preset = blockEntity != null ? blockEntity.getPreset() : MotorwaySignPreset.D31B_EX1;
+        MotorwaySignPreset preset = blockEntity != null ? blockEntity.getPreset() : MotorwaySignPreset.FREEFORM;
         Direction facing = state.getBlock() instanceof MotorwaySignBlock
                 ? state.getValue(FACING)
                 : Direction.NORTH;
@@ -94,7 +94,7 @@ public class MotorwaySignBlock extends HorizontalDirectionalBlock implements Ent
     private static ShapeKey shapeKey(BlockGetter level, BlockPos pos, MotorwaySignGeometry geometry) {
         MotorwaySignPreset preset = level.getBlockEntity(pos) instanceof MotorwaySignBlockEntity sign
                 ? sign.getPreset()
-                : MotorwaySignPreset.D31B_EX1;
+                : MotorwaySignPreset.FREEFORM;
         return new ShapeKey(
                 preset, geometry.width(), geometry.height(),
                 geometry.mountedOnCrossbar(), geometry.supportTop()
@@ -325,7 +325,8 @@ public class MotorwaySignBlock extends HorizontalDirectionalBlock implements Ent
                     blockEntity.getPreset(),
                     blockEntity.getLines(),
                     blockEntity.isCustomMode(),
-                    blockEntity.getCustomPanels()
+                    blockEntity.getCustomPanels(),
+                    blockEntity.getServices()
             );
         }
         return InteractionResult.SUCCESS;

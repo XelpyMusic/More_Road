@@ -16,6 +16,7 @@ import net.xelpy.moreroad.block.custom.MotorwaySignGraphic;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 
 /** Données persistantes du panneau autoroutier paramétrique. */
@@ -24,18 +25,34 @@ public class MotorwaySignBlockEntity extends BlockEntity {
     public static final int MAX_SLOTS = 6;
     public static final int MAX_CUSTOM_PANELS = 4;
 
-    private MotorwaySignPreset preset = MotorwaySignPreset.D31B_EX1;
+    private MotorwaySignPreset preset = MotorwaySignPreset.FREEFORM;
     private final MotorwaySignLineData[] lines = new MotorwaySignLineData[MAX_SLOTS];
     private boolean customMode;
     private boolean additivePanels = true;
     private final MotorwaySignPanelData[] customPanels = new MotorwaySignPanelData[MAX_CUSTOM_PANELS];
+    /** Panonceaux CE choisis sous un D44 ; sans effet pour les autres modèles. */
+    private MotorwaySignServiceIcon[] services = MotorwaySignServiceIcon.defaults();
 
     public MotorwaySignBlockEntity(BlockPos pos, BlockState state) {
         super(MoreRoadBlockEntities.MOTORWAY_SIGN.get(), pos, state);
         applyPresetDefaults(this.preset);
+        this.customMode = true;
         for (int index = 0; index < MAX_CUSTOM_PANELS; index++) {
-            this.customPanels[index] = MotorwaySignPanelData.disabled();
+            this.customPanels[index] = index == 0
+                    ? starterPanel()
+                    : MotorwaySignPanelData.disabled();
         }
+    }
+
+
+    private static MotorwaySignPanelData starterPanel() {
+        return new MotorwaySignPanelData(
+                true, 1,
+                "", "", "", "",
+                "", "", "", "",
+                RoadTextFont.L1, RoadTextFont.L1, RoadTextFont.L1, RoadTextFont.L1,
+                MotorwaySignColor.BLUE, CartoucheType.NONE, "", MotorwaySignGraphic.NONE
+        );
     }
 
     public MotorwaySignPreset getPreset() {
@@ -71,8 +88,18 @@ public class MotorwaySignBlockEntity extends BlockEntity {
         return hiddenLegacyPanels;
     }
 
+    public MotorwaySignServiceIcon getService(int index) {
+        return index >= 0 && index < MotorwaySignServiceIcon.MAX_SLOTS
+                ? this.services[index]
+                : MotorwaySignServiceIcon.NONE;
+    }
+
+    public MotorwaySignServiceIcon[] getServices() {
+        return this.services.clone();
+    }
+
     public void setConfiguration(MotorwaySignPreset preset, MotorwaySignLineData[] values) {
-        setConfiguration(preset, values, false, null);
+        setConfiguration(preset, values, false, null, null);
     }
 
     public void setConfiguration(
@@ -81,7 +108,17 @@ public class MotorwaySignBlockEntity extends BlockEntity {
             boolean customMode,
             MotorwaySignPanelData[] panels
     ) {
-        this.preset = preset == null ? MotorwaySignPreset.D31B_EX1 : preset;
+        setConfiguration(preset, values, customMode, panels, null);
+    }
+
+    public void setConfiguration(
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            boolean customMode,
+            MotorwaySignPanelData[] panels,
+            MotorwaySignServiceIcon[] services
+    ) {
+        this.preset = preset == null ? MotorwaySignPreset.FREEFORM : preset;
         for (int i = 0; i < MAX_SLOTS; i++) {
             if (values != null && i < values.length && values[i] != null) {
                 this.lines[i] = values[i];
@@ -103,6 +140,16 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                 this.customPanels[index] = MotorwaySignPanelData.disabled();
             }
         }
+        for (int index = 0; index < MotorwaySignServiceIcon.MAX_SLOTS; index++) {
+            MotorwaySignServiceIcon icon = services != null && index < services.length
+                    ? services[index]
+                    : null;
+            if (icon != null) {
+                this.services[index] = icon;
+            } else if (this.services[index] == null) {
+                this.services[index] = MotorwaySignServiceIcon.NONE;
+            }
+        }
         setChanged();
     }
 
@@ -118,7 +165,7 @@ public class MotorwaySignBlockEntity extends BlockEntity {
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.preset = MotorwaySignPreset.fromSerializedName(
-                input.getStringOr("preset", MotorwaySignPreset.D31B_EX1.getSerializedName())
+                input.getStringOr("preset", MotorwaySignPreset.FREEFORM.getSerializedName())
         );
         for (int i = 0; i < MAX_SLOTS; i++) {
             MotorwaySignLineData fallback = i < this.preset.getSlotCount()
@@ -173,6 +220,13 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                     MotorwaySignPanelData.parseGraphic(input.getStringOr(
                             prefix + "graphic", MotorwaySignGraphic.NONE.name()
                     ))
+            );
+        }
+
+        MotorwaySignServiceIcon[] serviceDefaults = MotorwaySignServiceIcon.defaults();
+        for (int index = 0; index < MotorwaySignServiceIcon.MAX_SLOTS; index++) {
+            this.services[index] = MotorwaySignServiceIcon.fromSerializedName(
+                    input.getStringOr("service_" + index, serviceDefaults[index].getSerializedName())
             );
         }
 
@@ -304,6 +358,17 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                 && matchesTexts("A 6", "LYON", "ÉVRY", "1500 m")) {
             applyPresetDefaults(this.preset);
         }
+        /*
+         * D44 avait auparavant deux lignes de texte libres suivies d'une
+         * distance ("PROCHAINE AIRE" / "LIMOURS-JANVRY" / "20 km"). Le
+         * préréglage a été refait pour suivre le vrai registre sortie +
+         * distance puis nom du village étape : un panneau resté sur cet
+         * ancien texte par défaut reprend donc les nouvelles valeurs.
+         */
+        if (this.preset == MotorwaySignPreset.D44
+                && matchesTexts("PROCHAINE AIRE", "LIMOURS-JANVRY", "20 km")) {
+            applyPresetDefaults(this.preset);
+        }
     }
 
     private boolean matchesTexts(String... expected) {
@@ -355,6 +420,12 @@ public class MotorwaySignBlockEntity extends BlockEntity {
             output.putString(prefix + "cartouche_type", panel.cartoucheType().getSerializedName());
             output.putString(prefix + "cartouche_text", panel.cartoucheText());
             output.putString(prefix + "graphic", panel.graphic().name());
+        }
+        for (int index = 0; index < MotorwaySignServiceIcon.MAX_SLOTS; index++) {
+            MotorwaySignServiceIcon icon = this.services[index] == null
+                    ? MotorwaySignServiceIcon.NONE
+                    : this.services[index];
+            output.putString("service_" + index, icon.getSerializedName());
         }
     }
 

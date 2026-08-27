@@ -12,13 +12,18 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.xelpy.moreroad.MoreRoad;
 import net.xelpy.moreroad.block.custom.CartoucheType;
+import net.xelpy.moreroad.block.custom.MotorwaySignCatalogInfo;
 import net.xelpy.moreroad.block.custom.MotorwaySignColor;
 import net.xelpy.moreroad.block.custom.MotorwaySignGraphic;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
+import net.xelpy.moreroad.block.custom.MotorwaySignPreviewLayout;
 import net.xelpy.moreroad.block.custom.MotorwaySignRole;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.MotorwaySignSlot;
+import net.xelpy.moreroad.client.renderer.MotorwaySignArtworkCatalog;
+import net.xelpy.moreroad.block.custom.MotorwaySignStyleProfile;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
 import net.xelpy.moreroad.network.UpdateMotorwaySignPayload;
@@ -65,6 +70,9 @@ public class MotorwaySignEditScreen extends Screen {
             new SignEditorUi.Rect[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
     private final SignEditorUi.Rect[] customEnabledRects =
             new SignEditorUi.Rect[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
+    /** Choix des panonceaux CE du D44 (voir MotorwaySignServiceIcon) : sans effet pour les autres modèles. */
+    private final MotorwaySignServiceIcon[] services = new MotorwaySignServiceIcon[MotorwaySignServiceIcon.MAX_SLOTS];
+    private final SignEditorUi.Rect[] serviceRects = new SignEditorUi.Rect[MotorwaySignServiceIcon.MAX_SLOTS];
     private final SignEditorUi.Rect[] customPageRects = new SignEditorUi.Rect[4];
     private int customSettingsPage;
     private SignEditorUi.Rect modeRect;
@@ -100,11 +108,12 @@ public class MotorwaySignEditScreen extends Screen {
             MotorwaySignPreset preset,
             MotorwaySignLineData[] values,
             boolean customMode,
-            MotorwaySignPanelData[] customPanels
+            MotorwaySignPanelData[] customPanels,
+            MotorwaySignServiceIcon[] services
     ) {
         super(Component.literal("Panneaux autoroutiers modulables"));
         this.blockPos = blockPos.immutable();
-        this.preset = preset == null ? MotorwaySignPreset.D31B_EX1 : preset;
+        this.preset = preset == null ? MotorwaySignPreset.FREEFORM : preset;
         /* L'ancien mode est volontairement ignoré : l'éditeur est désormais unifié. */
         this.customMode = false;
         for (int i = 0; i < MotorwaySignBlockEntity.MAX_SLOTS; i++) {
@@ -128,6 +137,12 @@ public class MotorwaySignEditScreen extends Screen {
             this.customPanels[index] = index == 0
                     ? normalized
                     : withoutCartouche(normalized);
+        }
+        MotorwaySignServiceIcon[] serviceDefaults = MotorwaySignServiceIcon.defaults();
+        for (int index = 0; index < this.services.length; index++) {
+            this.services[index] = services != null && index < services.length && services[index] != null
+                    ? services[index]
+                    : serviceDefaults[index];
         }
     }
 
@@ -187,6 +202,23 @@ public class MotorwaySignEditScreen extends Screen {
             this.customEnabledRects[index] = new SignEditorUi.Rect(
                     x + width - enabledW, editorTabsY, enabledW, selectorH
             );
+        }
+        if (!allowsExtraPanels(this.preset)) {
+            /*
+             * Réutilise la rangée "Panneau principal / Registre N" (masquée
+             * pour ce modèle) pour les 6 panonceaux CE du D44, plutôt que
+             * d'ajouter une nouvelle rangée et de redécouper toute la mise
+             * en page en dessous.
+             */
+            int serviceGap = Math.max(2, s(4));
+            int serviceW = (innerW - serviceGap * (this.serviceRects.length - 1)) / this.serviceRects.length;
+            for (int index = 0; index < this.serviceRects.length; index++) {
+                int x = innerX + index * (serviceW + serviceGap);
+                int width = index == this.serviceRects.length - 1
+                        ? innerX + innerW - x
+                        : serviceW;
+                this.serviceRects[index] = new SignEditorUi.Rect(x, editorTabsY, width, selectorH);
+            }
         }
         int rowsTop = editorTabsY + selectorH + s(13);
         int availableRowsH = this.contentRect.y() + this.contentRect.height() - rowsTop - s(9);
@@ -348,8 +380,14 @@ public class MotorwaySignEditScreen extends Screen {
         this.customCartoucheField.setHint(Component.literal("Texte du cartouche"));
         this.addRenderableWidget(this.customCartoucheField);
 
+        /*
+         * Sur la même page ("Format") que Blanc/Vert/Bleu juste au-dessus :
+         * doit être sur sa propre rangée (comme customGraphicRect pour la
+         * page "Symbole"), pas à la même position qu'eux sous peine de se
+         * superposer aux 3 boutons de couleur.
+         */
         this.customDoubleLineRect = new SignEditorUi.Rect(
-                innerX, customControlsTop, innerW, fieldH
+                innerX, customControlsTop + fieldH + rowGap, innerW, fieldH
         );
 
         int actionH = SignEditorUi.safeControlHeight(this.font, s(28));
@@ -380,41 +418,52 @@ public class MotorwaySignEditScreen extends Screen {
                 this.windowHeight,
                 "D/DA",
                 "Panneaux autoroutiers modulables",
-                compactUi() ? "" : "62 préréglages • dimensions réelles adaptatives • plaques séparées conservées"
+                compactUi() ? "" : "1 seul bloc • modèles classés par fonction • réglages communs"
         );
         drawPreview(graphics);
         SignEditorUi.drawModernSection(
                 graphics,
                 this.font,
                 this.contentRect,
-                "MODÈLE ET CONTENU",
-                compactUi() ? "" : "Chaque champ conserve sa police et la couleur de sa plaque"
+                "CONFIGURATION DU PANNEAU",
+                compactUi() ? "" : "Choisis un modèle de départ puis personnalise ses registres"
         );
 
         SignEditorUi.drawModernButton(graphics, this.font, this.presetRect,
-                fitText("▦  " + this.preset.getDisplayName() + " — choisir le modèle", this.presetRect.width() - 8),
+                fitText("▦  " + this.preset.getDisplayName() + " — modèles / familles", this.presetRect.width() - 8),
                 true, true, mouseX, mouseY);
         SignEditorUi.drawModernButton(graphics, this.font, this.resetRect, "Réinitialiser", false, true, mouseX, mouseY);
-        SignEditorUi.drawModernButton(
-                graphics, this.font, this.modeRect,
-                "Contenu", !this.customMode, true, mouseX, mouseY
-        );
-        MotorwaySignPanelData currentPanel = currentCustomPanelFromWidgets();
-        for (int index = 0; index < this.customTabRects.length; index++) {
-            MotorwaySignPanelData panel = this.customMode && index == this.selectedCustomPanel
-                    ? currentPanel
-                    : this.customPanels[index];
+        if (allowsExtraPanels(this.preset)) {
             SignEditorUi.drawModernButton(
-                    graphics, this.font, this.customTabRects[index],
-                    "Ajout " + (index + 1),
-                    this.customMode && index == this.selectedCustomPanel,
-                    true, mouseX, mouseY
+                    graphics, this.font, this.modeRect,
+                    "Panneau principal", !this.customMode, true, mouseX, mouseY
             );
-            SignEditorUi.drawModernButton(
-                    graphics, this.font, this.customEnabledRects[index],
-                    panel.enabled() ? "✓" : "×", panel.enabled(),
-                    true, mouseX, mouseY
-            );
+            MotorwaySignPanelData currentPanel = currentCustomPanelFromWidgets();
+            for (int index = 0; index < this.customTabRects.length; index++) {
+                MotorwaySignPanelData panel = this.customMode && index == this.selectedCustomPanel
+                        ? currentPanel
+                        : this.customPanels[index];
+                SignEditorUi.drawModernButton(
+                        graphics, this.font, this.customTabRects[index],
+                        "Registre " + (index + 1),
+                        this.customMode && index == this.selectedCustomPanel,
+                        true, mouseX, mouseY
+                );
+                SignEditorUi.drawModernButton(
+                        graphics, this.font, this.customEnabledRects[index],
+                        panel.enabled() ? "✓" : "×", panel.enabled(),
+                        true, mouseX, mouseY
+                );
+            }
+        } else {
+            for (int index = 0; index < this.serviceRects.length; index++) {
+                MotorwaySignServiceIcon icon = this.services[index];
+                SignEditorUi.drawModernButton(
+                        graphics, this.font, this.serviceRects[index],
+                        fitText(icon.getDisplayName(), this.serviceRects[index].width() - 6),
+                        icon.isVisible(), true, mouseX, mouseY
+                );
+            }
         }
 
         if (this.customMode) {
@@ -462,7 +511,7 @@ public class MotorwaySignEditScreen extends Screen {
                 this.font,
                 this.previewRect,
                 "APERÇU",
-                compactUi() ? "" : this.preset.getDisplayName() + " • " + this.preset.getSupport().name().toLowerCase()
+                compactUi() ? "" : this.preset.getDisplayName() + " • " + MotorwaySignCatalogInfo.usage(this.preset)
         );
         int pad = s(18);
         int x = this.previewRect.x() + pad;
@@ -470,6 +519,32 @@ public class MotorwaySignEditScreen extends Screen {
         int w = this.previewRect.width() - pad * 2;
         int h = this.previewRect.height() - pad * 2 - s(8);
         graphics.fill(x, y, x + w, y + h, 0xFFF0F3F6);
+
+        if (this.preset == MotorwaySignPreset.D44) {
+            /*
+             * L'algorithme générique ci-dessous suppose l'agencement des
+             * autres modèles (pastille de sortie tout en haut, distance tout
+             * en bas, registres au milieu) : il ne représente pas du tout le
+             * D44 (sortie+distance sur un même registre en haut, nom en
+             * dessous). Schéma dédié, cohérent avec D44_ARTWORK.
+             */
+            drawD44Preview(graphics, x, y, w, h);
+            return;
+        }
+
+        MotorwaySignPreviewLayout exactLayout = MotorwaySignArtworkCatalog.previewLayoutFor(this.preset);
+        if (exactLayout != null) {
+            /*
+             * Modèles à dessin exact (la plupart des ~62 préréglages) : la
+             * disposition ROUTE-en-haut/DISTANCE-en-bas ci-dessous ne
+             * correspond pas à leur registre réel (numéro de route encarté
+             * dans un registre, distance regroupée avec un nom...). On
+             * retrouve les vraies positions/tailles mesurées sur le SVG au
+             * lieu de les redeviner.
+             */
+            drawExactPreview(graphics, exactLayout, x, y, w, h);
+            return;
+        }
 
         TreeMap<Integer, List<Integer>> groups = new TreeMap<>();
         List<Integer> routes = new ArrayList<>();
@@ -535,7 +610,11 @@ public class MotorwaySignEditScreen extends Screen {
             int routeX = centerX - total / 2;
             cursorY -= ph;
             for (int index : routes) {
-                drawPreviewPlate(graphics, routeX, cursorY, pw, ph, this.lineColors[index]);
+                MotorwaySignSlot routeSlot = this.preset.getSlot(index);
+                MotorwaySignColor routeColor = isRoadCartouchePreviewSlot(routeSlot)
+                        ? MotorwaySignStyleProfile.visualRoadCartoucheColor(this.lineColors[index])
+                        : this.lineColors[index];
+                drawPreviewPlate(graphics, routeX, cursorY, pw, ph, routeColor);
                 drawPreviewText(graphics, index, routeX, cursorY, pw, ph);
                 routeX += pw + plateGap;
             }
@@ -562,7 +641,7 @@ public class MotorwaySignEditScreen extends Screen {
         MotorwaySignPanelData current = currentCustomPanelFromWidgets();
         SignEditorUi.drawPageTabs(
                 graphics, this.font, this.customPageRects,
-                new String[]{"Texte", "Style", "Cart.", "Format"},
+                new String[]{"Textes", "Format", "Cartouche", "Symbole"},
                 this.customSettingsPage, mouseX, mouseY
         );
         switch (this.customSettingsPage) {
@@ -601,9 +680,9 @@ public class MotorwaySignEditScreen extends Screen {
                         current.background() == MotorwaySignColor.BLUE, true, mouseX, mouseY
                 );
                 SignEditorUi.drawModernButton(
-                        graphics, this.font, this.customGraphicRect,
-                        "Symbole : " + graphicLabel(current.graphic()),
-                        current.graphic() != MotorwaySignGraphic.NONE, true, mouseX, mouseY
+                        graphics, this.font, this.customDoubleLineRect,
+                        "Villes sur la pancarte : " + current.lineCount(),
+                        current.lineCount() > 1, true, mouseX, mouseY
                 );
             }
             case 2 -> {
@@ -619,9 +698,9 @@ public class MotorwaySignEditScreen extends Screen {
                 );
             }
             default -> SignEditorUi.drawModernButton(
-                    graphics, this.font, this.customDoubleLineRect,
-                    "Villes sur la pancarte : " + current.lineCount(),
-                    current.lineCount() > 1, true, mouseX, mouseY
+                    graphics, this.font, this.customGraphicRect,
+                    "Symbole : " + graphicLabel(current.graphic()),
+                    current.graphic() != MotorwaySignGraphic.NONE, true, mouseX, mouseY
             );
         }
     }
@@ -638,12 +717,13 @@ public class MotorwaySignEditScreen extends Screen {
         int h = this.previewRect.height() - pad * 2 - s(8);
         graphics.fill(x, y, x + w, y + h, 0xFFF0F3F6);
 
+        MotorwaySignStyleProfile style = MotorwaySignStyleProfile.forPreset(this.preset);
         MotorwaySignPanelData[] panels = previewCustomPanels();
         List<MotorwaySignPanelData> enabled = new ArrayList<>();
         for (MotorwaySignPanelData panel : panels) {
             if (panel.enabled()
                     && !(panel.cartoucheType().isVisible() && !panel.hasPanelContent())) {
-                enabled.add(panel);
+                enabled.add(withPreviewStyle(panel, style));
             }
         }
         int gap = Math.max(3, s(5));
@@ -651,10 +731,13 @@ public class MotorwaySignEditScreen extends Screen {
         int originalH = s(52);
         int totalH = originalH;
         for (MotorwaySignPanelData panel : enabled) {
-            totalH += gap + s(25 + panel.lineCount() * 19);
+            totalH += gap + previewPanelHeight(panel, style);
         }
-        MotorwaySignPanelData firstPanel = panels.length > 0 ? panels[0] : null;
-        boolean showTopCartouche = firstPanel != null && firstPanel.cartoucheType().isVisible();
+        MotorwaySignPanelData firstPanel = panels.length > 0
+                ? withPreviewStyle(panels[0], style)
+                : null;
+        boolean showTopCartouche = style.allowsCustomCartouche()
+                && firstPanel != null && firstPanel.cartoucheType().isVisible();
         if (showTopCartouche) {
             totalH += s(29) + gap;
         }
@@ -690,7 +773,7 @@ public class MotorwaySignEditScreen extends Screen {
 
         for (MotorwaySignPanelData panel : enabled) {
             cursorY += gap;
-            int panelH = s(25 + panel.lineCount() * 19);
+            int panelH = previewPanelHeight(panel, style);
             drawPreviewPlate(
                     graphics, centerX - panelW / 2, cursorY, panelW, panelH, panel.background()
             );
@@ -698,7 +781,9 @@ public class MotorwaySignEditScreen extends Screen {
             for (int lineIndex = 0; lineIndex < panel.lineCount(); lineIndex++) {
                 drawCustomPreviewLine(
                         graphics,
-                        panel.line(lineIndex), panel.distance(lineIndex), panel.font(lineIndex), panel.background(),
+                        panel.line(lineIndex),
+                        style.allowsCustomDistances() ? panel.distance(lineIndex) : "",
+                        panel.font(lineIndex), panel.background(),
                         centerX - panelW / 2, cursorY + lineIndex * lineH,
                         panelW, lineIndex == panel.lineCount() - 1
                                 ? panelH - lineIndex * lineH
@@ -707,6 +792,42 @@ public class MotorwaySignEditScreen extends Screen {
             }
             cursorY += panelH;
         }
+    }
+
+    private int previewPanelHeight(
+            MotorwaySignPanelData panel,
+            MotorwaySignStyleProfile style
+    ) {
+        float baseline = 0.48F + 0.40F * panel.lineCount();
+        float profileHeight = style.addedPanelHeight(panel.lineCount(), panel.graphic());
+        float ratio = baseline <= 0.001F ? 1.0F : profileHeight / baseline;
+        return Math.max(s(39), Math.round(s(25 + panel.lineCount() * 19) * ratio));
+    }
+
+    private static MotorwaySignPanelData withPreviewStyle(
+            MotorwaySignPanelData panel,
+            MotorwaySignStyleProfile style
+    ) {
+        boolean keepDistances = style.allowsCustomDistances();
+        return new MotorwaySignPanelData(
+                panel.enabled(), panel.lineCount(),
+                panel.line1(), panel.line2(), panel.line3(), panel.line4(),
+                keepDistances ? panel.distance1() : "",
+                keepDistances ? panel.distance2() : "",
+                keepDistances ? panel.distance3() : "",
+                keepDistances ? panel.distance4() : "",
+                panel.line1Font(), panel.line2Font(), panel.line3Font(), panel.line4Font(),
+                style.sanitizeCustomBackground(panel.background()),
+                style.allowsCustomCartouche() ? panel.cartoucheType() : CartoucheType.NONE,
+                style.allowsCustomCartouche() ? panel.cartoucheText() : "",
+                style.forceBlueCustomPanels() ? MotorwaySignGraphic.NONE : panel.graphic()
+        );
+    }
+
+    private static boolean isRoadCartouchePreviewSlot(MotorwaySignSlot slot) {
+        return slot != null
+                && slot.role() == MotorwaySignRole.ROUTE
+                && !slot.label().toLowerCase(java.util.Locale.ROOT).contains("sortie");
     }
 
     private void drawCustomPreviewText(
@@ -766,6 +887,146 @@ public class MotorwaySignEditScreen extends Screen {
         }
     }
 
+    /**
+     * Aperçu générique pour tout modèle à dessin exact (autre que D44, qui a
+     * son propre schéma pour sa pastille/idéogramme/CE) : place chaque
+     * registre et chaque texte à sa vraie position/taille relative mesurée
+     * sur le SVG (voir MotorwaySignArtworkCatalog), à l'échelle de la zone
+     * d'aperçu. Les graphismes (flèches, symboles) ne sont pas représentés :
+     * seule la disposition des registres et du texte est reproduite.
+     */
+    private void drawExactPreview(
+            GuiGraphicsExtractor graphics,
+            MotorwaySignPreviewLayout layout,
+            int x,
+            int y,
+            int w,
+            int h
+    ) {
+        float scale = Math.min(w / layout.sourceWidth(), h / layout.sourceHeight());
+        int signW = Math.round(layout.sourceWidth() * scale);
+        int signH = Math.round(layout.sourceHeight() * scale);
+        int left = x + (w - signW) / 2;
+        int top = y + (h - signH) / 2;
+
+        for (int index = 0; index < layout.bodyCount(); index++) {
+            int bodyX = left + Math.round(layout.bodyX()[index] * scale);
+            int bodyY = top + Math.round(layout.bodyY()[index] * scale);
+            int bodyW = Math.round(layout.bodyWidth()[index] * scale);
+            int bodyH = Math.round(layout.bodyHeight()[index] * scale);
+            drawPreviewPlate(graphics, bodyX, bodyY, bodyW, bodyH, exactBodyPreviewColor(layout, index));
+        }
+        for (int index = 0; index < layout.textCount(); index++) {
+            int slot = layout.textSlotIndex()[index];
+            if (slot < 0 || slot >= this.preset.getSlotCount()) {
+                continue;
+            }
+            int textW = Math.round(layout.textWidth()[index] * scale);
+            int textH = Math.round(layout.textHeight()[index] * scale);
+            int textX = left + Math.round(layout.textX()[index] * scale) - textW / 2;
+            int textY = top + Math.round(layout.textY()[index] * scale) - textH / 2;
+            drawPreviewText(graphics, slot, textX, textY, textW, textH);
+        }
+    }
+
+    /**
+     * Couleur du registre = celle du premier texte non-ROUTE qui s'y trouve
+     * (un registre ne prend jamais le jaune/rouge d'un simple cartouche de
+     * numéro de route encarté dedans, comme sur le vrai panneau). Blanc par
+     * défaut si le registre ne contient que ça, ou aucun texte.
+     */
+    private MotorwaySignColor exactBodyPreviewColor(MotorwaySignPreviewLayout layout, int bodyIndex) {
+        float top = layout.bodyY()[bodyIndex];
+        float bottom = top + layout.bodyHeight()[bodyIndex];
+        for (int index = 0; index < layout.textCount(); index++) {
+            float textY = layout.textY()[index];
+            if (textY < top || textY > bottom) {
+                continue;
+            }
+            int slot = layout.textSlotIndex()[index];
+            if (slot < 0 || slot >= this.preset.getSlotCount()) {
+                continue;
+            }
+            if (this.preset.getSlot(slot).role() == MotorwaySignRole.ROUTE) {
+                continue;
+            }
+            return this.lineColors[slot];
+        }
+        return MotorwaySignColor.WHITE;
+    }
+
+    /**
+     * Schéma dédié au D44 : registre "sortie + distance" en haut, registre
+     * "nom du village" en dessous, dans les mêmes proportions que
+     * D44_ARTWORK (registres de 1826/4468 et 2455/4468 de la hauteur totale
+     * des deux registres). Les panonceaux CE ne sont pas dessinés ici (pas
+     * éditables), un rappel de trois cases suffit à situer leur emplacement.
+     */
+    private void drawD44Preview(GuiGraphicsExtractor graphics, int x, int y, int w, int h) {
+        int signW = Math.min(w - s(24), Math.max(s(200), (int) (w * 0.80F)));
+        int totalHeight = Math.min(h - s(20), Math.max(s(120), (int) (h * 0.62F)));
+        int register1Height = Math.max(s(30), Math.round(totalHeight * (1826.0F / 4281.0F)));
+        int register2Height = totalHeight - register1Height;
+        int centerX = x + w / 2;
+        int poleColor = 0xFF2C2C2C;
+        int top = y + s(14);
+
+        drawPreviewPlate(graphics, centerX - signW / 2, top, signW, register1Height, this.lineColors[0]);
+        /*
+         * Rappel visuel de la pastille de sortie : un cadre (bordure + fond
+         * clair), pas un carré plein — sinon le "12" dessiné juste après,
+         * en noir, disparaît sur son propre fond noir (bug précédent).
+         */
+        int pillSize = register1Height - s(12);
+        drawPreviewPlate(
+                graphics,
+                centerX - signW / 2 + s(8), top + s(6),
+                pillSize, pillSize,
+                this.lineColors[0]
+        );
+        drawPreviewText(graphics, 0, centerX - signW / 2 + s(8), top + s(6), pillSize, pillSize);
+        drawPreviewText(graphics, 1, centerX, top, signW / 2 - s(8), register1Height);
+
+        int register2Top = top + register1Height + Math.max(2, s(4));
+        drawPreviewPlate(graphics, centerX - signW / 2, register2Top, signW, register2Height, this.lineColors[2]);
+        drawPreviewText(graphics, 2, centerX - signW / 2, register2Top, signW, register2Height / 2);
+
+        /* Panonceaux réellement choisis (voir le nouveau bandeau au-dessus des champs), pas un rappel fixe. */
+        int visibleServices = 0;
+        for (MotorwaySignServiceIcon icon : this.services) {
+            if (icon.isVisible()) {
+                visibleServices++;
+            }
+        }
+        int rows = visibleServices > 3 ? 2 : 1;
+        int servicesTop = register2Top + register2Height + Math.max(3, s(6));
+        int serviceSize = Math.max(s(18), signW / 8);
+        int serviceGap = Math.max(2, s(4));
+        int servicesTotal = serviceSize * 3 + serviceGap * 2;
+        int drawn = 0;
+        for (MotorwaySignServiceIcon icon : this.services) {
+            if (!icon.isVisible()) {
+                continue;
+            }
+            int row = drawn / 3;
+            int col = drawn % 3;
+            int plateX = centerX - servicesTotal / 2 + col * (serviceSize + serviceGap);
+            int plateY = servicesTop + row * (serviceSize + serviceGap);
+            drawPreviewPlate(graphics, plateX, plateY, serviceSize, serviceSize, MotorwaySignColor.BLUE);
+            graphics.blit(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "textures/block/" + icon.getTextureFile()),
+                    plateX + s(3), plateY + s(3), plateX + serviceSize - s(3), plateY + serviceSize - s(3),
+                    0.0F, 1.0F, 0.0F, 1.0F
+            );
+            drawn++;
+        }
+
+        int poleBottom = y + h - s(8);
+        int poleTop = servicesTop + rows * serviceSize + Math.max(0, rows - 1) * serviceGap;
+        graphics.fill(centerX - s(5), poleTop, centerX + s(5), poleBottom, poleColor);
+        graphics.fill(centerX - s(14), poleBottom - s(8), centerX + s(14), poleBottom, poleColor);
+    }
+
     private void drawPreviewPlate(
             GuiGraphicsExtractor graphics,
             int x,
@@ -791,7 +1052,9 @@ public class MotorwaySignEditScreen extends Screen {
         Component component = Component.literal(text).withStyle(
                 Style.EMPTY.withFont(this.lineFonts[index] == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1)
         );
-        int drawX = this.preset == MotorwaySignPreset.D63C && (index == 2 || index == 3)
+        boolean leftAligned = (this.preset == MotorwaySignPreset.D63C && (index == 2 || index == 3))
+                || (this.preset == MotorwaySignPreset.D44 && index == 2);
+        int drawX = leftAligned
                 ? x + s(9)
                 : x + (width - this.font.width(component)) / 2;
         int drawY = y + (height - this.font.lineHeight) / 2;
@@ -816,45 +1079,54 @@ public class MotorwaySignEditScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (event.button() == 0) {
-            if (this.modeRect.contains(event.x(), event.y())) {
-                if (this.customMode) {
-                    storeSelectedCustomPanel();
-                }
-                this.customMode = false;
-                loadContentCartoucheIntoWidgets();
-                updateVisibleFields();
-                this.setInitialFocus(this.fields[0]);
-                return true;
-            }
-            for (int index = 0; index < this.customTabRects.length; index++) {
-                if (this.customEnabledRects[index].contains(event.x(), event.y())) {
-                    if (this.customMode && index == this.selectedCustomPanel) {
-                        MotorwaySignPanelData current = currentCustomPanelFromWidgets();
-                        setCurrentCustomPanel(copyPanel(
-                                current, !current.enabled(), null, null, null,
-                                null, null, null
-                        ));
-                    } else {
-                        MotorwaySignPanelData panel = this.customPanels[index];
-                        this.customPanels[index] = copyPanel(
-                                panel, !panel.enabled(), null, null, null,
-                                null, null, null
-                        );
-                    }
-                    return true;
-                }
-                if (this.customTabRects[index].contains(event.x(), event.y())) {
+            if (allowsExtraPanels(this.preset)) {
+                if (this.modeRect.contains(event.x(), event.y())) {
                     if (this.customMode) {
                         storeSelectedCustomPanel();
-                    } else {
-                        storeContentCartouche();
                     }
-                    this.selectedCustomPanel = index;
-                    this.customMode = true;
-                    loadCustomPanelIntoWidgets();
+                    this.customMode = false;
+                    loadContentCartoucheIntoWidgets();
                     updateVisibleFields();
-                    this.setInitialFocus(this.customLine1Field);
+                    this.setInitialFocus(this.fields[0]);
                     return true;
+                }
+                for (int index = 0; index < this.customTabRects.length; index++) {
+                    if (this.customEnabledRects[index].contains(event.x(), event.y())) {
+                        if (this.customMode && index == this.selectedCustomPanel) {
+                            MotorwaySignPanelData current = currentCustomPanelFromWidgets();
+                            setCurrentCustomPanel(copyPanel(
+                                    current, !current.enabled(), null, null, null,
+                                    null, null, null
+                            ));
+                        } else {
+                            MotorwaySignPanelData panel = this.customPanels[index];
+                            this.customPanels[index] = copyPanel(
+                                    panel, !panel.enabled(), null, null, null,
+                                    null, null, null
+                            );
+                        }
+                        return true;
+                    }
+                    if (this.customTabRects[index].contains(event.x(), event.y())) {
+                        if (this.customMode) {
+                            storeSelectedCustomPanel();
+                        } else {
+                            storeContentCartouche();
+                        }
+                        this.selectedCustomPanel = index;
+                        this.customMode = true;
+                        loadCustomPanelIntoWidgets();
+                        updateVisibleFields();
+                        this.setInitialFocus(this.customLine1Field);
+                        return true;
+                    }
+                }
+            } else {
+                for (int index = 0; index < this.serviceRects.length; index++) {
+                    if (this.serviceRects[index].contains(event.x(), event.y())) {
+                        this.services[index] = this.services[index].next();
+                        return true;
+                    }
                 }
             }
             if (this.customMode) {
@@ -963,6 +1235,8 @@ public class MotorwaySignEditScreen extends Screen {
             this.lineFonts[i] = data.font();
             this.lineColors[i] = data.color();
         }
+        MotorwaySignServiceIcon[] serviceDefaults = MotorwaySignServiceIcon.defaults();
+        System.arraycopy(serviceDefaults, 0, this.services, 0, this.services.length);
     }
 
     private void updateVisibleFields() {
@@ -976,20 +1250,21 @@ public class MotorwaySignEditScreen extends Screen {
             boolean textPage = this.customMode && this.customSettingsPage == 0;
             this.customLine1Field.visible = textPage;
             this.customLine1Field.active = textPage;
-            this.customDistance1Field.visible = textPage;
-            this.customDistance1Field.active = textPage;
+            boolean allowDistances = allowsCustomDistances(this.preset);
+            this.customDistance1Field.visible = textPage && allowDistances;
+            this.customDistance1Field.active = textPage && allowDistances;
             this.customLine2Field.visible = textPage && panel.doubleLine();
             this.customLine2Field.active = textPage && panel.doubleLine();
-            this.customDistance2Field.visible = textPage && panel.doubleLine();
-            this.customDistance2Field.active = textPage && panel.doubleLine();
+            this.customDistance2Field.visible = textPage && allowDistances && panel.doubleLine();
+            this.customDistance2Field.active = textPage && allowDistances && panel.doubleLine();
             this.customLine3Field.visible = textPage && panel.lineCount() >= 3;
             this.customLine3Field.active = textPage && panel.lineCount() >= 3;
-            this.customDistance3Field.visible = textPage && panel.lineCount() >= 3;
-            this.customDistance3Field.active = textPage && panel.lineCount() >= 3;
+            this.customDistance3Field.visible = textPage && allowDistances && panel.lineCount() >= 3;
+            this.customDistance3Field.active = textPage && allowDistances && panel.lineCount() >= 3;
             this.customLine4Field.visible = textPage && panel.lineCount() >= 4;
             this.customLine4Field.active = textPage && panel.lineCount() >= 4;
-            this.customDistance4Field.visible = textPage && panel.lineCount() >= 4;
-            this.customDistance4Field.active = textPage && panel.lineCount() >= 4;
+            this.customDistance4Field.visible = textPage && allowDistances && panel.lineCount() >= 4;
+            this.customDistance4Field.active = textPage && allowDistances && panel.lineCount() >= 4;
             boolean cartouchePage = this.customMode && this.customSettingsPage == 2
                     && this.selectedCustomPanel == 0
                     && allowsCustomCartouche(this.preset);
@@ -1005,8 +1280,16 @@ public class MotorwaySignEditScreen extends Screen {
     }
 
     private static boolean allowsCustomCartouche(MotorwaySignPreset preset) {
-        return preset != MotorwaySignPreset.D31B_EX1
-                && preset != MotorwaySignPreset.D31B_EX2;
+        return MotorwaySignStyleProfile.forPreset(preset).allowsCustomCartouche();
+    }
+
+    /** Masque les onglets "Registre N" pour les panneaux au dessin figé (D44...) : voir MotorwaySignStyleProfile. */
+    private static boolean allowsExtraPanels(MotorwaySignPreset preset) {
+        return MotorwaySignStyleProfile.forPreset(preset).allowsExtraPanels();
+    }
+
+    private static boolean allowsCustomDistances(MotorwaySignPreset preset) {
+        return MotorwaySignStyleProfile.forPreset(preset).allowsCustomDistances();
     }
 
     private boolean handleCustomClick(double x, double y) {
@@ -1042,7 +1325,7 @@ public class MotorwaySignEditScreen extends Screen {
                     MotorwaySignColor.BLUE, null, null));
             return true;
         }
-        if (this.customSettingsPage == 3 && this.customDoubleLineRect.contains(x, y)) {
+        if (this.customSettingsPage == 1 && this.customDoubleLineRect.contains(x, y)) {
             setCurrentCustomPanel(copyPanelWithLineCount(current, current.lineCount() % 4 + 1));
             updateVisibleFields();
             return true;
@@ -1056,7 +1339,7 @@ public class MotorwaySignEditScreen extends Screen {
             updateVisibleFields();
             return true;
         }
-        if (this.customSettingsPage == 1 && this.customGraphicRect.contains(x, y)) {
+        if (this.customSettingsPage == 3 && this.customGraphicRect.contains(x, y)) {
             MotorwaySignGraphic[] graphics = MotorwaySignGraphic.values();
             MotorwaySignGraphic next = graphics[(current.graphic().ordinal() + 1) % graphics.length];
             setCurrentCustomPanel(copyPanel(current, null, null, null, null, null, null, next));
@@ -1123,12 +1406,15 @@ public class MotorwaySignEditScreen extends Screen {
         if (this.customLine1Field == null) {
             return stored;
         }
+        boolean allowDistances = allowsCustomDistances(this.preset);
         return new MotorwaySignPanelData(
                 stored.enabled(), stored.lineCount(),
                 this.customLine1Field.getValue(), this.customLine2Field.getValue(),
                 this.customLine3Field.getValue(), this.customLine4Field.getValue(),
-                this.customDistance1Field.getValue(), this.customDistance2Field.getValue(),
-                this.customDistance3Field.getValue(), this.customDistance4Field.getValue(),
+                allowDistances ? this.customDistance1Field.getValue() : "",
+                allowDistances ? this.customDistance2Field.getValue() : "",
+                allowDistances ? this.customDistance3Field.getValue() : "",
+                allowDistances ? this.customDistance4Field.getValue() : "",
                 stored.line1Font(), stored.line2Font(), stored.line3Font(), stored.line4Font(),
                 stored.background(),
                 stored.cartoucheType(), this.customCartoucheField.getValue(), stored.graphic()
@@ -1326,7 +1612,9 @@ public class MotorwaySignEditScreen extends Screen {
                 data[0], data[1], data[2], data[3], data[4], data[5],
                 false,
                 this.customPanels[0], this.customPanels[1],
-                this.customPanels[2], this.customPanels[3]
+                this.customPanels[2], this.customPanels[3],
+                this.services[0], this.services[1], this.services[2],
+                this.services[3], this.services[4], this.services[5]
         ));
         this.onClose();
     }

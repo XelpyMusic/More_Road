@@ -13,6 +13,7 @@ import net.xelpy.moreroad.block.custom.MotorwaySignGraphic;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
 
@@ -29,7 +30,13 @@ public record UpdateMotorwaySignPayload(
         MotorwaySignPanelData panel0,
         MotorwaySignPanelData panel1,
         MotorwaySignPanelData panel2,
-        MotorwaySignPanelData panel3
+        MotorwaySignPanelData panel3,
+        MotorwaySignServiceIcon service0,
+        MotorwaySignServiceIcon service1,
+        MotorwaySignServiceIcon service2,
+        MotorwaySignServiceIcon service3,
+        MotorwaySignServiceIcon service4,
+        MotorwaySignServiceIcon service5
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateMotorwaySignPayload> TYPE =
@@ -44,7 +51,9 @@ public record UpdateMotorwaySignPayload(
                     decodeLine(buffer), decodeLine(buffer), decodeLine(buffer),
                     decodeLine(buffer), decodeLine(buffer), decodeLine(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
-                    decodePanel(buffer), decodePanel(buffer), decodePanel(buffer), decodePanel(buffer)
+                    decodePanel(buffer), decodePanel(buffer), decodePanel(buffer), decodePanel(buffer),
+                    decodeService(buffer), decodeService(buffer), decodeService(buffer),
+                    decodeService(buffer), decodeService(buffer), decodeService(buffer)
             );
         }
 
@@ -58,6 +67,9 @@ public record UpdateMotorwaySignPayload(
             ByteBufCodecs.BOOL.encode(buffer, payload.customMode());
             for (int i = 0; i < MotorwaySignBlockEntity.MAX_CUSTOM_PANELS; i++) {
                 encodePanel(buffer, payload.panel(i));
+            }
+            for (int i = 0; i < MotorwaySignServiceIcon.MAX_SLOTS; i++) {
+                encodeService(buffer, payload.service(i));
             }
         }
     };
@@ -74,6 +86,12 @@ public record UpdateMotorwaySignPayload(
         panel1 = safePanel(panel1);
         panel2 = safePanel(panel2);
         panel3 = safePanel(panel3);
+        service0 = safeService(service0);
+        service1 = safeService(service1);
+        service2 = safeService(service2);
+        service3 = safeService(service3);
+        service4 = safeService(service4);
+        service5 = safeService(service5);
     }
 
     public MotorwaySignPanelData panel(int index) {
@@ -83,6 +101,18 @@ public record UpdateMotorwaySignPayload(
             case 2 -> panel2;
             case 3 -> panel3;
             default -> MotorwaySignPanelData.disabled();
+        };
+    }
+
+    public MotorwaySignServiceIcon service(int index) {
+        return switch (index) {
+            case 0 -> service0;
+            case 1 -> service1;
+            case 2 -> service2;
+            case 3 -> service3;
+            case 4 -> service4;
+            case 5 -> service5;
+            default -> MotorwaySignServiceIcon.NONE;
         };
     }
 
@@ -104,6 +134,18 @@ public record UpdateMotorwaySignPayload(
 
     private static MotorwaySignPanelData safePanel(MotorwaySignPanelData panel) {
         return panel == null ? MotorwaySignPanelData.disabled() : panel;
+    }
+
+    private static MotorwaySignServiceIcon safeService(MotorwaySignServiceIcon icon) {
+        return icon == null ? MotorwaySignServiceIcon.NONE : icon;
+    }
+
+    private static void encodeService(ByteBuf buffer, MotorwaySignServiceIcon icon) {
+        ByteBufCodecs.STRING_UTF8.encode(buffer, safeService(icon).getSerializedName());
+    }
+
+    private static MotorwaySignServiceIcon decodeService(ByteBuf buffer) {
+        return MotorwaySignServiceIcon.fromSerializedName(ByteBufCodecs.STRING_UTF8.decode(buffer));
     }
 
     private static void encodeLine(ByteBuf buffer, MotorwaySignLineData line) {
