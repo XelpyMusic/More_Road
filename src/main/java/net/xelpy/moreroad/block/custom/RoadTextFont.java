@@ -12,7 +12,8 @@ public enum RoadTextFont {
 
     NORMAL("normal", "Normal", ""),
     L1("l1", "L1 - Standard", "caracteres_l1"),
-    L4("l4", "L4 - Italique", "caracteres_l4");
+    L4("l4", "L4 - Italique", "caracteres_l4"),
+    L2("L2", "L2 - Standard blanc", "caracteres_l2");
 
     private final String serializedName;
     private final String displayName;
@@ -47,7 +48,7 @@ public enum RoadTextFont {
      */
     public RoadTextFont next() {
         return switch (this) {
-            case L1 -> L4;
+            case L1,L2 -> L4;
             case L4, NORMAL -> L1;
         };
     }
@@ -62,5 +63,19 @@ public enum RoadTextFont {
         }
 
         return L1;
+    }
+
+    // utilisé pour ajouter un espace entre chaque caractère pour les espacer
+    public static String addSpacing(String text, int spaceCount) {
+        StringBuilder spaced = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            spaced.append(text.charAt(i));
+            if (i < text.length() - 1) {
+                for (int j = 0; j < spaceCount; j++) {
+                    spaced.append(" ");
+                }
+            }
+        }
+        return spaced.toString();
     }
 }

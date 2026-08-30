@@ -389,7 +389,9 @@ public class D21AEditScreen extends Screen {
                 panel.autorouteLogo(),
                 panel.doubleLine(),
                 panel.line1Font(),
-                panel.line2Font()
+                panel.line2Font(),
+                panel.line1Spacing(),
+                panel.line2Spacing()
         );
     }
 

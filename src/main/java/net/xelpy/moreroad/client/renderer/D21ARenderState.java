@@ -31,6 +31,12 @@ public class D21ARenderState extends BlockEntityRenderState {
     public final RoadTextFont[] line2Fonts =
             new RoadTextFont[D21ABlockEntity.MAX_PANELS];
 
+    public final boolean[] line1Spacing =
+            new boolean[D21ABlockEntity.MAX_PANELS];
+
+    public final boolean[] line2Spacing =
+            new boolean[D21ABlockEntity.MAX_PANELS];
+
     public final boolean[] arrowRights =
             new boolean[D21ABlockEntity.MAX_PANELS];
 

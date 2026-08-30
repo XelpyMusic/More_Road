@@ -176,6 +176,8 @@ public record UpdateD21APayload(
                 buffer,
                 panel.line2Font().getSerializedName()
         );
+        ByteBufCodecs.BOOL.encode(buffer, panel.line1Spacing());
+        ByteBufCodecs.BOOL.encode(buffer, panel.line2Spacing());
     }
 
     private static D21APanelData decodePanel(ByteBuf buffer) {
@@ -204,6 +206,9 @@ public record UpdateD21APayload(
                         ByteBufCodecs.STRING_UTF8.decode(buffer)
                 );
 
+        boolean line1Spacing = ByteBufCodecs.BOOL.decode(buffer);
+        boolean line2Spacing = ByteBufCodecs.BOOL.decode(buffer);
+
         return new D21APanelData(
                 enabled,
                 line1,
@@ -215,7 +220,9 @@ public record UpdateD21APayload(
                 autorouteLogo,
                 doubleLine,
                 line1Font,
-                line2Font
+                line2Font,
+                line1Spacing,
+                line2Spacing
         );
     }
 

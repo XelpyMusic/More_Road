@@ -53,6 +53,14 @@ public class D21ABlockEntityRenderer
                     )
             );
 
+    private static final FontDescription.Resource ROAD_FONT_L2 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(
+                            MoreRoad.MODID,
+                            "caracteres_l2"
+                    )
+            );
+
     private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT =
             BlockDisplayContext.create();
 
@@ -256,6 +264,8 @@ public class D21ABlockEntityRenderer
             renderState.panelTypes[i] = panel.type();
             renderState.line1Fonts[i] = panel.line1Font();
             renderState.line2Fonts[i] = panel.line2Font();
+            renderState.line1Spacing[i] = panel.line1Spacing();
+            renderState.line2Spacing[i] = panel.line2Spacing();
             renderState.arrowRights[i] = panel.arrowRight();
             renderState.autorouteLogos[i] = panel.autorouteLogo();
             renderState.doubleLines[i] = panel.doubleLine();
@@ -378,6 +388,8 @@ public class D21ABlockEntityRenderer
                     cleanText(renderState.distance2[i]),
                     renderState.line1Fonts[i],
                     renderState.line2Fonts[i],
+                    renderState.line1Spacing[i],
+                    renderState.line2Spacing[i],
                     renderState.panelTypes[i],
                     renderState.arrowRights[i],
                     renderState.autorouteLogos[i],
@@ -506,6 +518,8 @@ public class D21ABlockEntityRenderer
             String distance2,
             RoadTextFont line1Font,
             RoadTextFont line2Font,
+            boolean line1Spacing,
+            boolean line2Spacing,
             D21AType panelType,
             boolean arrowRight,
             boolean autorouteLogo,
@@ -541,6 +555,8 @@ public class D21ABlockEntityRenderer
                     distance2,
                     line1Font,
                     line2Font,
+                    line1Spacing,
+                    line2Spacing,
                     textColor,
                     panelType,
                     arrowRight,
@@ -562,6 +578,7 @@ public class D21ABlockEntityRenderer
                 line1,
                 singleDistance,
                 line1Font,
+                line1Spacing,
                 textColor,
                 arrowRight,
                 showAutorouteLogo,
@@ -576,6 +593,7 @@ public class D21ABlockEntityRenderer
             String destination,
             String distance,
             RoadTextFont destinationFont,
+            boolean destinationSpacing,
             int textColor,
             boolean arrowRight,
             boolean showAutorouteLogo,
@@ -585,6 +603,8 @@ public class D21ABlockEntityRenderer
             SubmitNodeCollector collector
     ) {
         float destinationMaxWidth;
+        if ((destinationFont == RoadTextFont.L1 || destinationFont == RoadTextFont.L2) && destinationSpacing)
+            destination = RoadTextFont.addSpacing(destination,1);
 
         if (showAutorouteLogo) {
             destinationMaxWidth =
@@ -683,6 +703,8 @@ public class D21ABlockEntityRenderer
             String distance2,
             RoadTextFont line1Font,
             RoadTextFont line2Font,
+            boolean line1Spacing,
+            boolean line2Spacing,
             int textColor,
             D21AType panelType,
             boolean arrowRight,
@@ -692,6 +714,11 @@ public class D21ABlockEntityRenderer
             PoseStack poseStack,
             SubmitNodeCollector collector
     ) {
+        if ((line1Font == RoadTextFont.L1 || line1Font == RoadTextFont.L2) && line1Spacing)
+            line1 = RoadTextFont.addSpacing(line1,1);
+        if ((line2Font == RoadTextFont.L1 || line2Font == RoadTextFont.L2) && line2Spacing)
+            line2 = RoadTextFont.addSpacing(line2,1);
+
         boolean hasDistance1 = !distance1.isBlank();
         boolean hasDistance2 = !distance2.isBlank();
         boolean hasAnyDistance = hasDistance1 || hasDistance2;
@@ -975,9 +1002,11 @@ public class D21ABlockEntityRenderer
     private static FontDescription.Resource getRoadFont(
             RoadTextFont textFont
     ) {
-        return textFont == RoadTextFont.L4
-                ? ROAD_FONT_L4
-                : ROAD_FONT_L1;
+        return switch (textFont) {
+            case L1, NORMAL -> ROAD_FONT_L1;
+            case L2 -> ROAD_FONT_L2;
+            case L4 -> ROAD_FONT_L4;
+        };
     }
 
     private static String cleanText(String text) {

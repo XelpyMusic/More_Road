@@ -54,6 +54,11 @@ public final class SignEditorUi {
                     Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
             );
 
+    private static final FontDescription.Resource ROAD_FONT_L2 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l2")
+            );
+
     private SignEditorUi() {
     }
 
@@ -478,6 +483,10 @@ public final class SignEditorUi {
         if (panel.doubleLine()) {
             int y1 = y + height / 3 - 4;
             int y2 = y + (height * 2) / 3 - 4;
+            if ((panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2) && panel.line1Spacing())
+                line1 = RoadTextFont.addSpacing(line1,1);
+            if ((panel.line2Font() == RoadTextFont.L1 || panel.line2Font() == RoadTextFont.L2) && panel.line2Spacing())
+                line2 = RoadTextFont.addSpacing(line2,1);
             drawCenteredPreviewText(
                     graphics,
                     font,
@@ -501,6 +510,8 @@ public final class SignEditorUi {
             drawCenteredPreviewText(graphics, font, shorten(distance1, 6), distanceCenter, y1, textColor, textShadow);
             drawCenteredPreviewText(graphics, font, shorten(distance2, 6), distanceCenter, y2, textColor, textShadow);
         } else {
+            if ((panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2) && panel.line1Spacing())
+                line1 = RoadTextFont.addSpacing(line1,1);
             int textY = y + height / 2 - 4;
             drawCenteredPreviewText(
                     graphics,
@@ -587,7 +598,11 @@ public final class SignEditorUi {
     }
 
     private static Component roadComponent(String value, RoadTextFont roadFont) {
-        FontDescription.Resource resource = roadFont == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1;
+        FontDescription.Resource resource = /*roadFont == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1;*/ switch (roadFont) {
+            case L1,NORMAL -> ROAD_FONT_L1;
+            case L2 -> ROAD_FONT_L2;
+            case L4 ->  ROAD_FONT_L4;
+        };
         return Component.literal(value == null ? "" : value)
                 .withStyle(Style.EMPTY.withFont(resource));
     }
@@ -1561,7 +1576,7 @@ public final class SignEditorUi {
         }
         return switch (font) {
             case NORMAL -> "Normal";
-            case L1 -> "Standard";
+            case L1, L2 -> "Standard";
             case L4 -> "Italique";
         };
     }

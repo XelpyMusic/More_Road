@@ -38,6 +38,8 @@ public class D21A2EditScreen extends Screen {
     private boolean autorouteLogo;
     private RoadTextFont line1Font = RoadTextFont.L1;
     private RoadTextFont line2Font = RoadTextFont.L1;
+    private boolean line1Spacing;
+    private boolean line2Spacing;
     private CartoucheType cartoucheType = CartoucheType.NONE;
     private String cartoucheText = "";
 
@@ -57,6 +59,8 @@ public class D21A2EditScreen extends Screen {
 
     private SignEditorUi.Rect line1FontRect;
     private SignEditorUi.Rect line2FontRect;
+    private SignEditorUi.Rect line1SpacingRect;
+    private SignEditorUi.Rect line2SpacingRect;
     private SignEditorUi.Rect whiteRect;
     private SignEditorUi.Rect greenRect;
     private SignEditorUi.Rect blueRect;
@@ -214,9 +218,10 @@ public class D21A2EditScreen extends Screen {
         int fieldHeight = pagedUi() ? 20 : s(22);
         int gap = pagedUi() ? 8 : s(8);
 
-        int distanceWidth = Math.max(s(58), Math.round(innerWidth * 0.18F));
+        int distanceWidth = Math.max(s(58), Math.round(innerWidth * 0.15F));
         int fontWidth = Math.max(s(88), Math.round(innerWidth * 0.25F));
-        int destinationWidth = innerWidth - distanceWidth - fontWidth - gap * 2;
+        int spacingWidth = Math.max(s(50), Math.round(innerWidth * 0.10F));
+        int destinationWidth = innerWidth - distanceWidth - fontWidth - spacingWidth - gap * 2;
 
         this.line1Field = new EditBox(
                 this.font,
@@ -230,10 +235,11 @@ public class D21A2EditScreen extends Screen {
         this.addRenderableWidget(this.line1Field);
 
         this.line1FontRect = new SignEditorUi.Rect(innerX + destinationWidth + gap, fieldY, fontWidth, fieldHeight);
+        this.line1SpacingRect = new SignEditorUi.Rect(innerX + destinationWidth + line1FontRect.width() + gap*2, fieldY, spacingWidth, fieldHeight);
 
         this.distance1Field = new EditBox(
                 this.font,
-                this.line1FontRect.x() + fontWidth + gap,
+                this.line1SpacingRect.x() + this.line1SpacingRect.width() + gap,
                 fieldY,
                 distanceWidth,
                 fieldHeight,
@@ -255,10 +261,11 @@ public class D21A2EditScreen extends Screen {
         this.addRenderableWidget(this.line2Field);
 
         this.line2FontRect = new SignEditorUi.Rect(innerX + destinationWidth + gap, line2Y, fontWidth, fieldHeight);
+        this.line2SpacingRect = new SignEditorUi.Rect(innerX + destinationWidth + line2FontRect.width() + gap*2, line2Y, spacingWidth, fieldHeight);
 
         this.distance2Field = new EditBox(
                 this.font,
-                this.line2FontRect.x() + fontWidth + gap,
+                this.line2SpacingRect.x() + this.line2SpacingRect.width() + gap,
                 line2Y,
                 distanceWidth,
                 fieldHeight,
@@ -453,6 +460,7 @@ public class D21A2EditScreen extends Screen {
             int labelY = this.contentRect.y() + s(32);
             SignEditorUi.drawFieldLabel(graphics, this.font, "Destination", this.line1Field.getX(), labelY);
             SignEditorUi.drawFieldLabel(graphics, this.font, "Police", this.line1FontRect.x(), labelY);
+            SignEditorUi.drawFieldLabel(graphics, this.font, "Espacement", this.line1SpacingRect.x(), labelY);
             SignEditorUi.drawFieldLabel(graphics, this.font, "Kilométrage (km)", this.distance1Field.getX(), labelY);
         }
 
@@ -466,6 +474,16 @@ public class D21A2EditScreen extends Screen {
                 mouseX,
                 mouseY
         );
+        SignEditorUi.drawModernButton(
+                graphics,
+                this.font,
+                this.line1SpacingRect,
+                this.line1Spacing ? "a b" : "ab",
+                false,
+                true,
+                mouseX,
+                mouseY
+        );
 
         if (this.doubleLine) {
             SignEditorUi.drawModernButton(
@@ -473,6 +491,16 @@ public class D21A2EditScreen extends Screen {
                     this.font,
                     this.line2FontRect,
                     SignEditorUi.fontLabel(this.line2Font),
+                    false,
+                    true,
+                    mouseX,
+                    mouseY
+            );
+            SignEditorUi.drawModernButton(
+                    graphics,
+                    this.font,
+                    this.line2SpacingRect,
+                    this.line2Spacing ? "a b" : "ab",
                     false,
                     true,
                     mouseX,
@@ -606,24 +634,50 @@ public class D21A2EditScreen extends Screen {
             }
 
             if ((!pagedUi() || this.settingsPage == 0) && this.line1FontRect.contains(mouseX, mouseY)) {
-                this.line1Font = this.line1Font.next();
-                return true;
+                if ((selectedType == D21AType.BLUE || selectedType == D21AType.GREEN)
+                        && (this.line1Font == RoadTextFont.L1 ||  this.line1Font == RoadTextFont.L4))
+                    this.line1Font = RoadTextFont.L2;
+                else
+                    this.line1Font = this.line1Font.next();
+            }
+            if ((!pagedUi() || this.settingsPage == 0) && this.line1SpacingRect.contains(mouseX, mouseY)) {
+                this.line1Spacing = !line1Spacing;
+            }
+            if ((!pagedUi() || this.settingsPage == 0) && this.line2SpacingRect.contains(mouseX, mouseY)) {
+                this.line2Spacing = !line2Spacing;
             }
             if ((!pagedUi() || this.settingsPage == 0) && this.doubleLine && this.line2FontRect.contains(mouseX, mouseY)) {
-                this.line2Font = this.line2Font.next();
+                if ((selectedType == D21AType.BLUE || selectedType == D21AType.GREEN)
+                        && (this.line2Font == RoadTextFont.L1 ||  this.line2Font == RoadTextFont.L4))
+                    this.line2Font = RoadTextFont.L2;
+                else
+                    this.line2Font = this.line2Font.next();
                 return true;
             }
             if (!pagedUi() || this.settingsPage == 1) {
                 if (this.whiteRect.contains(mouseX, mouseY)) {
                     selectType(D21AType.WHITE);
+                    if (line1Font == RoadTextFont.L2) {
+                        this.line1Font = RoadTextFont.L1;
+                        this.line2Font = RoadTextFont.L1;
+                    }
+
                     return true;
                 }
                 if (this.greenRect.contains(mouseX, mouseY)) {
                     selectType(D21AType.GREEN);
+                    if (line1Font == RoadTextFont.L1) {
+                        this.line1Font = RoadTextFont.L2;
+                        this.line2Font = RoadTextFont.L2;
+                    }
                     return true;
                 }
                 if (this.blueRect.contains(mouseX, mouseY)) {
                     selectType(D21AType.BLUE);
+                    if (line1Font == RoadTextFont.L1) {
+                        this.line1Font = RoadTextFont.L2;
+                        this.line2Font = RoadTextFont.L2;
+                    }
                     return true;
                 }
                 if (this.logoRect.contains(mouseX, mouseY)
@@ -692,7 +746,9 @@ public class D21A2EditScreen extends Screen {
                 panel.autorouteLogo(),
                 panel.doubleLine(),
                 panel.line1Font(),
-                panel.line2Font()
+                panel.line2Font(),
+                panel.line1Spacing(),
+                panel.line2Spacing()
         );
     }
 
@@ -730,7 +786,9 @@ public class D21A2EditScreen extends Screen {
                 this.autorouteLogo,
                 this.doubleLine,
                 this.line1Font,
-                this.line2Font
+                this.line2Font,
+                this.line1Spacing,
+                this.line2Spacing
         );
     }
 
@@ -747,6 +805,8 @@ public class D21A2EditScreen extends Screen {
         this.autorouteLogo = panel.autorouteLogo();
         this.line1Font = panel.line1Font();
         this.line2Font = panel.line2Font();
+        this.line1Spacing = panel.line1Spacing();
+        this.line2Spacing = panel.line2Spacing();
 
         if (this.selectedType == D21AType.WHITE) {
             this.autorouteLogo = false;

@@ -620,7 +620,9 @@ public final class MoreRoadNetworking {
                             requested.autorouteLogo(),
                             requested.doubleLine(),
                             requested.line1Font(),
-                            requested.line2Font()
+                            requested.line2Font(),
+                            requested.line1Spacing(),
+                            requested.line2Spacing()
                     );
         }
 
