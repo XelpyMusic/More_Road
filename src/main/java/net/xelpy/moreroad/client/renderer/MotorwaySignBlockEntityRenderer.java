@@ -39,6 +39,8 @@ import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
 import net.xelpy.moreroad.block.custom.MotorwaySignRole;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
+import net.xelpy.moreroad.block.custom.MotorwaySignStyleProfile;
 import net.xelpy.moreroad.block.custom.MotorwaySignSlot;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
@@ -131,462 +133,61 @@ public class MotorwaySignBlockEntityRenderer
     private static final Identifier D74B_PANEL_BOTTOM = artwork("d74b_panel_bottom.png");
     private static final Identifier D74B_GRAPHICS = artwork("d74b_graphics.png");
 
-    private static final ExactMappedArtwork D61B_ARTWORK = new ExactMappedArtwork(
-            15788.0F, 7879.0F, 6.20F, artwork("d61b_frame.png"), null,
-            new ExactTintedLayer[]{
-                    layer("d61b_route.png", 0), layer("d61b_panel_top.png", 1), layer("d61b_panel_bottom.png", 3)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 7889.5F, 832.5F, 3000.0F, 1095.0F),
-                    text(1, 4900.0F, 3164.0F, 9000.0F, 1366.0F),
-                    text(2, 13500.0F, 3164.0F, 3000.0F, 1366.0F),
-                    text(3, 4900.0F, 6429.5F, 9000.0F, 1367.0F),
-                    text(4, 13500.0F, 6429.5F, 3000.0F, 1367.0F)
-            },
-            new ExactBody[]{
-                    body(6229.0F, 0.0F, 3332.0F, 1669.0F),
-                    body(0.0F, 1714.0F, 15788.0F, 2902.0F),
-                    body(0.0F, 4976.0F, 15788.0F, 2903.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D62A_ARTWORK = new ExactMappedArtwork(
-            11537.0F, 10619.0F, 5.60F, artwork("d62a_frame.png"), null,
-            new ExactTintedLayer[]{
-                    layer("d62a_route.png", 0), layer("d62a_panel_top.png", 1), layer("d62a_panel_bottom.png", 3)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 5771.0F, 831.5F, 3000.0F, 1067.0F),
-                    text(1, 5767.5F, 3760.0F, 10300.0F, 1360.0F),
-                    text(2, 5767.5F, 5850.0F, 10300.0F, 1360.0F),
-                    text(3, 5770.5F, 9466.5F, 10500.0F, 1185.0F)
-            },
-            new ExactBody[]{
-                    body(4107.0F, 0.0F, 3326.0F, 1665.0F),
-                    body(0.0F, 1974.0F, 11537.0F, 5889.0F),
-                    body(0.0F, 8220.0F, 11537.0F, 2399.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D62B_ARTWORK = new ExactMappedArtwork(
-            13203.0F, 8129.0F, 5.80F, artwork("d62b_frame.png"), null,
-            new ExactTintedLayer[]{
-                    layer("d62b_route_left.png", 0), layer("d62b_route_right.png", 1),
-                    layer("d62b_panel_top.png", 2), layer("d62b_panel_bottom.png", 3)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 4810.0F, 838.5F, 3000.0F, 1079.0F),
-                    text(1, 8398.0F, 832.5F, 3000.0F, 1067.0F),
-                    text(2, 6611.0F, 3420.5F, 12000.0F, 1359.0F),
-                    text(3, 3995.5F, 6677.5F, 7600.0F, 1331.0F)
-            },
-            new ExactBody[]{
-                    body(3149.0F, 0.0F, 3326.0F, 1663.0F),
-                    body(6735.0F, 0.0F, 3325.0F, 1663.0F),
-                    body(0.0F, 1975.0F, 13203.0F, 2901.0F),
-                    body(0.0F, 5228.0F, 13203.0F, 2901.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D62D_TOP_ARTWORK = new ExactMappedArtwork(
-            16204.0F, 12987.0F, 5.80F, artwork("d62d_top_frame.png"), artwork("d62d_top_graphics.png"),
-            new ExactTintedLayer[]{
-                    layer("d62d_top_route_left.png", 0), layer("d62d_top_route_right.png", 1),
-                    layer("d62d_top_panel_top.png", 2), layer("d62d_top_panel_bottom.png", 4)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 6803.0F, 843.5F, 3000.0F, 1083.0F),
-                    text(1, 9902.5F, 836.5F, 2100.0F, 1069.0F),
-                    text(2, 8102.0F, 3150.0F, 14500.0F, 1369.0F),
-                    text(3, 8102.0F, 5000.0F, 14500.0F, 1369.0F),
-                    text(4, 8109.0F, 7801.5F, 10000.0F, 1369.0F)
-            },
-            new ExactBody[]{
-                    body(5138.0F, 0.0F, 3334.0F, 1670.0F),
-                    body(8734.0F, 1.0F, 2336.0F, 1669.0F),
-                    body(0.0F, 1715.0F, 16204.0F, 4539.0F),
-                    body(0.0F, 6615.0F, 16204.0F, 6372.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D62D_BOTTOM_ARTWORK = new ExactMappedArtwork(
-            16204.0F, 8215.0F, 5.80F, artwork("d62d_bottom_frame.png"), artwork("d62d_bottom_graphics.png"),
-            new ExactTintedLayer[]{
-                    layer("d62d_bottom_route.png", 0), layer("d62d_bottom_panel.png", 1)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 8102.0F, 834.5F, 3100.0F, 1081.0F),
-                    text(1, 8103.0F, 3027.0F, 9000.0F, 1338.0F)
-            },
-            new ExactBody[]{
-                    body(6435.0F, 0.0F, 3334.0F, 1669.0F),
-                    body(0.0F, 1843.0F, 16204.0F, 6372.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D63C_ARTWORK = new ExactMappedArtwork(
-            13403.0F, 9935.0F, 6.00F, artwork("d63c_frame.png"), artwork("d63c_graphics.png"),
-            new ExactTintedLayer[]{
-                    layer("d63c_panel_top.png", 0), layer("d63c_panel_middle.png", 2)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 3068.5F, 2032.5F, 3900.0F, 1095.0F),
-                    text(1, 11480.0F, 1953.0F, 3100.0F, 1550.0F),
-                    text(2, 6396.0F, 5995.0F, 12000.0F, 1486.0F),
-                    text(3, 6704.0F, 9025.0F, 12400.0F, 1348.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 13403.0F, 3905.0F),
-                    body(0.0F, 4267.0F, 13403.0F, 2905.0F),
-                    body(0.0F, 7530.0F, 13403.0F, 2405.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D63D_ARTWORK = new ExactMappedArtwork(
-            12370.0F, 11469.0F, 5.80F, artwork("d63d_frame.png"), null,
-            new ExactTintedLayer[]{
-                    layer("d63d_panel_top.png", 1), layer("d63d_route.png", 0),
-                    layer("d63d_panel_middle.png", 2), layer("d63d_panel_bottom.png", 3)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 2675.5F, 1592.0F, 3500.0F, 1082.0F),
-                    text(1, 10888.0F, 1580.5F, 1500.0F, 1083.0F),
-                    text(2, 6188.5F, 4719.5F, 11200.0F, 1363.0F),
-                    text(3, 5363.0F, 8110.0F, 10000.0F, 1350.0F),
-                    text(4, 5363.0F, 9810.0F, 10000.0F, 1350.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 12370.0F, 2905.0F),
-                    body(0.0F, 3268.0F, 12370.0F, 2905.0F),
-                    body(0.0F, 6531.0F, 12370.0F, 4938.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D71_ARTWORK = new ExactMappedArtwork(
-            13213.0F, 6434.0F, 5.60F, artwork("d71_frame.png"), null,
-            new ExactTintedLayer[]{layer("d71_panel.png", 0)},
-            new ExactTextPlacement[]{
-                    text(0, 6603.0F, 1291.0F, 12000.0F, 850.0F),
-                    text(1, 6020.0F, 3356.0F, 11200.0F, 1160.0F),
-                    text(2, 5910.0F, 5349.0F, 11200.0F, 850.0F)
-            },
-            new ExactBody[]{body(0.0F, 0.0F, 13213.0F, 6434.0F)}, true
-    );
-
-    private static final ExactMappedArtwork D72_ARTWORK = new ExactMappedArtwork(
-            12012.0F, 14926.0F, 4.40F, artwork("d72_frame.png"), artwork("d72_graphics.png"),
-            new ExactTintedLayer[]{layer("d72_panel.png", 0)},
-            new ExactTextPlacement[]{
-                    text(0, 3752.0F, 1039.0F, 6900.0F, 800.0F),
-                    text(1, 6083.0F, 2711.0F, 10500.0F, 1125.0F),
-                    text(2, 3207.0F, 5334.0F, 3900.0F, 1100.0F),
-                    text(3, 3204.0F, 7974.0F, 3900.0F, 1100.0F),
-                    text(4, 3204.0F, 10584.0F, 3900.0F, 1100.0F),
-                    text(5, 3201.0F, 13202.0F, 3900.0F, 1100.0F)
-            },
-            new ExactBody[]{body(0.0F, 0.0F, 12012.0F, 14926.0F)}, false
-    );
-
-    private static final ExactMappedArtwork D73_ARTWORK = new ExactMappedArtwork(
-            6037.0F, 6596.0F, 3.80F, artwork("d73_frame.png"), artwork("d73_graphics.png"),
-            new ExactTintedLayer[]{layer("d73_panel_top.png", 0), layer("d73_panel_bottom.png", 1)},
-            new ExactTextPlacement[]{
-                    text(0, 3014.5F, 1931.5F, 4100.0F, 1083.0F),
-                    text(1, 3062.0F, 5408.5F, 5500.0F, 1093.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 6037.0F, 3861.0F),
-                    body(0.0F, 4217.0F, 6037.0F, 2379.0F)
-            }, false
-    );
-
-    private static final ExactMappedArtwork DA31A_ARTWORK = new ExactMappedArtwork(
-            14843.0F, 8662.0F, 5.90F, artwork("da31a_frame.png"), artwork("da31a_graphics.png"),
-            new ExactTintedLayer[]{layer("da31a_panel_top.png", 0), layer("da31a_panel_bottom.png", 1)},
-            new ExactTextPlacement[]{
-                    text(0, 7422.0F, 1419.5F, 8000.0F, 1335.0F),
-                    text(1, 7422.0F, 4368.0F, 14000.0F, 1075.0F),
-                    text(2, 2999.0F, 6968.0F, 4000.0F, 1075.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 14843.0F, 2836.0F),
-                    body(0.0F, 3190.0F, 14843.0F, 5472.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork DA31B_ARTWORK = new ExactMappedArtwork(
-            14494.0F, 13776.0F, 5.80F, artwork("da31b_frame.png"), artwork("da31b_graphics.png"),
-            new ExactTintedLayer[]{
-                    layer("da31b_route.png", 0), layer("da31b_panel_top.png", 1), layer("da31b_panel_bottom.png", 3)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 7243.0F, 830.0F, 3000.0F, 1092.0F),
-                    text(1, 7248.0F, 3227.0F, 13000.0F, 1364.0F),
-                    text(2, 7255.0F, 4988.0F, 13000.0F, 1364.0F),
-                    text(3, 7246.0F, 7790.0F, 13000.0F, 1089.0F),
-                    text(4, 7246.0F, 9393.0F, 13000.0F, 1089.0F)
-            },
-            new ExactBody[]{
-                    body(5586.0F, 0.0F, 3326.0F, 1663.0F),
-                    body(0.0F, 1974.0F, 14494.0F, 4259.0F),
-                    body(0.0F, 6592.0F, 14494.0F, 7184.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork DA31D_ARTWORK = new ExactMappedArtwork(
-            14336.0F, 10470.0F, 5.80F, artwork("da31d_frame.png"), artwork("da31d_graphics.png"),
-            new ExactTintedLayer[]{layer("da31d_panel_top.png", 0), layer("da31d_panel_bottom.png", 1)},
-            new ExactTextPlacement[]{
-                    text(0, 7175.0F, 1453.0F, 13200.0F, 1366.0F),
-                    text(1, 7173.0F, 4339.0F, 13200.0F, 1097.0F),
-                    text(2, 7179.0F, 6059.0F, 7000.0F, 1096.0F),
-                    text(3, 3067.0F, 8731.0F, 4000.0F, 1099.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 14336.0F, 2905.0F),
-                    body(0.0F, 3266.0F, 14336.0F, 7204.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork DA31E_ARTWORK = new ExactMappedArtwork(
-            13331.0F, 10792.0F, 5.60F, artwork("da31e_frame.png"), artwork("da31e_graphics.png"),
-            new ExactTintedLayer[]{
-                    layer("da31e_route.png", 0), layer("da31e_panel_top.png", 1), layer("da31e_panel_bottom.png", 2)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 6665.0F, 827.0F, 3900.0F, 1062.0F),
-                    text(1, 6667.0F, 3472.0F, 12200.0F, 1476.0F),
-                    text(2, 6666.0F, 6289.0F, 12200.0F, 1092.0F)
-            },
-            new ExactBody[]{
-                    body(4511.0F, 0.0F, 4311.0F, 1659.0F),
-                    body(0.0F, 1970.0F, 13331.0F, 2891.0F),
-                    body(0.0F, 5217.0F, 13331.0F, 5575.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork DA31F_ARTWORK = new ExactMappedArtwork(
-            9971.0F, 14281.0F, 4.80F, artwork("da31f_frame.png"), artwork("da31f_graphics.png"),
-            new ExactTintedLayer[]{
-                    layer("da31f_route.png", 0), layer("da31f_panel_top.png", 1), layer("da31f_panel_bottom.png", 2)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 4988.0F, 847.0F, 3000.0F, 1090.0F),
-                    text(1, 4984.0F, 3459.0F, 9000.0F, 1378.0F),
-                    text(2, 4986.0F, 6769.0F, 8500.0F, 1373.0F),
-                    text(3, 4982.0F, 8775.0F, 8500.0F, 1346.0F)
-            },
-            new ExactBody[]{
-                    body(3307.0F, 0.0F, 3357.0F, 1681.0F),
-                    body(0.0F, 1995.0F, 9971.0F, 2924.0F),
-                    body(0.0F, 5283.0F, 9971.0F, 8998.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork DA32A_ARTWORK = new ExactMappedArtwork(
-            9909.0F, 7208.0F, 4.60F, artwork("da32a_frame.png"), artwork("da32a_graphics.png"),
-            new ExactTintedLayer[]{layer("da32a_panel.png", 0)},
-            new ExactTextPlacement[]{
-                    text(0, 5078.0F, 1214.0F, 8600.0F, 1090.0F),
-                    text(1, 4962.0F, 2807.0F, 9000.0F, 1093.0F)
-            },
-            new ExactBody[]{body(0.0F, 0.0F, 9909.0F, 7208.0F)}, true
-    );
-
-    private static final ExactMappedArtwork DA32A_DC_ARTWORK = new ExactMappedArtwork(
-            9909.0F, 7208.0F, 4.60F, artwork("da32a_dc_frame.png"), artwork("da32a_dc_graphics.png"),
-            new ExactTintedLayer[]{layer("da32a_dc_panel.png", 0)},
-            DA32A_ARTWORK.texts(), DA32A_ARTWORK.bodies(), true
-    );
-
-    private static final ExactMappedArtwork DA32B_ARTWORK = new ExactMappedArtwork(
-            9909.0F, 8942.0F, 4.60F, artwork("da32b_frame.png"), artwork("da32b_graphics.png"),
-            new ExactTintedLayer[]{layer("da32b_panel.png", 0)},
-            new ExactTextPlacement[]{
-                    text(0, 4954.0F, 1484.0F, 8800.0F, 1374.0F),
-                    text(1, 4962.0F, 3475.0F, 9000.0F, 1374.0F)
-            },
-            new ExactBody[]{body(0.0F, 0.0F, 9909.0F, 8942.0F)}, true
-    );
-
-    private static final ExactMappedArtwork DA32B_DC_ARTWORK = new ExactMappedArtwork(
-            9909.0F, 8942.0F, 4.60F, artwork("da32b_dc_frame.png"), artwork("da32b_dc_graphics.png"),
-            new ExactTintedLayer[]{layer("da32b_dc_panel.png", 0)},
-            DA32B_ARTWORK.texts(), DA32B_ARTWORK.bodies(), true
-    );
-
-    private static final ExactMappedArtwork D31B_EX1_ARTWORK = new ExactMappedArtwork(
-            7832.0F, 4993.0F, 4.20F, artwork("d31b_ex1_frame.png"), artwork("d31b_ex1_graphics.png"),
-            new ExactTintedLayer[]{layer("d31b_ex1_route.png", 0)},
-            new ExactTextPlacement[]{
-                    /*
-                     * D31b ex.1 :
-                     * - numéro de route recentré dans le cadre jaune du SVG ;
-                     * - destinations descendues et légèrement réduites pour
-                     *   rester entièrement dans le panneau inférieur, même
-                     *   avec des noms un peu plus longs.
-                     */
-                    /* D31b ex.1 : conserver le centrage initial du numéro de route. */
-                    text(0, 1778.3F, 952.0F, 2500.0F, 620.0F),
-                    /*
-                     * Destinations davantage alignées à gauche et légèrement
-                     * agrandies pour retrouver une taille proche de la lame
-                     * "TOULOUSE / AGEN" tout en gardant davantage d'espace.
-                     */
-                    text(1, 3700.0F, 3550.0F, 7300.0F, 600.0F),
-                    text(2, 3550.0F, 4325.0F, 7000.0F, 600.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 7832.0F, 2349.0F),
-                    body(0.0F, 2644.0F, 7832.0F, 2349.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D31B_EX2_ARTWORK = new ExactMappedArtwork(
-            15397.0F, 11745.0F, 6.00F, artwork("d31b_ex2_frame.png"), artwork("d31b_ex2_graphics.png"),
-            new ExactTintedLayer[]{
-                    fixedLayer("d31b_ex2_panel_top.png", MotorwaySignColor.WHITE),
-                    layer("d31b_ex2_route.png", 0), layer("d31b_ex2_panel_bottom.png", 1)
-            },
-            new ExactTextPlacement[]{
-                    /* D31b ex.2 : route recentrée dans le cartouche rouge. */
-                    text(0, 1963.0F, 1842.0F, 2550.0F, 969.0F),
-                    /*
-                     * Les destinations doivent partir du même bord gauche,
-                     * comme sur le SVG, au lieu d'être centrées dans chaque
-                     * panneau.
-                     */
-                    text(1, 7693.5F, 6660.0F, 13800.0F, 1450.0F),
-                    text(2, 7693.5F, 8690.0F, 13800.0F, 1450.0F),
-                    text(3, 7693.5F, 10500.0F, 13800.0F, 1450.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 15397.0F, 4535.0F),
-                    body(0.0F, 4885.0F, 15397.0F, 6860.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D31D_ARTWORK = new ExactMappedArtwork(
-            12505.0F, 11429.0F, 5.50F, artwork("d31d_frame.png"), artwork("d31d_graphics.png"),
-            new ExactTintedLayer[]{
-                    fixedLayer("d31d_panel_middle.png", MotorwaySignColor.WHITE),
-                    layer("d31d_panel_top.png", 1), layer("d31d_panel_bottom.png", 2)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 3088.0F, 1965.0F, 4200.0F, 1100.0F),
-                    text(1, 6252.0F, 5716.0F, 11200.0F, 1360.0F),
-                    text(2, 6252.0F, 8550.0F, 11200.0F, 1100.0F),
-                    text(3, 6252.0F, 10300.0F, 8000.0F, 1100.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 12505.0F, 3930.0F),
-                    body(3.0F, 4256.0F, 12500.0F, 2921.0F),
-                    body(0.0F, 7500.0F, 12505.0F, 3929.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D31E_ARTWORK = new ExactMappedArtwork(
-            13403.0F, 11036.0F, 5.80F, artwork("d31e_frame.png"), artwork("d31e_graphics.png"),
-            new ExactTintedLayer[]{
-                    fixedLayer("d31e_panel_top.png", MotorwaySignColor.WHITE),
-                    layer("d31e_route.png", 0), layer("d31e_panel_middle.png", 1), layer("d31e_panel_bottom.png", 2)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 2684.5F, 1469.0F, 3700.0F, 1062.0F),
-                    text(1, 6701.5F, 6300.0F, 12100.0F, 1484.0F),
-                    text(2, 6701.5F, 9800.0F, 12100.0F, 1100.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 13403.0F, 4005.0F),
-                    body(0.0F, 4366.0F, 13403.0F, 3905.0F),
-                    body(0.0F, 8631.0F, 13403.0F, 2405.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D32A_ARTWORK = new ExactMappedArtwork(
-            11621.0F, 3922.0F, 5.20F, artwork("d32a_frame.png"), artwork("d32a_graphics.png"),
-            new ExactTintedLayer[]{layer("d32a_panel.png", 0)},
-            new ExactTextPlacement[]{
-                    text(0, 3800.0F, 1250.0F, 6500.0F, 850.0F),
-                    text(1, 3800.0F, 2850.0F, 6800.0F, 1100.0F)
-            },
-            new ExactBody[]{body(0.0F, 0.0F, 11621.0F, 3922.0F)}, true
-    );
-
-    private static final ExactMappedArtwork D32A_DC_ARTWORK = new ExactMappedArtwork(
-            11621.0F, 3922.0F, 5.20F, artwork("d32a_dc_frame.png"), artwork("d32a_dc_graphics.png"),
-            new ExactTintedLayer[]{layer("d32a_dc_panel.png", 0)},
-            D32A_ARTWORK.texts(), D32A_ARTWORK.bodies(), true
-    );
-
-    private static final ExactMappedArtwork D32B_ARTWORK = new ExactMappedArtwork(
-            13504.0F, 4938.0F, 5.20F, artwork("d32b_frame.png"), artwork("d32b_graphics.png"),
-            new ExactTintedLayer[]{layer("d32b_panel.png", 0)},
-            new ExactTextPlacement[]{
-                    text(0, 4300.0F, 1450.0F, 7500.0F, 1050.0F),
-                    text(1, 4300.0F, 3400.0F, 7800.0F, 1250.0F)
-            },
-            new ExactBody[]{body(0.0F, 0.0F, 13504.0F, 4938.0F)}, true
-    );
-
-    private static final ExactMappedArtwork D41A_ARTWORK = new ExactMappedArtwork(
-            12467.0F, 11270.0F, 5.50F, artwork("d41a_frame.png"), artwork("d41a_graphics.png"),
-            new ExactTintedLayer[]{
-                    fixedLayer("d41a_panel_top.png", MotorwaySignColor.WHITE),
-                    layer("d41a_panel_middle.png", 1), layer("d41a_panel_bottom.png", 3)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 3060.5F, 1947.0F, 4100.0F, 1100.0F),
-                    text(4, 9500.0F, 1947.0F, 3000.0F, 1000.0F),
-                    text(1, 6233.5F, 5450.0F, 11200.0F, 1100.0F),
-                    text(2, 6233.5F, 7200.0F, 11200.0F, 1100.0F),
-                    text(3, 6233.5F, 10050.0F, 11200.0F, 1100.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 12467.0F, 3894.0F),
-                    body(0.0F, 4255.0F, 12467.0F, 4260.0F),
-                    body(0.0F, 8872.0F, 12467.0F, 2398.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D41B_ARTWORK = new ExactMappedArtwork(
-            11536.0F, 8413.0F, 5.20F, artwork("d41b_frame.png"), null,
-            new ExactTintedLayer[]{
-                    fixedLayer("d41b_panel_top.png", MotorwaySignColor.WHITE), layer("d41b_route.png", 0),
-                    layer("d41b_panel_middle.png", 1), layer("d41b_panel_bottom.png", 2)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 2685.5F, 1198.5F, 3600.0F, 1000.0F),
-                    text(3, 8800.0F, 1198.5F, 2400.0F, 900.0F),
-                    text(1, 5768.0F, 4200.0F, 10400.0F, 1200.0F),
-                    text(2, 5768.0F, 7200.0F, 10400.0F, 1100.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 11536.0F, 2399.0F),
-                    body(0.0F, 2758.0F, 11536.0F, 2897.0F),
-                    body(0.0F, 6014.0F, 11536.0F, 2399.0F)
-            }, true
-    );
-
-    private static final ExactMappedArtwork D41C_ARTWORK = new ExactMappedArtwork(
-            13098.0F, 11401.0F, 5.50F, artwork("d41c_frame.png"), null,
-            new ExactTintedLayer[]{
-                    layer("d41c_panel_top.png", 1), layer("d41c_route.png", 0),
-                    layer("d41c_panel_middle.png", 1), layer("d41c_panel_bottom.png", 3)
-            },
-            new ExactTextPlacement[]{
-                    text(0, 2429.5F, 1451.0F, 3000.0F, 1050.0F),
-                    text(4, 10800.0F, 1451.0F, 3000.0F, 1000.0F),
-                    text(1, 6549.0F, 4750.0F, 11800.0F, 1200.0F),
-                    text(2, 6549.0F, 6800.0F, 11800.0F, 1200.0F),
-                    text(3, 3800.0F, 10000.0F, 7000.0F, 1200.0F)
-            },
-            new ExactBody[]{
-                    body(0.0F, 0.0F, 13098.0F, 2897.0F),
-                    body(0.0F, 3259.0F, 13098.0F, 4890.0F),
-                    body(0.0F, 8504.0F, 13098.0F, 2897.0F)
-            }, true
-    );
+    /**
+     * Panonceaux CE choisis par le joueur sous les deux registres du D44
+     * (voir MotorwaySignServiceIcon) : jusqu'à 2 rangées de 3, tassées vers
+     * le haut/la gauche en ignorant les emplacements sur NONE — un choix sur
+     * l'emplacement 3 seul occupe donc la 1ʳᵉ case, pas la 4ᵉ. Les données
+     * de position (coordonnées ARTWORK) vivent dans
+     * MotorwaySignArtworkCatalog ; seule la logique de dessin reste ici avec
+     * le reste du moteur de rendu.
+     */
+    private static void drawD44ServiceRow(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            float left,
+            float width,
+            float top,
+            float height,
+            ExactMappedArtwork artwork,
+            MotorwaySignServiceIcon[] services,
+            int light
+    ) {
+        int drawn = 0;
+        for (MotorwaySignServiceIcon icon : services) {
+            if (icon == null || !icon.isVisible()) {
+                continue;
+            }
+            int row = drawn / 3;
+            int col = drawn % 3;
+            float rowTop = MotorwaySignArtworkCatalog.D44_SERVICE_ROW_TOP
+                    + row * (MotorwaySignArtworkCatalog.D44_SERVICE_ICON_SIZE + MotorwaySignArtworkCatalog.D44_SERVICE_ROW_GAP);
+            float colLeft = MotorwaySignArtworkCatalog.D44_SERVICE_ICON_LEFT[col];
+            float iconTop = sourceY(top, height, rowTop, artwork.sourceHeight());
+            float iconBottom = sourceY(
+                    top, height, rowTop + MotorwaySignArtworkCatalog.D44_SERVICE_ICON_SIZE, artwork.sourceHeight()
+            );
+            float iconLeft = sourceX(left, width, colLeft, artwork.sourceWidth());
+            float iconRight = sourceX(
+                    left, width, colLeft + MotorwaySignArtworkCatalog.D44_SERVICE_ICON_SIZE, artwork.sourceWidth()
+            );
+            /*
+             * Chaque panonceau CE est une plaque à part entière sur le
+             * terrain : dos + chants, comme les corps des deux registres
+             * (submitTexturedPanelBody), sinon il ressort comme un plan
+             * plat sans épaisseur vu de profil.
+             */
+            submitTexturedPanelBody(
+                    collector, poseStack, iconLeft, iconRight, iconBottom, iconTop,
+                    BACK_Z, FRONT_Z, light, -30
+            );
+            drawServiceTexture(
+                    collector, poseStack, texture(icon.getTextureFile()),
+                    iconLeft, iconRight, iconBottom, iconTop, light
+            );
+            drawn++;
+        }
+    }
 
     /* DA31C : plaque de 3 pixels, soit 3/16 de bloc après mise à l'échelle. */
     private static final float PANEL_HALF_DEPTH =
@@ -631,6 +232,16 @@ public class MotorwaySignBlockEntityRenderer
     private static final float D63C_CARTOUCHE_SCALE = 1.12F;
     private static final float D63C_CARTOUCHE_HEIGHT = D61_CARTOUCHE_HEIGHT
             * (D63C_CARTOUCHE_SCALE / CartoucheLayout.MODEL_SCALE);
+    /*
+     * Le D63c agrandit le modèle de cartouche de 0,72 à 1,12. Comme le modèle
+     * est mis à l'échelle autour du centre du bloc, sa face avant avance de
+     * 3/16 * (1,12 - 0,72) = 0,075 bloc. On compense uniquement le D63c afin
+     * que la face du cartouche reste exactement dans le même plan que les
+     * panneaux, sans modifier les cartouches déjà correctement alignés des
+     * autres modèles.
+     */
+    private static final float D63C_CARTOUCHE_FORWARD_CORRECTION =
+            (3.0F / 16.0F) * (D63C_CARTOUCHE_SCALE - CartoucheLayout.MODEL_SCALE);
     /* Aligne la face des cartouches 3D sur celle d'une plaque de 3/16. */
     private static final float CARTOUCHE_MODEL_FORWARD_OFFSET =
             3.0F / 32.0F - 0.135F;
@@ -720,6 +331,9 @@ public class MotorwaySignBlockEntityRenderer
         for (int index = 0; index < MotorwaySignBlockEntity.MAX_CUSTOM_PANELS; index++) {
             renderState.customPanels[index] = blockEntity.getCustomPanel(index);
         }
+        for (int index = 0; index < MotorwaySignServiceIcon.MAX_SLOTS; index++) {
+            renderState.services[index] = blockEntity.getService(index);
+        }
         BlockState state = blockEntity.getBlockState();
         renderState.facing = state.getBlock() instanceof MotorwaySignBlock
                 ? state.getValue(MotorwaySignBlock.FACING)
@@ -796,28 +410,34 @@ public class MotorwaySignBlockEntityRenderer
             CameraRenderState cameraState
     ) {
         Font font = Minecraft.getInstance().font;
-        MotorwaySignPreset preset = state.preset == null ? MotorwaySignPreset.D31B_EX1 : state.preset;
+        MotorwaySignPreset preset = state.preset == null ? MotorwaySignPreset.FREEFORM : state.preset;
+        MotorwaySignStyleProfile style = MotorwaySignStyleProfile.forPreset(preset);
         DEFERRED_TEXT_CONTEXT.set(new DeferredTextContext(
                 state.facing,
                 state.mountedOnCrossbar ? 0.0F : MotorwaySignGeometry.D61B_PANEL_FORWARD
         ));
+        boolean freeformStack = preset == MotorwaySignPreset.FREEFORM;
+        boolean standaloneStack = preset == MotorwaySignPreset.D61B || freeformStack;
         CustomStackLayout customLayout;
         if (preset == MotorwaySignPreset.D61B) {
-            customLayout = buildD61BStackLayout(font, state.customPanels);
+            customLayout = buildD61BStackLayout(font, state.customPanels, style);
+        } else if (freeformStack) {
+            customLayout = buildCustomStackLayout(font, state.customPanels, true, style);
         } else {
             float presetWidth = MotorwaySignGeometry.forPreset(
                     preset, state.lines, state.mountedOnCrossbar
             ).width() / MotorwaySignGeometry.WORLD_SCALE;
             customLayout = withSharedPanelWidth(
-                    buildCustomStackLayout(font, state.customPanels, false, preset == MotorwaySignPreset.D63C),
+                    buildCustomStackLayout(font, state.customPanels, false, style),
                     presetWidth
             );
         }
         float customPanelHeight = customPanelStackHeight(customLayout);
         float customTop = 0.0F;
-        if (preset == MotorwaySignPreset.D61B) {
-            customTop = d61PanelBottomInternal(state.customPanels)
-                    + customLayout.totalHeight();
+        if (standaloneStack) {
+            customTop = state.mountedOnCrossbar
+                    ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
+                    : d61PanelBottomInternal(state.customPanels) + customLayout.totalHeight();
         } else if (!customLayout.panels().isEmpty()) {
             float originalHeight = MotorwaySignGeometry.forPreset(
                     preset, state.lines, state.mountedOnCrossbar
@@ -845,16 +465,14 @@ public class MotorwaySignBlockEntityRenderer
                     collector
             );
         } else {
-            MotorwaySignPanelData cartouchePanel = preset == MotorwaySignPreset.D61B
-                    ? customLayout.panels().getFirst()
+            MotorwaySignPanelData cartouchePanel = standaloneStack
+                    ? (customLayout.panels().isEmpty() ? null : customLayout.panels().getFirst())
                     : firstConfiguredPanel(state.customPanels);
-            boolean d31bWithoutTopCartouche = preset == MotorwaySignPreset.D31B_EX1
-                    || preset == MotorwaySignPreset.D31B_EX2;
-            if (!d31bWithoutTopCartouche
+            if (style.allowsCustomCartouche()
                     && cartouchePanel != null
                     && cartouchePanel.cartoucheType().isVisible()) {
                 float cartoucheTop = customTop;
-                if (preset != MotorwaySignPreset.D61B) {
+                if (!standaloneStack) {
                     float originalHeight = MotorwaySignGeometry.forPreset(
                             preset, state.lines, state.mountedOnCrossbar
                     ).height() / MotorwaySignGeometry.WORLD_SCALE;
@@ -875,7 +493,7 @@ public class MotorwaySignBlockEntityRenderer
                 );
             }
         }
-        if (preset != MotorwaySignPreset.D61B) {
+        if (!standaloneStack) {
             submitOriginalCartouches(
                     state, preset, font, customLayout, poseStack, collector
             );
@@ -906,10 +524,9 @@ public class MotorwaySignBlockEntityRenderer
             );
         }
 
-        if (preset == MotorwaySignPreset.D61B) {
+        if (standaloneStack) {
             drawCustomStack(
-                    collector, poseStack, font, customLayout, customTop, state.lightCoords,
-                    true, false, false
+                    collector, poseStack, font, customLayout, customTop, state.lightCoords, style, true
             );
             poseStack.popPose();
             flushDeferredTexts(state, poseStack, collector);
@@ -926,17 +543,13 @@ public class MotorwaySignBlockEntityRenderer
                         / MotorwaySignGeometry.WORLD_SCALE - originalHeight;
                 drawCustomStack(
                         collector, poseStack, font, additions,
-                        originalBottom - PANEL_GAP, state.lightCoords, false,
-                        preset == MotorwaySignPreset.D63C,
-                        preset == MotorwaySignPreset.D31B_EX1
+                        originalBottom - PANEL_GAP, state.lightCoords, style, false
                 );
             } else {
                 float originalShift = customPanelHeight + PANEL_GAP;
                 drawCustomStack(
                         collector, poseStack, font, additions,
-                        2.05F + customPanelHeight, state.lightCoords, false,
-                        preset == MotorwaySignPreset.D63C,
-                        preset == MotorwaySignPreset.D31B_EX1
+                        2.05F + customPanelHeight, state.lightCoords, style, false
                 );
                 drawAdditionalSupport(
                         collector, poseStack,
@@ -997,11 +610,11 @@ public class MotorwaySignBlockEntityRenderer
             return;
         }
 
-        ExactMappedArtwork exactArtwork = exactMappedArtwork(preset);
+        ExactMappedArtwork exactArtwork = MotorwaySignArtworkCatalog.exactMappedArtwork(preset);
         if (exactArtwork != null) {
             drawExactMappedArtwork(
                     collector, poseStack, font, preset, state.lines, state.lightCoords,
-                    exactArtwork, state.mountedOnCrossbar
+                    exactArtwork, state.services, state.mountedOnCrossbar
             );
             poseStack.popPose();
             flushDeferredTexts(state, poseStack, collector);
@@ -1359,41 +972,6 @@ public class MotorwaySignBlockEntityRenderer
         return top - height * sourceY / sourceHeight;
     }
 
-    private static ExactMappedArtwork exactMappedArtwork(MotorwaySignPreset preset) {
-        return switch (preset) {
-            case D31B_EX1 -> D31B_EX1_ARTWORK;
-            case D31B_EX2 -> D31B_EX2_ARTWORK;
-            case D31D -> D31D_ARTWORK;
-            case D31E -> D31E_ARTWORK;
-            case D32A -> D32A_ARTWORK;
-            case D32A_DC -> D32A_DC_ARTWORK;
-            case D32B -> D32B_ARTWORK;
-            case D41A -> D41A_ARTWORK;
-            case D41B -> D41B_ARTWORK;
-            case D41C -> D41C_ARTWORK;
-            case D61B -> D61B_ARTWORK;
-            case D62A -> D62A_ARTWORK;
-            case D62B -> D62B_ARTWORK;
-            case D62D_TOP -> D62D_TOP_ARTWORK;
-            case D62D_BOTTOM -> D62D_BOTTOM_ARTWORK;
-            case D63C -> D63C_ARTWORK;
-            case D63D -> D63D_ARTWORK;
-            case D71 -> D71_ARTWORK;
-            case D72 -> D72_ARTWORK;
-            case D73 -> D73_ARTWORK;
-            case DA31A -> DA31A_ARTWORK;
-            case DA31B -> DA31B_ARTWORK;
-            case DA31D -> DA31D_ARTWORK;
-            case DA31E -> DA31E_ARTWORK;
-            case DA31F -> DA31F_ARTWORK;
-            case DA32A -> DA32A_ARTWORK;
-            case DA32A_DC -> DA32A_DC_ARTWORK;
-            case DA32B -> DA32B_ARTWORK;
-            case DA32B_DC -> DA32B_DC_ARTWORK;
-            default -> null;
-        };
-    }
-
     private static void drawExactMappedArtwork(
             SubmitNodeCollector collector,
             PoseStack poseStack,
@@ -1402,8 +980,10 @@ public class MotorwaySignBlockEntityRenderer
             MotorwaySignLineData[] values,
             int light,
             ExactMappedArtwork artwork,
+            MotorwaySignServiceIcon[] services,
             boolean mountedOnCrossbar
     ) {
+        MotorwaySignStyleProfile style = MotorwaySignStyleProfile.forPreset(preset);
         float width = artwork.physicalWidth();
         float height = width * artwork.sourceHeight() / artwork.sourceWidth();
         float left = -width / 2.0F;
@@ -1442,11 +1022,28 @@ public class MotorwaySignBlockEntityRenderer
             )) {
                 continue;
             }
-            MotorwaySignLineData data = safeLine(values, layer.slotIndex(), preset.getSlot(layer.slotIndex()));
-            int layerColor = layer.fixedArgb() == 0 ? data.color().getArgb() : layer.fixedArgb();
+            MotorwaySignSlot layerSlot = preset.getSlot(layer.slotIndex());
+            MotorwaySignLineData data = safeLine(values, layer.slotIndex(), layerSlot);
+            int layerColor;
+            if (layer.fixedArgb() != 0) {
+                layerColor = layer.fixedArgb();
+            } else if (isRoadCartoucheSlot(layerSlot)) {
+                MotorwaySignColor visualColor = MotorwaySignStyleProfile.visualRoadCartoucheColor(data.color());
+                layerColor = visualColor.getArgb();
+            } else {
+                layerColor = data.color().getArgb();
+            }
             drawArtworkLayer(collector, poseStack, layer.texture(), left, right, bottom, top,
                     FRONT_Z + 0.004F + layerIndex * 0.0005F, layerColor, light, -17 + layerIndex);
         }
+        overlayWhiteExactPanelBodies(
+                collector, poseStack, preset, values, artwork,
+                left, width, top, height, light
+        );
+        redrawExactRoadCartoucheLayers(
+                collector, poseStack, preset, values, artwork,
+                left, right, bottom, top, light
+        );
         if (preset == MotorwaySignPreset.D63C) {
             /*
              * Le fond du registre inférieur est directement inclus dans le
@@ -1495,6 +1092,9 @@ public class MotorwaySignBlockEntityRenderer
             drawArtworkLayer(collector, poseStack, artwork.graphics(), left, right, bottom, top,
                     FRONT_Z + 0.008F, 0xFFFFFFFF, light, -15);
         }
+        if (preset == MotorwaySignPreset.D44) {
+            drawD44ServiceRow(collector, poseStack, left, width, top, height, artwork, services, light);
+        }
 
         for (ExactTextPlacement placement : artwork.texts()) {
             MotorwaySignLineData data = safeLine(values, placement.slotIndex(), preset.getSlot(placement.slotIndex()));
@@ -1508,6 +1108,20 @@ public class MotorwaySignBlockEntityRenderer
             float y = sourceY(top, height, placement.y(), artwork.sourceHeight());
             float maximumWidth = width * placement.maximumWidth() / artwork.sourceWidth();
             float scale = width * placement.sourceHeight() / artwork.sourceWidth() / font.lineHeight;
+            if (preset == MotorwaySignPreset.D44) {
+                /*
+                 * Le centre mesuré sur le SVG correspond au centre optique du
+                 * texte d'origine (majuscules/chiffres sans descendante),
+                 * alors que Minecraft centre sur la hauteur de ligne complète
+                 * (avec la réserve de descendante) : le texte ressort donc
+                 * systématiquement un peu trop haut. Léger recalage empirique.
+                 */
+                y -= scale * font.lineHeight * 0.10F;
+                if (placement.slotIndex() == 1) {
+                    /* Distance : le calcul brut ressort trop petit face à la photo de référence. */
+                    scale *= 1.30F;
+                }
+            }
             if (preset == MotorwaySignPreset.D63C
                     && (placement.slotIndex() == 2 || placement.slotIndex() == 3)) {
                 FormattedCharSequence sequence = styled(data.text(), data.font());
@@ -1519,28 +1133,22 @@ public class MotorwaySignBlockEntityRenderer
                 x = left + 0.32F + pixelWidth * actualScale / 2.0F;
                 maximumWidth = availableWidth;
             }
-            if (preset == MotorwaySignPreset.D31B_EX1
-                    && (placement.slotIndex() == 1 || placement.slotIndex() == 2)) {
+            if ((preset == MotorwaySignPreset.D44)
+                    && placement.slotIndex() == 2) {
                 /*
-                 * D31b ex.1 : même verticale ET même taille que les lames
-                 * personnalisées ajoutées sous le panneau. La marge de 0,13
-                 * est mesurée depuis le bord gauche physique du panneau.
+                 * Nom du village étape : toujours aligné à gauche du registre
+                 * (comme sur le panneau réel), jamais centré — un centrage
+                 * décale le mot différemment selon sa longueur et l'écarte
+                 * de la marge gauche mesurée sur le SVG (id79 : x=347).
                  */
-                float leftX = left + 0.13F;
-                float availableWidth = Math.max(0.20F, right - 0.28F - leftX);
+                float leftX = sourceX(left, width, 347.0F, artwork.sourceWidth());
                 drawLeftAlignedText(collector, poseStack, font, data.text(),
-                        leftX, y, availableWidth,
-                        data.font(), data.color().getTextArgb(), 0.044F, light);
+                        leftX, y, maximumWidth, data.font(), data.color().getTextArgb(), scale, light);
                 continue;
             }
-            if (preset == MotorwaySignPreset.D31B_EX2
-                    && (placement.slotIndex() == 1
-                    || placement.slotIndex() == 2
-                    || placement.slotIndex() == 3)) {
-                float leftAlignedX = x - maximumWidth / 2.0F;
-                drawLeftAlignedText(collector, poseStack, font, data.text(),
-                        leftAlignedX + 0.04F, y, maximumWidth,
-                        data.font(), data.color().getTextArgb(), scale, light);
+            if (style.normalizeMainDestinationStack()
+                    && (slot.role() == MotorwaySignRole.DESTINATION
+                    || slot.role() == MotorwaySignRole.INFO)) {
                 continue;
             }
             if (isExitNumberSlot(slot)) {
@@ -1551,57 +1159,121 @@ public class MotorwaySignBlockEntityRenderer
                         data.font(), data.color().getTextArgb(), scale, light);
             }
         }
+        if (style.normalizeMainDestinationStack()) {
+            drawNormalizedMainDestinationStack(
+                    collector, poseStack, font, preset, values, artwork,
+                    left, right, top, height, light, style
+            );
+        }
     }
 
-    private static ExactTintedLayer layer(String filename, int slotIndex) {
-        return new ExactTintedLayer(artwork(filename), slotIndex, 0);
-    }
-
-    private static ExactTintedLayer fixedLayer(String filename, MotorwaySignColor color) {
-        return new ExactTintedLayer(artwork(filename), 0, color.getArgb());
-    }
-
-    private static ExactTextPlacement text(
-            int slotIndex,
-            float x,
-            float y,
-            float maximumWidth,
-            float sourceHeight
+    /**
+     * Les masques SVG utilisent historiquement un listel blanc. Lorsqu'un
+     * registre est passé en blanc, on redessine seulement son corps avec le
+     * listel noir réglementaire. Les registres bleus/verts conservent ainsi
+     * leur listel blanc d'origine. La correspondance corps/couleur est déduite
+     * des placements de texte présents dans le même rectangle source, ce qui
+     * évite une table de corrections par panneau.
+     */
+    private static void overlayWhiteExactPanelBodies(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            ExactMappedArtwork artwork,
+            float left,
+            float width,
+            float top,
+            float height,
+            int light
     ) {
-        return new ExactTextPlacement(slotIndex, x, y, maximumWidth, sourceHeight);
+        int standaloneRoadBodies = standaloneRoadCartoucheCount(preset, artwork);
+        for (int bodyIndex = standaloneRoadBodies; bodyIndex < artwork.bodies().length; bodyIndex++) {
+            ExactBody body = artwork.bodies()[bodyIndex];
+            MotorwaySignColor color = exactBodyColor(preset, values, artwork, body);
+            if (color != MotorwaySignColor.WHITE) {
+                continue;
+            }
+            float bodyLeft = sourceX(left, width, body.x(), artwork.sourceWidth());
+            float bodyRight = sourceX(left, width, body.x() + body.width(), artwork.sourceWidth());
+            float bodyTop = sourceY(top, height, body.y(), artwork.sourceHeight());
+            float bodyBottom = sourceY(top, height, body.y() + body.height(), artwork.sourceHeight());
+            drawPlate(
+                    collector, poseStack,
+                    bodyLeft, bodyRight, bodyBottom, bodyTop,
+                    MotorwaySignColor.WHITE, light
+            );
+        }
     }
 
-    private static ExactBody body(float x, float y, float width, float height) {
-        return new ExactBody(x, y, width, height);
-    }
-
-    private record ExactMappedArtwork(
-            float sourceWidth,
-            float sourceHeight,
-            float physicalWidth,
-            Identifier frame,
-            Identifier graphics,
-            ExactTintedLayer[] layers,
-            ExactTextPlacement[] texts,
-            ExactBody[] bodies,
-            boolean doublePost
+    private static MotorwaySignColor exactBodyColor(
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            ExactMappedArtwork artwork,
+            ExactBody body
     ) {
+        MotorwaySignColor best = null;
+        int bestPriority = -1;
+        float minY = body.y() - 2.0F;
+        float maxY = body.y() + body.height() + 2.0F;
+        for (ExactTextPlacement placement : artwork.texts()) {
+            if (placement.y() < minY || placement.y() > maxY
+                    || placement.slotIndex() < 0 || placement.slotIndex() >= preset.getSlotCount()) {
+                continue;
+            }
+            MotorwaySignSlot slot = preset.getSlot(placement.slotIndex());
+            int priority = switch (slot.role()) {
+                case DESTINATION, INFO -> 3;
+                case DISTANCE -> 2;
+                case ROUTE -> 1;
+            };
+            if (priority > bestPriority) {
+                bestPriority = priority;
+                best = safeLine(values, placement.slotIndex(), slot).color();
+            }
+        }
+        return best;
     }
 
-    private record ExactTintedLayer(Identifier texture, int slotIndex, int fixedArgb) {
-    }
-
-    private record ExactTextPlacement(
-            int slotIndex,
-            float x,
-            float y,
-            float maximumWidth,
-            float sourceHeight
+    private static void redrawExactRoadCartoucheLayers(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            ExactMappedArtwork artwork,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            int light
     ) {
+        for (int layerIndex = 0; layerIndex < artwork.layers().length; layerIndex++) {
+            ExactTintedLayer layer = artwork.layers()[layerIndex];
+            if (layer.fixedArgb() != 0
+                    || layer.slotIndex() < 0 || layer.slotIndex() >= preset.getSlotCount()) {
+                continue;
+            }
+            MotorwaySignSlot slot = preset.getSlot(layer.slotIndex());
+            if (!isRoadCartoucheSlot(slot)
+                    || isStandaloneRoadCartoucheSlot(preset, artwork, layer.slotIndex())) {
+                continue;
+            }
+            MotorwaySignLineData data = safeLine(values, layer.slotIndex(), slot);
+            MotorwaySignColor visualColor = MotorwaySignStyleProfile.visualRoadCartoucheColor(data.color());
+            drawArtworkLayer(
+                    collector, poseStack, layer.texture(), left, right, bottom, top,
+                    FRONT_Z + 0.010F + layerIndex * 0.0005F,
+                    visualColor.getArgb(), light, -12 + layerIndex
+            );
+        }
     }
 
-    private record ExactBody(float x, float y, float width, float height) {
-    }
+    /*
+     * Types ExactMappedArtwork/ExactTintedLayer/ExactTextPlacement/ExactBody
+     * et leurs constructeurs (layer/fixedLayer/text/body) : voir
+     * MotorwaySignArtworkCatalog, qui regroupe désormais toutes les données
+     * par panneau séparément du moteur de rendu.
+     */
 
     private static float panelCornerRadius(
             float left,
@@ -1959,6 +1631,18 @@ public class MotorwaySignBlockEntityRenderer
         if (groups.isEmpty()) {
             sharedWidth = 2.20F + graphicReserve;
         }
+        /*
+         * Largeur fixe dérivée du SVG pour les modèles du Groupe B, lue
+         * depuis la MÊME source que MotorwaySignGeometry (hitbox) afin que
+         * le panneau réellement dessiné ne diverge jamais de sa boîte
+         * englobante. Le texte trop long reste géré par le rétrécissement
+         * automatique existant de drawText (scale = min(baseScale,
+         * maxWidth/width)), donc rien ne déborde ni ne se coupe.
+         */
+        float fixedWidth = MotorwaySignGeometry.fixedWidthMeters(preset);
+        if (fixedWidth > 0.0F) {
+            sharedWidth = fixedWidth;
+        }
         sharedWidth = clamp(sharedWidth, MIN_PANEL_WIDTH, MAX_PANEL_WIDTH);
 
         float bottom = 2.05F;
@@ -2030,7 +1714,7 @@ public class MotorwaySignBlockEntityRenderer
             Font font,
             MotorwaySignPanelData[] configuredPanels,
             boolean includeCartoucheOnlyPanel,
-            boolean spaciousMultiline
+            MotorwaySignStyleProfile style
     ) {
         List<MotorwaySignPanelData> panels = new ArrayList<>();
         if (configuredPanels != null) {
@@ -2042,12 +1726,10 @@ public class MotorwaySignBlockEntityRenderer
                             && !panel.hasPanelContent()) {
                         continue;
                     }
-                    MotorwaySignPanelData normalized = withAllowedCustomBackground(panel);
-                    panels.add(spaciousMultiline
-                            ? withoutCartouche(normalized)
-                            : (configuredIndex == 0
+                    MotorwaySignPanelData normalized = withStyleProfile(panel, style);
+                    panels.add(configuredIndex == 0
                             ? normalized
-                            : withoutCartouche(normalized)));
+                            : withoutCartouche(normalized));
                 }
             }
         }
@@ -2080,12 +1762,7 @@ public class MotorwaySignBlockEntityRenderer
                     MIN_PANEL_WIDTH,
                     MAX_PANEL_WIDTH
             );
-            heights[index] = spaciousMultiline && panel.lineCount() >= 3
-                    ? 0.64F + 0.58F * panel.lineCount()
-                    : 0.48F + 0.40F * panel.lineCount();
-            if (usesBottomArrow(panel.graphic())) {
-                heights[index] += 0.50F;
-            }
+            heights[index] = style.addedPanelHeight(panel.lineCount(), panel.graphic());
             maximumWidth = Math.max(maximumWidth, widths[index]);
             totalHeight += heights[index];
 
@@ -2114,7 +1791,8 @@ public class MotorwaySignBlockEntityRenderer
 
     private static CustomStackLayout buildD61BStackLayout(
             Font font,
-            MotorwaySignPanelData[] configuredPanels
+            MotorwaySignPanelData[] configuredPanels,
+            MotorwaySignStyleProfile style
     ) {
         List<MotorwaySignPanelData> enabled = new ArrayList<>();
         CartoucheType topCartouche = CartoucheType.NONE;
@@ -2154,7 +1832,7 @@ public class MotorwaySignBlockEntityRenderer
                 MotorwaySignColor.BLUE, topCartouche, topCartoucheText, MotorwaySignGraphic.NONE
         ));
         CustomStackLayout layout = buildCustomStackLayout(
-                font, enabled.toArray(MotorwaySignPanelData[]::new), true, false
+                font, enabled.toArray(MotorwaySignPanelData[]::new), true, style
         );
         float[] sharedWidths = layout.widths().clone();
         java.util.Arrays.fill(sharedWidths, 6.20F);
@@ -2228,14 +1906,13 @@ public class MotorwaySignBlockEntityRenderer
             CustomStackLayout layout,
             float top,
             int light,
-            boolean d61Style,
-            boolean d63cStyle,
-            boolean d31bStyle
+            MotorwaySignStyleProfile style,
+            boolean inlineCartouche
     ) {
         float cursorTop = top;
         for (int index = 0; index < layout.panels().size(); index++) {
-            MotorwaySignPanelData data = layout.panels().get(index);
-            if (d61Style && data.cartoucheType().isVisible()) {
+            MotorwaySignPanelData data = withStyleProfile(layout.panels().get(index), style);
+            if (inlineCartouche && data.cartoucheType().isVisible()) {
                 float cartoucheTop = cursorTop;
                 float cartoucheBottom = cartoucheTop - D61_CARTOUCHE_HEIGHT;
                 cursorTop = cartoucheBottom - PANEL_GAP;
@@ -2252,13 +1929,7 @@ public class MotorwaySignBlockEntityRenderer
                     collector, poseStack, panelLayout.left(), panelLayout.right(),
                     panelLayout.bottom(), panelLayout.top(), panelLayout.color(), light
             );
-            if (d61Style) {
-                drawD61PanelText(collector, poseStack, font, data, panelLayout, light);
-            } else if (d63cStyle) {
-                drawD63CPanelText(collector, poseStack, font, data, panelLayout, light);
-            } else {
-                drawCustomPanelText(collector, poseStack, font, data, panelLayout, light, d31bStyle);
-            }
+            drawCustomPanelText(collector, poseStack, font, data, panelLayout, light, style);
             drawGraphic(
                     collector, poseStack,
                     new SignLayout(
@@ -2278,13 +1949,13 @@ public class MotorwaySignBlockEntityRenderer
             MotorwaySignPanelData data,
             PanelLayout panel,
             int light,
-            boolean d31bStyle
+            MotorwaySignStyleProfile style
     ) {
-        final float textScale = 0.044F;
-        final float lineStep = 0.45F;
-        final float distanceGap = 0.30F;
-        float leftMargin = d31bStyle ? 0.13F : 0.32F;
-        float rightMargin = 0.28F;
+        final float textScale = style.addedTextScale();
+        final float lineStep = style.addedLineStep();
+        final float distanceGap = style.addedDistanceGap();
+        float leftMargin = style.addedLeftMargin();
+        float rightMargin = style.addedRightMargin();
         float reserve = sideGraphicReserve(data.graphic());
         float graphicOffset = textCenterOffset(data.graphic(), reserve);
         if (graphicOffset > 0.0F) {
@@ -2293,7 +1964,8 @@ public class MotorwaySignBlockEntityRenderer
             rightMargin += reserve;
         }
 
-        float y = panel.centerY() + (data.lineCount() - 1) * lineStep / 2.0F - 0.055F;
+        float y = panel.centerY() + (data.lineCount() - 1) * lineStep / 2.0F
+                + style.addedOpticalYOffset();
         if (usesBottomArrow(data.graphic())) {
             y += 0.22F;
         }
@@ -2333,112 +2005,132 @@ public class MotorwaySignBlockEntityRenderer
         }
     }
 
-    /** D63c : les panneaux multilignes gardent une taille et un interligne généreux. */
-    private static void drawD63CPanelText(
+    private static void drawNormalizedMainDestinationStack(
             SubmitNodeCollector collector,
             PoseStack poseStack,
             Font font,
-            MotorwaySignPanelData data,
-            PanelLayout panel,
-            int light
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            ExactMappedArtwork artwork,
+            float left,
+            float right,
+            float top,
+            float height,
+            int light,
+            MotorwaySignStyleProfile style
     ) {
-        final boolean multi = data.lineCount() >= 3;
-        final float textScale = multi ? 0.064F : 0.046F;
-        final float lineStep = multi ? 0.68F : 0.47F;
-        final float distanceGap = 0.34F;
-        final float leftMargin = 0.34F;
-        final float rightMargin = 0.38F;
-        float y = panel.centerY() + (data.lineCount() - 1) * lineStep / 2.0F - 0.045F;
-        if (usesBottomArrow(data.graphic())) {
-            y += 0.22F;
-        }
-
-        for (int index = 0; index < data.lineCount(); index++) {
-            float lineY = y - index * lineStep;
-            FormattedCharSequence distanceSequence = styled(data.distance(index), data.font(index));
-            int distancePixels = font.width(distanceSequence);
-            float distanceWidth = data.distance(index).isBlank()
-                    ? 0.0F
-                    : distancePixels * textScale;
-            if (distanceWidth > 0.0F) {
-                drawText(
-                        collector, poseStack, font, data.distance(index),
-                        panel.right() - rightMargin - distanceWidth / 2.0F, lineY,
-                        distanceWidth + 0.002F, data.font(index),
-                        panel.color().getTextArgb(), textScale, light
-                );
-            }
-
-            FormattedCharSequence citySequence = styled(data.line(index), data.font(index));
-            int cityPixels = font.width(citySequence);
-            if (cityPixels <= 0) {
+        List<ExactTextPlacement> placements = new ArrayList<>();
+        for (ExactTextPlacement placement : artwork.texts()) {
+            if (placement.slotIndex() < 0 || placement.slotIndex() >= preset.getSlotCount()) {
                 continue;
             }
-            float cityLeft = panel.left() + leftMargin;
-            float cityRight = panel.right() - rightMargin
-                    - (distanceWidth > 0.0F ? distanceWidth + distanceGap : 0.0F);
-            float maximumWidth = Math.max(0.20F, cityRight - cityLeft);
-            float actualScale = Math.min(textScale, maximumWidth / cityPixels);
-            float actualWidth = cityPixels * actualScale;
-            drawText(
-                    collector, poseStack, font, data.line(index),
-                    cityLeft + actualWidth / 2.0F, lineY, maximumWidth,
-                    data.font(index), panel.color().getTextArgb(), textScale, light
+            MotorwaySignRole role = preset.getSlot(placement.slotIndex()).role();
+            if (role == MotorwaySignRole.DESTINATION || role == MotorwaySignRole.INFO) {
+                placements.add(placement);
+            }
+        }
+        placements.sort(java.util.Comparator.comparingDouble(ExactTextPlacement::y));
+        if (placements.isEmpty()) {
+            return;
+        }
+
+        ExactBody targetBody = null;
+        for (ExactBody body : artwork.bodies()) {
+            boolean containsAll = true;
+            for (ExactTextPlacement placement : placements) {
+                if (placement.y() < body.y() - 2.0F
+                        || placement.y() > body.y() + body.height() + 2.0F) {
+                    containsAll = false;
+                    break;
+                }
+            }
+            if (containsAll) {
+                targetBody = body;
+                break;
+            }
+        }
+        if (targetBody == null) {
+            return;
+        }
+
+        int available = Math.min(4, placements.size());
+        /*
+         * Nombre de lignes RÉELLEMENT renseignées (en partant du haut), pas
+         * le nombre total de registres du préréglage : sinon une destination
+         * laissée vide ne referme pas l'espace qu'elle occupait et ne se
+         * retrouve jamais recentrée avec les lignes voisines, contrairement
+         * aux vrais panneaux qui peuvent avoir 1, 2 ou 3 destinations.
+         */
+        int count = 0;
+        while (count < available) {
+            MotorwaySignLineData candidate = safeLine(
+                    values, placements.get(count).slotIndex(), preset.getSlot(placements.get(count).slotIndex())
+            );
+            if (candidate.text() == null || candidate.text().isBlank()) {
+                break;
+            }
+            count++;
+        }
+        if (count == 0) {
+            return;
+        }
+        MotorwaySignLineData[] lines = new MotorwaySignLineData[count];
+        for (int index = 0; index < count; index++) {
+            ExactTextPlacement placement = placements.get(index);
+            lines[index] = safeLine(
+                    values, placement.slotIndex(), preset.getSlot(placement.slotIndex())
             );
         }
+        MotorwaySignLineData first = lines[0];
+        MotorwaySignPanelData panelData = new MotorwaySignPanelData(
+                true, count,
+                count > 0 ? lines[0].text() : "",
+                count > 1 ? lines[1].text() : "",
+                count > 2 ? lines[2].text() : "",
+                count > 3 ? lines[3].text() : "",
+                "", "", "", "",
+                count > 0 ? lines[0].font() : RoadTextFont.L1,
+                count > 1 ? lines[1].font() : RoadTextFont.L1,
+                count > 2 ? lines[2].font() : RoadTextFont.L1,
+                count > 3 ? lines[3].font() : RoadTextFont.L1,
+                first.color(), CartoucheType.NONE, "", MotorwaySignGraphic.NONE
+        );
+        float panelTop = sourceY(top, height, targetBody.y(), artwork.sourceHeight());
+        float panelBottom = sourceY(
+                top, height, targetBody.y() + targetBody.height(), artwork.sourceHeight()
+        );
+        float physicalWidth = right - left;
+        PanelLayout panelLayout = new PanelLayout(
+                sourceX(left, physicalWidth, targetBody.x(), artwork.sourceWidth()),
+                sourceX(left, physicalWidth, targetBody.x() + targetBody.width(), artwork.sourceWidth()),
+                panelBottom, panelTop, first.color(), List.of()
+        );
+        drawCustomPanelText(collector, poseStack, font, panelData, panelLayout, light, style);
     }
 
-    private static void drawD61PanelText(
-            SubmitNodeCollector collector,
-            PoseStack poseStack,
-            Font font,
-            MotorwaySignPanelData data,
-            PanelLayout panel,
-            int light
+
+    private static MotorwaySignPanelData withStyleProfile(
+            MotorwaySignPanelData panel,
+            MotorwaySignStyleProfile style
     ) {
-        final float textScale = 0.044F;
-        final float leftMargin = 0.32F;
-        final float rightMargin = 0.28F;
-        final float distanceGap = 0.30F;
-        final float lineStep = 0.45F;
-        /* La fonte routière paraît optiquement un peu haute malgré un centrage métrique exact. */
-        float firstY = panel.centerY() + (data.lineCount() - 1) * lineStep / 2.0F - 0.055F;
-
-        for (int index = 0; index < data.lineCount(); index++) {
-            float y = firstY - index * lineStep;
-            FormattedCharSequence distanceSequence = styled(data.distance(index), data.font(index));
-            int distancePixels = font.width(distanceSequence);
-            float distanceWidth = data.distance(index).isBlank()
-                    ? 0.0F
-                    : distancePixels * textScale;
-            if (distanceWidth > 0.0F) {
-                drawText(
-                        collector, poseStack, font, data.distance(index),
-                        panel.right() - rightMargin - distanceWidth / 2.0F, y,
-                        distanceWidth + 0.002F, data.font(index),
-                        data.background().getTextArgb(), textScale, light
-                );
-            }
-
-            FormattedCharSequence citySequence = styled(data.line(index), data.font(index));
-            int cityPixels = font.width(citySequence);
-            if (cityPixels <= 0) {
-                continue;
-            }
-            float cityLeft = panel.left() + leftMargin;
-            float cityRight = panel.right() - rightMargin
-                    - (distanceWidth > 0.0F ? distanceWidth + distanceGap : 0.0F);
-            float maximumWidth = Math.max(0.20F, cityRight - cityLeft);
-            float actualScale = Math.min(textScale, maximumWidth / cityPixels);
-            float actualWidth = cityPixels * actualScale;
-            drawText(
-                    collector, poseStack, font, data.line(index),
-                    cityLeft + actualWidth / 2.0F, y,
-                    maximumWidth, data.font(index),
-                    data.background().getTextArgb(), textScale, light
-            );
-        }
+        MotorwaySignColor background = style.sanitizeCustomBackground(panel.background());
+        boolean keepDistances = style.allowsCustomDistances();
+        CartoucheType cartoucheType = style.allowsCustomCartouche()
+                ? panel.cartoucheType()
+                : CartoucheType.NONE;
+        String cartoucheText = style.allowsCustomCartouche() ? panel.cartoucheText() : "";
+        return new MotorwaySignPanelData(
+                panel.enabled(), panel.lineCount(),
+                panel.line1(), panel.line2(), panel.line3(), panel.line4(),
+                keepDistances ? panel.distance1() : "",
+                keepDistances ? panel.distance2() : "",
+                keepDistances ? panel.distance3() : "",
+                keepDistances ? panel.distance4() : "",
+                panel.line1Font(), panel.line2Font(), panel.line3Font(), panel.line4Font(),
+                background, cartoucheType, cartoucheText, panel.graphic()
+        );
     }
+
 
     private static void drawAdditionalSupport(
             SubmitNodeCollector collector,
@@ -2536,7 +2228,7 @@ public class MotorwaySignBlockEntityRenderer
                 ? 0.0F
                 : MotorwaySignGeometry.D61B_PANEL_FORWARD;
 
-        ExactMappedArtwork artwork = exactMappedArtwork(preset);
+        ExactMappedArtwork artwork = MotorwaySignArtworkCatalog.exactMappedArtwork(preset);
         if (artwork != null) {
             float width = artwork.physicalWidth();
             float height = width * artwork.sourceHeight() / artwork.sourceWidth();
@@ -2678,11 +2370,12 @@ public class MotorwaySignBlockEntityRenderer
                 * MotorwaySignGeometry.WORLD_SCALE;
         float panelTop = originalTopInternal * MotorwaySignGeometry.WORLD_SCALE;
         float lateral = firstVisible && secondVisible ? 0.48F : 0.0F;
+        float alignedPanelForward = panelForward - D63C_CARTOUCHE_FORWARD_CORRECTION;
 
         if (firstVisible) {
             submitCartoucheModelScaled(
                     state, first.cartoucheType(), first.cartoucheText(),
-                    cartoucheBottom, panelTop, panelForward,
+                    cartoucheBottom, panelTop, alignedPanelForward,
                     secondVisible ? -lateral : 0.0F,
                     D63C_CARTOUCHE_SCALE,
                     poseStack, collector
@@ -2691,7 +2384,7 @@ public class MotorwaySignBlockEntityRenderer
         if (secondVisible) {
             submitCartoucheModelScaled(
                     state, second.cartoucheType(), second.cartoucheText(),
-                    cartoucheBottom, panelTop, panelForward,
+                    cartoucheBottom, panelTop, alignedPanelForward,
                     firstVisible ? lateral : 0.0F,
                     D63C_CARTOUCHE_SCALE,
                     poseStack, collector
@@ -2963,26 +2656,6 @@ public class MotorwaySignBlockEntityRenderer
         };
     }
 
-    private static MotorwaySignColor allowedCustomBackground(MotorwaySignColor color) {
-        return color == MotorwaySignColor.GREEN || color == MotorwaySignColor.WHITE
-                ? color
-                : MotorwaySignColor.BLUE;
-    }
-
-    private static MotorwaySignPanelData withAllowedCustomBackground(MotorwaySignPanelData panel) {
-        MotorwaySignColor background = allowedCustomBackground(panel.background());
-        if (background == panel.background()) {
-            return panel;
-        }
-        return new MotorwaySignPanelData(
-                panel.enabled(), panel.lineCount(),
-                panel.line1(), panel.line2(), panel.line3(), panel.line4(),
-                panel.distance1(), panel.distance2(), panel.distance3(), panel.distance4(),
-                panel.line1Font(), panel.line2Font(), panel.line3Font(), panel.line4Font(),
-                background, panel.cartoucheType(), panel.cartoucheText(), panel.graphic()
-        );
-    }
-
     private static MotorwaySignPanelData withoutCartouche(MotorwaySignPanelData panel) {
         if (!panel.cartoucheType().isVisible() && panel.cartoucheText().isBlank()) {
             return panel;
@@ -3117,14 +2790,22 @@ public class MotorwaySignBlockEntityRenderer
             PanelLayout panel,
             int light
     ) {
-        float size = Math.min(0.43F, panel.height() * 0.28F);
+        /*
+         * Le SVG de référence (D45/D46/D47 ; D44 a désormais son propre
+         * ExactMappedArtwork, voir D44_ARTWORK) ne montre qu'UN seul petit
+         * pictogramme, placé devant la 2e ligne (celle en italique type
+         * "village étape"), pas une colonne de 3 icônes couvrant toute la
+         * hauteur du panneau. On aligne donc l'icône sur la position
+         * verticale réelle de cette 2e ligne, avec la même formule que
+         * drawPanelText() pour rester cohérent.
+         */
+        float lineStep = panel.color().isLight() ? 0.39F : 0.45F;
+        float size = Math.min(0.34F, lineStep * 0.88F);
         float left = panel.left() + 0.13F;
-        float bottom = panel.centerY() - size / 2.0F;
-        drawServiceTexture(collector, poseStack, SERVICE_TEXTURE_1, left, left + size, bottom, bottom + size, light);
-        drawServiceTexture(collector, poseStack, SERVICE_TEXTURE_2, left + size + 0.05F, left + size * 2.0F + 0.05F, bottom, bottom + size, light);
-        if (panel.height() > 1.20F) {
-            drawServiceTexture(collector, poseStack, SERVICE_TEXTURE_3, left, left + size, bottom - size - 0.05F, bottom - 0.05F, light);
-        }
+        float secondLineY = panel.centerY() - lineStep / 2.0F;
+        drawServiceTexture(collector, poseStack, SERVICE_TEXTURE_1,
+                left, left + size,
+                secondLineY - size / 2.0F, secondLineY + size / 2.0F, light);
     }
 
     private static void drawExitList(
@@ -3770,7 +3451,7 @@ public class MotorwaySignBlockEntityRenderer
         return switch (graphic) {
             case DIAGONAL_LEFT, DIAGONAL_RIGHT, EXIT -> 0.82F;
             case SCHEMATIC_LEFT, SCHEMATIC_RIGHT -> 1.02F;
-            case SERVICES, MOTORWAY -> 1.12F;
+            case SERVICES, MOTORWAY -> 0.55F;
             case EXIT_LIST -> 0.36F;
             default -> 0.0F;
         };
@@ -3806,11 +3487,12 @@ public class MotorwaySignBlockEntityRenderer
         return Math.max(min, Math.min(max, value));
     }
 
-    private static Identifier texture(String filename) {
+    /* Package-private (pas private) : MotorwaySignArtworkCatalog les réutilise pour ses propres identifiants. */
+    static Identifier texture(String filename) {
         return Identifier.fromNamespaceAndPath(MoreRoad.MODID, "textures/block/" + filename);
     }
 
-    private static Identifier artwork(String filename) {
+    static Identifier artwork(String filename) {
         return Identifier.fromNamespaceAndPath(
                 MoreRoad.MODID,
                 "textures/block/motorway_sign/" + filename

@@ -17,6 +17,7 @@ import net.xelpy.moreroad.block.custom.MotorwaySignColor;
 import net.xelpy.moreroad.block.custom.MotorwaySignGraphic;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
@@ -36,6 +37,8 @@ public class MotorwayD61BEditScreen extends Screen {
     );
 
     private final BlockPos blockPos;
+    private final MotorwaySignPreset preset;
+    private final boolean freeform;
     private final MotorwaySignLineData[] originalLines =
             new MotorwaySignLineData[MotorwaySignBlockEntity.MAX_SLOTS];
     private final MotorwaySignPanelData[] panels =
@@ -49,6 +52,8 @@ public class MotorwayD61BEditScreen extends Screen {
             new SignEditorUi.Rect[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
     private final SignEditorUi.Rect[] pageRects = new SignEditorUi.Rect[3];
     private final SignEditorUi.Rect[] formatRects = new SignEditorUi.Rect[4];
+    private final SignEditorUi.Rect[] backgroundRects = new SignEditorUi.Rect[3];
+    private SignEditorUi.Rect graphicRect;
 
     private int selectedPanel;
     private int settingsPage;
@@ -73,8 +78,21 @@ public class MotorwayD61BEditScreen extends Screen {
             MotorwaySignLineData[] lines,
             MotorwaySignPanelData[] currentPanels
     ) {
-        super(Component.literal("Éditeur de panneau D61b"));
+        this(blockPos, MotorwaySignPreset.D61B, lines, currentPanels);
+    }
+
+    public MotorwayD61BEditScreen(
+            BlockPos blockPos,
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] lines,
+            MotorwaySignPanelData[] currentPanels
+    ) {
+        super(Component.literal("Panneau autoroutier personnalisable"));
         this.blockPos = blockPos.immutable();
+        this.preset = preset == MotorwaySignPreset.FREEFORM
+                ? MotorwaySignPreset.FREEFORM
+                : MotorwaySignPreset.D61B;
+        this.freeform = this.preset == MotorwaySignPreset.FREEFORM;
         for (int index = 0; index < this.originalLines.length; index++) {
             this.originalLines[index] = lines != null && index < lines.length && lines[index] != null
                     ? lines[index]
@@ -211,6 +229,17 @@ public class MotorwayD61BEditScreen extends Screen {
                     innerX + index * (width + gap), y, width, height
             );
         }
+        int styleY = y + height + s(24);
+        int styleGap = s(7);
+        int styleW = (innerW - styleGap * 2) / 3;
+        for (int index = 0; index < this.backgroundRects.length; index++) {
+            this.backgroundRects[index] = new SignEditorUi.Rect(
+                    innerX + index * (styleW + styleGap), styleY, styleW, height
+            );
+        }
+        this.graphicRect = new SignEditorUi.Rect(
+                innerX, styleY + height + s(12), innerW, height
+        );
     }
 
     private void initCartoucheControls() {
@@ -246,8 +275,11 @@ public class MotorwayD61BEditScreen extends Screen {
         SignEditorUi.drawModernWindow(
                 graphics, this.font,
                 this.windowX, this.windowY, this.windowWidth, this.windowHeight,
-                "D61b", "Éditeur de panneau D61b",
-                compactUi() ? "" : "Panneaux ville et kilométrage • largeur commune automatique"
+                this.freeform ? "D/DA" : "D61b",
+                this.freeform ? "Panneau autoroutier personnalisable" : "Éditeur de panneau D61b",
+                compactUi() ? "" : (this.freeform
+                        ? "Un seul bloc • registres libres • couleurs, cartouches et symboles"
+                        : "Panneaux ville et kilométrage • largeur commune automatique")
         );
 
         MotorwaySignPanelData current = currentPanelFromWidgets();
@@ -256,8 +288,8 @@ public class MotorwayD61BEditScreen extends Screen {
             SignEditorUi.drawModernButton(
                     graphics, this.font, this.tabRects[index],
                     compactUi()
-                            ? "Panneau " + (index + 1)
-                            : "Panneau " + (index + 1) + "  •  " + panel.lineCount() + " ville(s)",
+                            ? "Registre " + (index + 1)
+                            : "Registre " + (index + 1) + "  •  " + panel.lineCount() + " ligne(s)",
                     index == this.selectedPanel, true, mouseX, mouseY
             );
             SignEditorUi.drawModernToggle(
@@ -269,7 +301,7 @@ public class MotorwayD61BEditScreen extends Screen {
         drawPreview(graphics);
         SignEditorUi.drawPageTabs(
                 graphics, this.font, this.pageRects,
-                new String[]{"Texte", "Nombre de villes", "Cartouche"},
+                new String[]{"Textes", "Format", "Cartouche"},
                 this.settingsPage, mouseX, mouseY
         );
         if (this.settingsPage == 0) {
@@ -298,7 +330,7 @@ public class MotorwayD61BEditScreen extends Screen {
     private void drawTextPage(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         SignEditorUi.drawModernSection(
                 graphics, this.font, this.settingsRect,
-                "1. VILLES ET KILOMÉTRAGE",
+                this.freeform ? "1. TEXTES ET DISTANCES" : "1. VILLES ET KILOMÉTRAGE",
                 compactUi() ? "" : "Chaque ligne possède sa police L1 ou L4"
         );
         MotorwaySignPanelData panel = currentPanelFromWidgets();
@@ -327,8 +359,10 @@ public class MotorwayD61BEditScreen extends Screen {
     private void drawFormatPage(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         SignEditorUi.drawModernSection(
                 graphics, this.font, this.settingsRect,
-                "2. NOMBRE DE VILLES",
-                compactUi() ? "" : "Une même pancarte peut contenir de 1 à 4 villes"
+                "2. FORMAT DU REGISTRE",
+                compactUi() ? "" : (this.freeform
+                        ? "1 à 4 lignes • fond réglementaire • symbole optionnel"
+                        : "Une même pancarte peut contenir de 1 à 4 villes")
         );
         int count = currentPanelFromWidgets().lineCount();
         for (int index = 0; index < this.formatRects.length; index++) {
@@ -338,13 +372,33 @@ public class MotorwayD61BEditScreen extends Screen {
                     true, mouseX, mouseY
             );
         }
+        if (this.freeform) {
+            MotorwaySignPanelData panel = currentPanelFromWidgets();
+            SignEditorUi.drawModernButton(
+                    graphics, this.font, this.backgroundRects[0], "Blanc",
+                    panel.background() == MotorwaySignColor.WHITE, true, mouseX, mouseY
+            );
+            SignEditorUi.drawModernButton(
+                    graphics, this.font, this.backgroundRects[1], "Vert",
+                    panel.background() == MotorwaySignColor.GREEN, true, mouseX, mouseY
+            );
+            SignEditorUi.drawModernButton(
+                    graphics, this.font, this.backgroundRects[2], "Bleu",
+                    panel.background() == MotorwaySignColor.BLUE, true, mouseX, mouseY
+            );
+            SignEditorUi.drawModernButton(
+                    graphics, this.font, this.graphicRect,
+                    "Symbole : " + graphicLabel(panel.graphic()),
+                    panel.graphic() != MotorwaySignGraphic.NONE, true, mouseX, mouseY
+            );
+        }
     }
 
     private void drawCartouchePage(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         SignEditorUi.drawModernSection(
                 graphics, this.font, this.settingsRect,
-                "3. CARTOUCHE SUPÉRIEUR",
-                compactUi() ? "" : "Type, couleur réglementaire et texte de la route"
+                "3. CARTOUCHE ROUTIER",
+                compactUi() ? "" : "E41 à E47 • couleur réglementaire et texte de la route"
         );
         SignEditorUi.drawModernButton(
                 graphics, this.font, this.cartoucheTypeRect,
@@ -356,7 +410,7 @@ public class MotorwayD61BEditScreen extends Screen {
     private void drawPreview(GuiGraphicsExtractor graphics) {
         SignEditorUi.drawModernSection(
                 graphics, this.font, this.previewRect,
-                "APERÇU EN DIRECT", compactUi() ? "" : "D61b • ensemble configuré"
+                "APERÇU EN DIRECT", compactUi() ? "" : (this.freeform ? "Construction libre • registres configurés" : "D61b • confirmation autoroutière")
         );
         int pad = s(18);
         int x = this.previewRect.x() + pad;
@@ -424,12 +478,15 @@ public class MotorwayD61BEditScreen extends Screen {
         for (MotorwaySignPanelData panel : enabled) {
             int panelHeight = s(25 + panel.lineCount() * 19);
             int panelX = centerX - panelWidth / 2;
-            graphics.fill(panelX, cursorY, panelX + panelWidth, cursorY + panelHeight, 0xFFD7D7D2);
+            graphics.fill(
+                    panelX, cursorY, panelX + panelWidth, cursorY + panelHeight,
+                    previewPanelBorder(panel.background())
+            );
             int border = Math.max(2, s(3));
             graphics.fill(
                     panelX + border, cursorY + border,
                     panelX + panelWidth - border, cursorY + panelHeight - border,
-                    MotorwaySignColor.BLUE.getArgb()
+                    panel.background().getArgb()
             );
             int lineHeight = panelHeight / panel.lineCount();
             for (int lineIndex = 0; lineIndex < panel.lineCount(); lineIndex++) {
@@ -446,12 +503,19 @@ public class MotorwayD61BEditScreen extends Screen {
         }
     }
 
+    private static int previewPanelBorder(MotorwaySignColor background) {
+        return background == MotorwaySignColor.WHITE
+                ? MotorwaySignColor.BLACK.getArgb()
+                : MotorwaySignColor.WHITE.getArgb();
+    }
+
     private static MotorwaySignColor cartouchePreviewColor(CartoucheType type) {
         return switch (type) {
             case E41_45 -> MotorwaySignColor.GREEN;
             case E42 -> MotorwaySignColor.RED;
             case E43 -> MotorwaySignColor.YELLOW;
             case E44 -> MotorwaySignColor.WHITE;
+            case E47 -> MotorwaySignColor.METROPOLITAN_BLUE;
             default -> MotorwaySignColor.BLUE;
         };
     }
@@ -481,13 +545,13 @@ public class MotorwayD61BEditScreen extends Screen {
         graphics.text(
                 this.font, city,
                 x + s(10),
-                textY, 0xFFFFFFFF, false
+                textY, panel.background().getTextArgb(), false
         );
         if (distanceWidth > 0) {
             graphics.text(
                     this.font, distance,
                     x + width - this.font.width(distance) - s(7),
-                    textY, 0xFFFFFFFF, false
+                    textY, panel.background().getTextArgb(), false
             );
         }
     }
@@ -546,6 +610,30 @@ public class MotorwayD61BEditScreen extends Screen {
                         return true;
                     }
                 }
+                if (this.freeform) {
+                    if (this.backgroundRects[0].contains(x, y)) {
+                        this.panels[this.selectedPanel] = withBackground(current, MotorwaySignColor.WHITE);
+                        loadPanelIntoWidgets();
+                        return true;
+                    }
+                    if (this.backgroundRects[1].contains(x, y)) {
+                        this.panels[this.selectedPanel] = withBackground(current, MotorwaySignColor.GREEN);
+                        loadPanelIntoWidgets();
+                        return true;
+                    }
+                    if (this.backgroundRects[2].contains(x, y)) {
+                        this.panels[this.selectedPanel] = withBackground(current, MotorwaySignColor.BLUE);
+                        loadPanelIntoWidgets();
+                        return true;
+                    }
+                    if (this.graphicRect.contains(x, y)) {
+                        MotorwaySignGraphic[] values = MotorwaySignGraphic.values();
+                        MotorwaySignGraphic next = values[(current.graphic().ordinal() + 1) % values.length];
+                        this.panels[this.selectedPanel] = withGraphic(current, next);
+                        loadPanelIntoWidgets();
+                        return true;
+                    }
+                }
             } else if (this.cartoucheTypeRect.contains(x, y)) {
                 this.cartoucheType = this.cartoucheType.next();
                 updateVisibility();
@@ -560,7 +648,7 @@ public class MotorwayD61BEditScreen extends Screen {
                         new MotorwayPresetGalleryScreen(
                                 this,
                                 this.blockPos,
-                                MotorwaySignPreset.D61B,
+                                this.preset,
                                 this.panels
                         )
                 );
@@ -622,7 +710,9 @@ public class MotorwayD61BEditScreen extends Screen {
                 this.distanceFields[0].getValue(), this.distanceFields[1].getValue(),
                 this.distanceFields[2].getValue(), this.distanceFields[3].getValue(),
                 stored.line1Font(), stored.line2Font(), stored.line3Font(), stored.line4Font(),
-                MotorwaySignColor.BLUE, CartoucheType.NONE, "", MotorwaySignGraphic.NONE
+                this.freeform ? stored.background() : MotorwaySignColor.BLUE,
+                CartoucheType.NONE, "",
+                this.freeform ? stored.graphic() : MotorwaySignGraphic.NONE
         );
     }
 
@@ -646,7 +736,9 @@ public class MotorwayD61BEditScreen extends Screen {
             noAdditions[index] = MotorwaySignPanelData.disabled();
         }
         Minecraft.getInstance().gui.setScreen(
-                new MotorwaySignEditScreen(this.blockPos, target, defaults, false, noAdditions)
+                new MotorwaySignEditScreen(
+                        this.blockPos, target, defaults, false, noAdditions, MotorwaySignServiceIcon.defaults()
+                )
         );
     }
 
@@ -657,22 +749,26 @@ public class MotorwayD61BEditScreen extends Screen {
         );
         ClientPacketDistributor.sendToServer(new UpdateMotorwaySignPayload(
                 this.blockPos,
-                MotorwaySignPreset.D61B.getSerializedName(),
+                this.preset.getSerializedName(),
                 this.originalLines[0], this.originalLines[1], this.originalLines[2],
                 this.originalLines[3], this.originalLines[4], this.originalLines[5],
                 true,
-                this.panels[0], this.panels[1], this.panels[2], this.panels[3]
+                this.panels[0], this.panels[1], this.panels[2], this.panels[3],
+                MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE,
+                MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE
         ));
         this.onClose();
     }
 
-    private static MotorwaySignPanelData sanitize(MotorwaySignPanelData source) {
+    private MotorwaySignPanelData sanitize(MotorwaySignPanelData source) {
         return new MotorwaySignPanelData(
                 source.enabled(), source.lineCount(),
                 source.line1(), source.line2(), source.line3(), source.line4(),
                 source.distance1(), source.distance2(), source.distance3(), source.distance4(),
                 source.line1Font(), source.line2Font(), source.line3Font(), source.line4Font(),
-                MotorwaySignColor.BLUE, CartoucheType.NONE, "", MotorwaySignGraphic.NONE
+                this.freeform ? sanitizeBackground(source.background()) : MotorwaySignColor.BLUE,
+                CartoucheType.NONE, "",
+                this.freeform ? source.graphic() : MotorwaySignGraphic.NONE
         );
     }
 
@@ -691,7 +787,7 @@ public class MotorwayD61BEditScreen extends Screen {
                 source.line1(), source.line2(), source.line3(), source.line4(),
                 source.distance1(), source.distance2(), source.distance3(), source.distance4(),
                 source.line1Font(), source.line2Font(), source.line3Font(), source.line4Font(),
-                MotorwaySignColor.BLUE, CartoucheType.NONE, "", MotorwaySignGraphic.NONE
+                source.background(), CartoucheType.NONE, "", source.graphic()
         );
     }
 
@@ -701,7 +797,7 @@ public class MotorwayD61BEditScreen extends Screen {
                 source.line1(), source.line2(), source.line3(), source.line4(),
                 source.distance1(), source.distance2(), source.distance3(), source.distance4(),
                 source.line1Font(), source.line2Font(), source.line3Font(), source.line4Font(),
-                MotorwaySignColor.BLUE, CartoucheType.NONE, "", MotorwaySignGraphic.NONE
+                source.background(), CartoucheType.NONE, "", source.graphic()
         );
     }
 
@@ -719,7 +815,7 @@ public class MotorwayD61BEditScreen extends Screen {
                 source.line1(), source.line2(), source.line3(), source.line4(),
                 source.distance1(), source.distance2(), source.distance3(), source.distance4(),
                 fonts[0], fonts[1], fonts[2], fonts[3],
-                MotorwaySignColor.BLUE, CartoucheType.NONE, "", MotorwaySignGraphic.NONE
+                source.background(), CartoucheType.NONE, "", source.graphic()
         );
     }
 
@@ -733,11 +829,61 @@ public class MotorwayD61BEditScreen extends Screen {
                 source.line1(), source.line2(), source.line3(), source.line4(),
                 source.distance1(), source.distance2(), source.distance3(), source.distance4(),
                 source.line1Font(), source.line2Font(), source.line3Font(), source.line4Font(),
-                MotorwaySignColor.BLUE,
+                source.background(),
                 type == null ? CartoucheType.NONE : type,
                 text == null ? "" : text,
-                MotorwaySignGraphic.NONE
+                source.graphic()
         );
+    }
+
+    private static MotorwaySignColor sanitizeBackground(MotorwaySignColor color) {
+        return color == MotorwaySignColor.WHITE || color == MotorwaySignColor.GREEN
+                ? color
+                : MotorwaySignColor.BLUE;
+    }
+
+    private static MotorwaySignPanelData withBackground(
+            MotorwaySignPanelData source,
+            MotorwaySignColor background
+    ) {
+        return new MotorwaySignPanelData(
+                source.enabled(), source.lineCount(),
+                source.line1(), source.line2(), source.line3(), source.line4(),
+                source.distance1(), source.distance2(), source.distance3(), source.distance4(),
+                source.line1Font(), source.line2Font(), source.line3Font(), source.line4Font(),
+                sanitizeBackground(background), source.cartoucheType(), source.cartoucheText(), source.graphic()
+        );
+    }
+
+    private static MotorwaySignPanelData withGraphic(
+            MotorwaySignPanelData source,
+            MotorwaySignGraphic graphic
+    ) {
+        return new MotorwaySignPanelData(
+                source.enabled(), source.lineCount(),
+                source.line1(), source.line2(), source.line3(), source.line4(),
+                source.distance1(), source.distance2(), source.distance3(), source.distance4(),
+                source.line1Font(), source.line2Font(), source.line3Font(), source.line4Font(),
+                source.background(), source.cartoucheType(), source.cartoucheText(),
+                graphic == null ? MotorwaySignGraphic.NONE : graphic
+        );
+    }
+
+    private static String graphicLabel(MotorwaySignGraphic graphic) {
+        return switch (graphic == null ? MotorwaySignGraphic.NONE : graphic) {
+            case NONE -> "Aucun";
+            case DIAGONAL_RIGHT -> "Flèche ↗";
+            case DIAGONAL_LEFT -> "Flèche ↖";
+            case DOWN -> "Flèche ↓";
+            case DOWN_DOUBLE -> "Deux flèches ↓";
+            case EXIT -> "Sortie";
+            case EXIT_LIST -> "Liste de sorties";
+            case SCHEMATIC_RIGHT -> "Schéma droite";
+            case SCHEMATIC_LEFT -> "Schéma gauche";
+            case SERVICES -> "Services";
+            case MOTORWAY -> "Autoroute";
+            case JUNCTION -> "Bifurcation";
+        };
     }
 
     private boolean compactUi() {

@@ -245,6 +245,7 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.CE50);
                         output.accept(MoreRoadBlocks.E31A);
                         output.accept(MoreRoadBlocks.E31B);
+                        output.accept(MoreRoadBlocks.MOTORWAY_SIGN);
                         output.accept(MoreRoadBlocks.D21A);
                         output.accept(MoreRoadBlocks.D21A2);
                         output.accept(MoreRoadBlocks.D42B);
@@ -256,7 +257,6 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.J4A);
                         output.accept(MoreRoadBlocks.J4B);
                         output.accept(MoreRoadBlocks.J5);
-                        output.accept(MoreRoadBlocks.MOTORWAY_SIGN);
                         output.accept(MoreRoadBlocks.DA31C);
                     }).build());
 

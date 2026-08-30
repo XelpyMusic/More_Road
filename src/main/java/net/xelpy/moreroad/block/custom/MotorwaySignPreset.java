@@ -12,6 +12,8 @@ import java.util.Arrays;
  */
 public enum MotorwaySignPreset {
 
+    FREEFORM("freeform", "Panneau libre", MotorwaySignGraphic.NONE, MotorwaySignSupport.POLE),
+
     D31B_EX1("d31b_ex1", "D31b — exemple 1", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
             route("Numéro de route", "D 922", MotorwaySignColor.YELLOW),
             line("Destination 1", "ST SAUVEUR", MotorwaySignColor.WHITE, 0),
@@ -58,14 +60,23 @@ public enum MotorwaySignPreset {
             line("Destination 3", "NEVERS", MotorwaySignColor.BLUE, 1),
             distance("Distance", "1000 m")),
 
-    D44("d44", "D44", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
-            line("Ligne 1", "PROCHAINE AIRE", MotorwaySignColor.WHITE, 0),
-            line("Ligne 2", "LIMOURS-JANVRY", MotorwaySignColor.WHITE, 0),
-            distance("Distance", "20 km")),
-    D44_DC("d44_dc", "D44 — caractères L4", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
-            italic("Ligne 1", "PROCHAINE AIRE", MotorwaySignColor.WHITE, 0),
-            italic("Ligne 2", "LIMOURS-JANVRY", MotorwaySignColor.WHITE, 0),
-            distance("Distance", "20 km")),
+    /*
+     * D44 : présignalisation de village étape (registre sortie + distance,
+     * puis nom du village). Dessin exact (pastille SE2b, idéogramme et
+     * mention "village étape") géré par ExactMappedArtwork dans le
+     * renderer : voir D44_ARTWORK. La mention elle-même est réglementairement
+     * fixe et n'est donc pas un champ éditable.
+     */
+    D44("d44", "D44", MotorwaySignGraphic.NONE, MotorwaySignSupport.POLE,
+            /*
+             * Rôle ROUTE + libellé contenant "sortie" : le renderer route ce
+             * champ vers drawExitNumber(), qui dessine la pastille SE2b
+             * partagée (EXIT_SYMBOL_TEXTURE, flèche + numéro) déjà utilisée
+             * par D41A/D63C. D44_ARTWORK ne cuit donc plus sa propre pastille.
+             */
+            route("Numéro de sortie", "20", MotorwaySignColor.WHITE),
+            distance("Distance", "500 m"),
+            line("Nom du village étape", "ÉGUZON", MotorwaySignColor.WHITE, 0)),
     D45("d45", "D45", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
             line("Nom de l'aire", "AIRE DE LIMOURS", MotorwaySignColor.WHITE, 0),
             info("Services", "SERVICES", MotorwaySignColor.WHITE, 0),
@@ -358,7 +369,7 @@ public enum MotorwaySignPreset {
                 }
             }
         }
-        return D31B_EX1;
+        return FREEFORM;
     }
 
     private static MotorwaySignSlot line(String label, String text, MotorwaySignColor color, int group) {

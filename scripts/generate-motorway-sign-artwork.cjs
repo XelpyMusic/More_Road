@@ -365,6 +365,50 @@ const signs = {
             panel: { ids: ["id4"], mask: true },
             graphics: { ids: ["id5"], mask: false }
         }
+    },
+    /*
+     * D44 : présignalisation de village étape. Le SVG de référence est en
+     * fait l'assemblage complet "D44 + 6 CE" ; on ne garde que les deux
+     * premiers registres (sortie+distance, puis nom+mention) via le
+     * viewBox, les panonceaux CE restant des blocs Panonceau séparés.
+     * La mention "village étape" (id80) est réglementairement fixe : elle
+     * est cuite dans le calque frame plutôt qu'exposée comme texte éditable.
+     */
+    /*
+     * Les coordonnées des objets (list-svg-objects.cjs) sont exprimées AVANT
+     * le transform="translate(...)" du groupe "SlideGroup" ; ce décalage
+     * diffère entre D44.svg (-3822,-6473) et D44_dc.svg (-6445,-6473), d'où
+     * un viewBox différent pour un même cadrage visuel (6605,6606)-(13872,11074).
+     */
+    /*
+     * Le numéro de sortie utilise désormais la pastille SE2b partagée
+     * (drawExitNumber()/EXIT_SYMBOL_TEXTURE, comme D41A/D63C) plutôt qu'une
+     * pastille propre à ce SVG : id73/74/75 (l'ovale) ne sont donc plus
+     * repris dans "graphics", seul l'idéogramme village étape y reste.
+     */
+    /*
+     * La hauteur de viewBox (6871) dépasse volontairement le contenu réel
+     * des deux registres (4468) : l'espace ajouté en bas reste transparent
+     * dans frame/graphics et correspond exactement à la 3e rangée (les 3
+     * panonceaux CE) dessinée à part par drawD44ServiceRow(), pour que la
+     * texture et le repère de coordonnées du renderer (D44_ARTWORK) restent
+     * au même rapport largeur/hauteur.
+     */
+    /*
+     * id80/id75 (mention "village étape") et l'ovale (id73-75 / id68-70) sont
+     * dans "graphics", pas "frame" : overlayWhiteExactPanelBodies() repeint
+     * une plaque blanche unie par-dessus les registres juste après le calque
+     * frame (pour le listel), ce qui effacerait un texte ou dessin qui y
+     * serait cuit. "graphics" est dessiné après cette repeinte et y survit
+     * (comme l'idéogramme village étape).
+     */
+    d44: {
+        source: "D44.svg",
+        viewBox: [2783, 133, 7267, 9304],
+        layers: {
+            frame: { ids: ["id70", "id71", "id77", "id78"], mask: false },
+            graphics: { ids: ["id73", "id74", "id75", "id80", "id81", "id82", "id83", "id84"], mask: false }
+        }
     }
 };
 
@@ -458,7 +502,11 @@ function applyViewBox(svgText, viewBox) {
 
 async function main() {
     fs.mkdirSync(outputDirectory, { recursive: true });
+    const only = process.argv[3] ? new Set(process.argv[3].split(",")) : null;
     for (const [signName, sign] of Object.entries(signs)) {
+        if (only && !only.has(signName)) {
+            continue;
+        }
         const svgPath = path.resolve(sourceDirectory, sign.source);
         const svgText = applyViewBox(fs.readFileSync(svgPath, "utf8"), sign.viewBox);
         for (const [layerName, layer] of Object.entries(sign.layers)) {

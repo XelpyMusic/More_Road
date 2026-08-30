@@ -25,8 +25,10 @@ import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignColor;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.MotorwaySignRole;
 import net.xelpy.moreroad.block.custom.MotorwaySignSlot;
+import net.xelpy.moreroad.block.custom.MotorwaySignStyleProfile;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.block.entity.DA31CBlockEntity;
 import net.xelpy.moreroad.block.entity.D42bBlockEntity;
@@ -1015,14 +1017,9 @@ public final class MoreRoadNetworking {
                 new MotorwaySignPanelData[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
         for (int index = 0; index < panels.length; index++) {
             MotorwaySignPanelData requested = payload.panel(index);
-            boolean distancePanel = preset == MotorwaySignPreset.D61B;
-            MotorwaySignColor requestedBackground = requested.background();
-            MotorwaySignColor background = distancePanel
-                    ? MotorwaySignColor.BLUE
-                    : requestedBackground == MotorwaySignColor.GREEN
-                    || requestedBackground == MotorwaySignColor.WHITE
-                    ? requestedBackground
-                    : MotorwaySignColor.BLUE;
+            MotorwaySignStyleProfile style = MotorwaySignStyleProfile.forPreset(preset);
+            boolean allowCustomDistances = style.allowsCustomDistances();
+            MotorwaySignColor background = style.sanitizeCustomBackground(requested.background());
             panels[index] = new MotorwaySignPanelData(
                     requested.enabled(),
                     requested.lineCount(),
@@ -1030,26 +1027,38 @@ public final class MoreRoadNetworking {
                     cleanText(requested.line2(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
                     cleanText(requested.line3(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
                     cleanText(requested.line4(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
-                    cleanText(requested.distance1(), MAX_D21A_DISTANCE_LENGTH),
-                    cleanText(requested.distance2(), MAX_D21A_DISTANCE_LENGTH),
-                    cleanText(requested.distance3(), MAX_D21A_DISTANCE_LENGTH),
-                    cleanText(requested.distance4(), MAX_D21A_DISTANCE_LENGTH),
+                    allowCustomDistances ? cleanText(requested.distance1(), MAX_D21A_DISTANCE_LENGTH) : "",
+                    allowCustomDistances ? cleanText(requested.distance2(), MAX_D21A_DISTANCE_LENGTH) : "",
+                    allowCustomDistances ? cleanText(requested.distance3(), MAX_D21A_DISTANCE_LENGTH) : "",
+                    allowCustomDistances ? cleanText(requested.distance4(), MAX_D21A_DISTANCE_LENGTH) : "",
                     requested.line1Font(),
                     requested.line2Font(),
                     requested.line3Font(),
                     requested.line4Font(),
                     background,
-                    (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
+                    style.allowsCustomCartouche()
+                            && (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
                             ? requested.cartoucheType()
                             : CartoucheType.NONE,
-                    (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
+                    style.allowsCustomCartouche()
+                            && (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
                             ? cleanText(requested.cartoucheText(), MAX_CARTOUCHE_TEXT_LENGTH)
                             : "",
-                    distancePanel ? net.xelpy.moreroad.block.custom.MotorwaySignGraphic.NONE : requested.graphic()
+                    style.forceBlueCustomPanels()
+                            ? net.xelpy.moreroad.block.custom.MotorwaySignGraphic.NONE
+                            : requested.graphic()
             );
         }
 
-        blockEntity.setConfiguration(preset, lines, payload.customMode(), panels);
+        MotorwaySignServiceIcon[] services =
+                new MotorwaySignServiceIcon[MotorwaySignServiceIcon.MAX_SLOTS];
+        for (int index = 0; index < services.length; index++) {
+            services[index] = preset == MotorwaySignPreset.D44
+                    ? payload.service(index)
+                    : MotorwaySignServiceIcon.NONE;
+        }
+
+        blockEntity.setConfiguration(preset, lines, payload.customMode(), panels, services);
         BlockState state = level.getBlockState(pos);
         level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
     }

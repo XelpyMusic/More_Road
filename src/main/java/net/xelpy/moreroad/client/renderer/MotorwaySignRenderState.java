@@ -7,6 +7,7 @@ import net.xelpy.moreroad.block.custom.CartoucheType;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
 
 public class MotorwaySignRenderState extends BlockEntityRenderState {
@@ -17,6 +18,8 @@ public class MotorwaySignRenderState extends BlockEntityRenderState {
     public final MotorwaySignLineData[] lines = new MotorwaySignLineData[MotorwaySignBlockEntity.MAX_SLOTS];
     public final MotorwaySignPanelData[] customPanels =
             new MotorwaySignPanelData[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
+    /** Panonceaux CE choisis sous un D44 (voir MotorwaySignServiceIcon). Inutilisé pour les autres modèles. */
+    public MotorwaySignServiceIcon[] services = MotorwaySignServiceIcon.defaults();
     public final BlockModelRenderState[] cartoucheModels =
             new BlockModelRenderState[CartoucheType.values().length];
     public final BlockModelRenderState d61CartoucheSupportModel = new BlockModelRenderState();

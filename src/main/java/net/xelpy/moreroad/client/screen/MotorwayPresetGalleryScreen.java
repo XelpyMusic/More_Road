@@ -7,95 +7,65 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.Resource;
 import net.xelpy.moreroad.MoreRoad;
+import net.xelpy.moreroad.block.custom.MotorwaySignCatalogInfo;
 import net.xelpy.moreroad.block.custom.MotorwaySignLineData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPanelData;
 import net.xelpy.moreroad.block.custom.MotorwaySignPreset;
+import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
 import net.xelpy.moreroad.client.MotorwaySignClientHooks;
 
-import javax.imageio.ImageIO;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Galerie visuelle commune à tous les panneaux D / DA.
  *
- * V4 : la galerie est répartie en trois familles pour garder de vraies grandes
- * miniatures lisibles. Les 62 modèles ne sont plus tassés sur une seule ligne
- * géante : cela évite les cartes hors écran, les titres tronqués et le rendu
- * fortement pixelisé. Les aperçus 640x360 sont redimensionnés en bicubique
- * avant d'être dessinés dans le GUI.
+ * La galerie classe les modèles par rôle fonctionnel (libre, avancée,
+ * présignalisation, confirmation, affectation de voies…) afin de retrouver
+ * rapidement la bonne famille sans parcourir une liste brute de références.
+ * Les miniatures (640x360, lissées via leur sidecar .png.mcmeta) sont
+ * dessinées par un blit GPU direct, sans décodage côté CPU.
  */
 public final class MotorwayPresetGalleryScreen extends Screen {
 
-    private enum GalleryCategory {
-        D31_D52("D31 → D52") {
-            @Override
-            boolean accepts(MotorwaySignPreset preset) {
-                String name = preset.name();
-                return name.startsWith("D")
-                        && !name.startsWith("DA")
-                        && categoryNumber(name) >= 31
-                        && categoryNumber(name) <= 52;
-            }
-        },
-        D61_D74("D61 → D74") {
-            @Override
-            boolean accepts(MotorwaySignPreset preset) {
-                String name = preset.name();
-                return name.startsWith("D")
-                        && !name.startsWith("DA")
-                        && categoryNumber(name) >= 61
-                        && categoryNumber(name) <= 74;
-            }
-        },
-        DA("DA31 → DA52") {
-            @Override
-            boolean accepts(MotorwaySignPreset preset) {
-                return preset.name().startsWith("DA");
-            }
-        };
+    private static final float GALLERY_SOURCE_WIDTH = 640.0F;
+    private static final float GALLERY_SOURCE_HEIGHT = 360.0F;
 
+    private enum GalleryCategory {
+        CUSTOM(MotorwaySignCatalogInfo.Family.CUSTOM),
+        ADVANCED(MotorwaySignCatalogInfo.Family.ADVANCED),
+        PRESIGNAL(MotorwaySignCatalogInfo.Family.PRESIGNAL),
+        CONFIRMATION(MotorwaySignCatalogInfo.Family.CONFIRMATION),
+        COMPLEMENT(MotorwaySignCatalogInfo.Family.COMPLEMENT),
+        LANE_ADVANCED(MotorwaySignCatalogInfo.Family.LANE_ADVANCED),
+        LANE_PRESIGNAL(MotorwaySignCatalogInfo.Family.LANE_PRESIGNAL);
+
+        private final MotorwaySignCatalogInfo.Family family;
         private final String label;
 
-        GalleryCategory(String label) {
-            this.label = label;
+        GalleryCategory(MotorwaySignCatalogInfo.Family family) {
+            this.family = family;
+            this.label = family.label();
         }
 
-        abstract boolean accepts(MotorwaySignPreset preset);
+        boolean accepts(MotorwaySignPreset preset) {
+            return MotorwaySignCatalogInfo.family(preset) == this.family;
+        }
+
+        String description() {
+            return this.family.description();
+        }
 
         static GalleryCategory forPreset(MotorwaySignPreset preset) {
+            MotorwaySignCatalogInfo.Family family = MotorwaySignCatalogInfo.family(preset);
             for (GalleryCategory category : values()) {
-                if (category.accepts(preset)) {
+                if (category.family == family) {
                     return category;
                 }
             }
-            return D31_D52;
-        }
-
-        private static int categoryNumber(String name) {
-            int index = name.startsWith("DA") ? 2 : 1;
-            int value = 0;
-            boolean found = false;
-            while (index < name.length()) {
-                char c = name.charAt(index);
-                if (c < '0' || c > '9') {
-                    break;
-                }
-                found = true;
-                value = value * 10 + (c - '0');
-                index++;
-            }
-            return found ? value : -1;
+            return CONFIRMATION;
         }
     }
 
@@ -105,7 +75,6 @@ public final class MotorwayPresetGalleryScreen extends Screen {
     private final MotorwaySignPanelData[] customPanels;
     private final SignEditorUi.Rect[] cards =
             new SignEditorUi.Rect[MotorwaySignPreset.values().length];
-    private final Map<String, GalleryPreview> previewCache = new HashMap<>();
     private final SignEditorUi.Rect[] categoryRects =
             new SignEditorUi.Rect[GalleryCategory.values().length];
 
@@ -126,7 +95,7 @@ public final class MotorwayPresetGalleryScreen extends Screen {
         this.returnScreen = returnScreen;
         this.blockPos = blockPos.immutable();
         this.currentPreset = currentPreset == null
-                ? MotorwaySignPreset.D31B_EX1
+                ? MotorwaySignPreset.FREEFORM
                 : currentPreset;
         this.customPanels = copyPanels(customPanels);
         this.category = GalleryCategory.forPreset(this.currentPreset);
@@ -283,8 +252,8 @@ public final class MotorwayPresetGalleryScreen extends Screen {
                 this.windowWidth,
                 this.windowHeight,
                 "D/DA",
-                "Choisir le modèle en image",
-                visibleCount + " modèles dans cette famille • miniatures agrandies"
+                "Choisir le rôle puis le modèle",
+                this.category.description() + " • " + visibleCount + " modèles"
         );
 
         GalleryCategory[] categories = GalleryCategory.values();
@@ -373,7 +342,7 @@ public final class MotorwayPresetGalleryScreen extends Screen {
         int previewX = rect.x() + 8;
         int previewY = rect.y() + 20;
         int previewW = Math.max(24, rect.width() - 16);
-        int previewH = Math.max(20, rect.height() - 27);
+        int previewH = Math.max(16, rect.height() - 39);
         drawArtworkPreview(
                 graphics,
                 preset,
@@ -381,6 +350,18 @@ public final class MotorwayPresetGalleryScreen extends Screen {
                 previewY,
                 previewW,
                 previewH
+        );
+        String usage = MotorwaySignCatalogInfo.usesSpecialArtwork(preset)
+                ? "Rendu spécial"
+                : MotorwaySignCatalogInfo.family(preset).label();
+        String footer = SignEditorUi.fitText(this.font, usage, rect.width() - 12);
+        graphics.text(
+                this.font,
+                Component.literal(footer),
+                rect.x() + (rect.width() - this.font.width(footer)) / 2,
+                rect.y() + rect.height() - this.font.lineHeight - 4,
+                0xFFAEBBC8,
+                false
         );
     }
 
@@ -392,8 +373,22 @@ public final class MotorwayPresetGalleryScreen extends Screen {
             int width,
             int height
     ) {
-        GalleryPreview preview = getPreview(preset, width, height);
-        if (preview == null) {
+        if (preset == MotorwaySignPreset.FREEFORM) {
+            int panelW = Math.max(20, Math.min(width - 12, Math.round(width * 0.76F)));
+            int panelH = Math.max(12, Math.min(height - 8, Math.round(height * 0.46F)));
+            int panelX = x + (width - panelW) / 2;
+            int panelY = y + Math.max(2, (height - panelH) / 2);
+            graphics.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xFFD7D7D2);
+            int border = Math.max(2, Math.min(4, panelH / 7));
+            graphics.fill(
+                    panelX + border, panelY + border,
+                    panelX + panelW - border, panelY + panelH - border,
+                    0xFF0000FF
+            );
+            return;
+        }
+        Identifier textureId = galleryTextureId(preset);
+        if (!textureExists(textureId)) {
             graphics.centeredText(
                     this.font,
                     Component.literal(preset.getDisplayName()),
@@ -404,146 +399,40 @@ public final class MotorwayPresetGalleryScreen extends Screen {
             return;
         }
 
-        int startX = x + Math.max(0, (width - preview.width()) / 2);
-        int startY = y + Math.max(0, (height - preview.height()) / 2);
-
         /*
-         * Dessin par segments horizontaux. L'image a déjà été réduite en
-         * bicubique : les contours et les textes restent donc bien plus doux
-         * que dans l'ancienne réduction nearest-neighbour.
+         * Blit GPU direct plutôt qu'un décodage ImageIO + redimensionnement
+         * Java2D + report pixel par pixel via des centaines de fill() : ça
+         * évitait de dépendre d'un atlas de texture, mais c'était lent (des
+         * dizaines de miniatures à chaque ouverture/défilement de la galerie)
+         * et flou/pixelisé une fois réagrandi par l'échelle d'interface. Le
+         * lissage vient maintenant du sidecar "<fichier>.png.mcmeta"
+         * (blur: true) de chaque miniature, comme pour les polices du mod.
          */
-        for (int py = 0; py < preview.height(); py++) {
-            int runColor = 0;
-            int runStart = -1;
-            for (int px = 0; px < preview.width(); px++) {
-                int argb = preview.pixel(px, py);
-                if (((argb >>> 24) & 0xFF) < 18) {
-                    argb = 0;
-                }
-                if (argb != runColor) {
-                    if (runStart >= 0 && runColor != 0) {
-                        graphics.fill(
-                                startX + runStart,
-                                startY + py,
-                                startX + px,
-                                startY + py + 1,
-                                runColor
-                        );
-                    }
-                    runColor = argb;
-                    runStart = px;
-                }
-            }
-            if (runStart >= 0 && runColor != 0) {
-                graphics.fill(
-                        startX + runStart,
-                        startY + py,
-                        startX + preview.width(),
-                        startY + py + 1,
-                        runColor
-                );
-            }
+        float aspect = GALLERY_SOURCE_WIDTH / GALLERY_SOURCE_HEIGHT;
+        int fitWidth = width;
+        int fitHeight = Math.round(width / aspect);
+        if (fitHeight > height) {
+            fitHeight = height;
+            fitWidth = Math.round(height * aspect);
         }
+        int startX = x + (width - fitWidth) / 2;
+        int startY = y + (height - fitHeight) / 2;
+        graphics.blit(textureId, startX, startY, startX + fitWidth, startY + fitHeight, 0.0F, 1.0F, 0.0F, 1.0F);
     }
 
-    private GalleryPreview getPreview(
-            MotorwaySignPreset preset,
-            int maxWidth,
-            int maxHeight
-    ) {
-        String key = preset.getSerializedName()
-                + "@" + maxWidth + "x" + maxHeight;
-        GalleryPreview cached = this.previewCache.get(key);
-        if (cached != null) {
-            return cached;
-        }
-
-        GalleryPreview preview = buildPreview(preset, maxWidth, maxHeight);
-        if (preview != null) {
-            this.previewCache.put(key, preview);
-        }
-        return preview;
-    }
-
-    private static GalleryPreview buildPreview(
-            MotorwaySignPreset preset,
-            int maxWidth,
-            int maxHeight
-    ) {
-        Identifier textureId = Identifier.fromNamespaceAndPath(
+    private static Identifier galleryTextureId(MotorwaySignPreset preset) {
+        return Identifier.fromNamespaceAndPath(
                 MoreRoad.MODID,
-                "textures/gui/motorway_gallery/"
-                        + preset.getSerializedName()
-                        + ".png"
+                "textures/gui/motorway_gallery/" + preset.getSerializedName() + ".png"
         );
+    }
 
+    /** Vérifie juste l'existence de la ressource : pas de décodage, contrairement à l'ancien chemin ImageIO. */
+    private static boolean textureExists(Identifier textureId) {
         try {
-            Optional<Resource> resource = Minecraft.getInstance()
-                    .getResourceManager()
-                    .getResource(textureId);
-            if (resource.isEmpty()) {
-                return null;
-            }
-
-            try (InputStream stream = resource.get().open()) {
-                BufferedImage image = ImageIO.read(stream);
-                if (image == null || image.getWidth() <= 0 || image.getHeight() <= 0) {
-                    return null;
-                }
-
-                float scale = Math.min(
-                        maxWidth / (float) image.getWidth(),
-                        maxHeight / (float) image.getHeight()
-                );
-                scale = Math.max(0.01F, Math.min(1.0F, scale));
-
-                int outWidth = Math.max(
-                        1,
-                        Math.min(maxWidth, Math.round(image.getWidth() * scale))
-                );
-                int outHeight = Math.max(
-                        1,
-                        Math.min(maxHeight, Math.round(image.getHeight() * scale))
-                );
-
-                BufferedImage resized = new BufferedImage(
-                        outWidth,
-                        outHeight,
-                        BufferedImage.TYPE_INT_ARGB
-                );
-                Graphics2D g = resized.createGraphics();
-                try {
-                    g.setRenderingHint(
-                            RenderingHints.KEY_INTERPOLATION,
-                            RenderingHints.VALUE_INTERPOLATION_BICUBIC
-                    );
-                    g.setRenderingHint(
-                            RenderingHints.KEY_RENDERING,
-                            RenderingHints.VALUE_RENDER_QUALITY
-                    );
-                    g.setRenderingHint(
-                            RenderingHints.KEY_ANTIALIASING,
-                            RenderingHints.VALUE_ANTIALIAS_ON
-                    );
-                    g.drawImage(image, 0, 0, outWidth, outHeight, null);
-                } finally {
-                    g.dispose();
-                }
-
-                int[] pixels = new int[outWidth * outHeight];
-                resized.getRGB(
-                        0,
-                        0,
-                        outWidth,
-                        outHeight,
-                        pixels,
-                        0,
-                        outWidth
-                );
-                return new GalleryPreview(outWidth, outHeight, pixels);
-            }
+            return Minecraft.getInstance().getResourceManager().getResource(textureId).isPresent();
         } catch (Exception ignored) {
-            return null;
+            return false;
         }
     }
 
@@ -583,7 +472,8 @@ public final class MotorwayPresetGalleryScreen extends Screen {
                             selected,
                             defaultsFor(selected),
                             false,
-                            emptyPanels()
+                            emptyPanels(),
+                            MotorwaySignServiceIcon.defaults()
                     );
                 }
                 return true;
@@ -632,11 +522,5 @@ public final class MotorwayPresetGalleryScreen extends Screen {
                     : panel;
         }
         return result;
-    }
-
-    private record GalleryPreview(int width, int height, int[] pixels) {
-        private int pixel(int x, int y) {
-            return this.pixels[y * this.width + x];
-        }
     }
 }

@@ -51,6 +51,7 @@ public record MotorwaySignGeometry(
             case D41A -> { width = 5.50F; height = scaled(width, 11270.0F, 12467.0F); }
             case D41B -> { width = 5.20F; height = scaled(width, 8413.0F, 11536.0F); }
             case D41C -> { width = 5.50F; height = scaled(width, 11401.0F, 13098.0F); }
+            case D44 -> { width = 4.60F; height = scaled(width, 9304.0F, 7267.0F); }
             case D61B -> { width = 6.20F; height = scaled(width, 7879.0F, 15788.0F); }
             case D62A -> { width = 5.60F; height = scaled(width, 10619.0F, 11537.0F); }
             case D62B -> { width = 5.80F; height = scaled(width, 8129.0F, 13203.0F); }
@@ -81,7 +82,8 @@ public record MotorwaySignGeometry(
 
     public static MotorwaySignGeometry forCustomPanels(
             MotorwaySignPanelData[] panels,
-            boolean mountedOnCrossbar
+            boolean mountedOnCrossbar,
+            MotorwaySignStyleProfile style
     ) {
         float width = 0.0F;
         float height = 0.0F;
@@ -100,7 +102,7 @@ public record MotorwaySignGeometry(
                 int longestDistance = 0;
                 for (int lineIndex = 0; lineIndex < panel.lineCount(); lineIndex++) {
                     String line = panel.line(lineIndex);
-                    String distance = panel.distance(lineIndex);
+                    String distance = style.allowsCustomDistances() ? panel.distance(lineIndex) : "";
                     longest = Math.max(longest, line.codePointCount(0, line.length()));
                     longestDistance = Math.max(
                             longestDistance,
@@ -108,17 +110,16 @@ public record MotorwaySignGeometry(
                     );
                 }
                 /* Marge volontaire pour que la zone de sélection couvre aussi les textes larges. */
-                float averageWidth = panel.background().isLight() ? 0.18F : 0.20F;
+                MotorwaySignColor visualBackground = style.sanitizeCustomBackground(panel.background());
+                float averageWidth = visualBackground.isLight() ? 0.18F : 0.20F;
                 float textWidth = (longest + longestDistance) * averageWidth;
                 width = Math.max(width, textWidth + 0.80F + graphicReserve(panel.graphic()));
-                if (panelIndex == 0 && panel.cartoucheType().isVisible()) {
+                if (style.allowsCustomCartouche()
+                        && panelIndex == 0 && panel.cartoucheType().isVisible()) {
                     int cartoucheLength = panel.cartoucheText().codePointCount(0, panel.cartoucheText().length());
                     width = Math.max(width, Math.min(2.40F, 0.72F + cartoucheLength * 0.15F));
                 }
-                height += 0.48F + 0.40F * panel.lineCount();
-                if (usesBottomArrow(panel.graphic())) {
-                    height += 0.50F;
-                }
+                height += style.addedPanelHeight(panel.lineCount(), panel.graphic());
                 height += 0.075F;
             }
         }
@@ -139,10 +140,16 @@ public record MotorwaySignGeometry(
             MotorwaySignPanelData[] panels,
             boolean mountedOnCrossbar
     ) {
-        if (preset == MotorwaySignPreset.D61B) {
+        MotorwaySignStyleProfile style = MotorwaySignStyleProfile.forPreset(preset);
+        if (preset == MotorwaySignPreset.D61B || preset == MotorwaySignPreset.FREEFORM) {
             float height = 0.0F;
+            float dynamicWidth = preset == MotorwaySignPreset.D61B ? 6.20F : 2.30F;
             int enabledCount = 0;
             if (panels != null) {
+                MotorwaySignGeometry customBounds = forCustomPanels(panels, mountedOnCrossbar, style);
+                if (preset == MotorwaySignPreset.FREEFORM && customBounds.width() > 0.0F) {
+                    dynamicWidth = Math.max(2.30F, customBounds.width() / WORLD_SCALE);
+                }
                 for (MotorwaySignPanelData panel : panels) {
                     if (panel == null || !panel.enabled()) {
                         continue;
@@ -150,25 +157,35 @@ public record MotorwaySignGeometry(
                     if (enabledCount > 0) {
                         height += 0.075F;
                     }
-                    height += 0.48F + 0.40F * panel.lineCount();
+                    height += style.addedPanelHeight(panel.lineCount(), panel.graphic());
                     enabledCount++;
                 }
-                if (panels.length > 0 && panels[0] != null
+                if (style.allowsCustomCartouche()
+                        && panels.length > 0 && panels[0] != null
                         && panels[0].cartoucheType().isVisible()) {
                     height += (float) (CartoucheLayout.CARTOUCHE_RENDER_HEIGHT / WORLD_SCALE)
                             + 0.075F;
                 }
             }
+            if (enabledCount == 0) {
+                height = style.addedPanelHeight(1, MotorwaySignGraphic.NONE);
+                enabledCount = 1;
+            }
+            float worldHeight = Math.max(0.88F, height) * WORLD_SCALE;
+            boolean actualMounted = preset == MotorwaySignPreset.FREEFORM && mountedOnCrossbar;
+            float panelBottom = actualMounted
+                    ? MOUNTED_PANEL_TOP - worldHeight
+                    : enabledCount <= 1 ? D61B_SINGLE_PANEL_BOTTOM : D61B_PANEL_BOTTOM;
             return new MotorwaySignGeometry(
-                    6.20F * WORLD_SCALE,
-                    Math.max(0.88F, height) * WORLD_SCALE,
-                    false,
-                    enabledCount <= 1 ? D61B_SINGLE_PANEL_BOTTOM : D61B_PANEL_BOTTOM,
-                    d61SupportTop(panels)
+                    dynamicWidth * WORLD_SCALE,
+                    worldHeight,
+                    actualMounted,
+                    panelBottom,
+                    actualMounted ? MOUNTED_PANEL_TOP : d61SupportTop(panels, style)
             );
         }
         MotorwaySignGeometry original = forPreset(preset, values, mountedOnCrossbar);
-        MotorwaySignGeometry additions = forCustomPanels(panels, mountedOnCrossbar);
+        MotorwaySignGeometry additions = forCustomPanels(panels, mountedOnCrossbar, style);
         if (additions.height() <= 0.0F) {
             return original;
         }
@@ -189,7 +206,10 @@ public record MotorwaySignGeometry(
      * pancarte supérieure. Sa hauteur suit donc réellement chaque ajout de
      * panneau, au lieu de rester figée sur la hauteur du premier modèle.
      */
-    public static float d61SupportTop(MotorwaySignPanelData[] panels) {
+    public static float d61SupportTop(
+            MotorwaySignPanelData[] panels,
+            MotorwaySignStyleProfile style
+    ) {
         float stackedHeight = 0.0F;
         float firstPanelHeight = 0.0F;
         int enabledCount = 0;
@@ -201,7 +221,7 @@ public record MotorwaySignGeometry(
                 if (enabledCount > 0) {
                     stackedHeight += 0.075F;
                 }
-                float panelHeight = 0.48F + 0.40F * panel.lineCount();
+                float panelHeight = style.addedPanelHeight(panel.lineCount(), panel.graphic());
                 if (enabledCount == 0) {
                     firstPanelHeight = panelHeight;
                 }
@@ -210,14 +230,66 @@ public record MotorwaySignGeometry(
             }
         }
         if (enabledCount == 0) {
-            stackedHeight = 0.88F;
-            firstPanelHeight = 0.88F;
+            stackedHeight = style.addedPanelHeight(1, MotorwaySignGraphic.NONE);
+            firstPanelHeight = stackedHeight;
         }
         float panelBottom = enabledCount <= 1
                 ? D61B_SINGLE_PANEL_BOTTOM
                 : D61B_PANEL_BOTTOM;
         return panelBottom
                 + (stackedHeight - firstPanelHeight / 2.0F) * WORLD_SCALE;
+    }
+
+    /**
+     * Largeur physique (en mètres) dérivée du SVG pour les modèles du
+     * Groupe B (pas encore de texture exacte type ExactMappedArtwork).
+     *
+     * SOURCE UNIQUE : cette méthode est appelée à la fois ici (hitbox/
+     * positionnement) et depuis buildLayout() dans le renderer (dessin
+     * réel du panneau). Les deux doivent TOUJOURS lire la même valeur,
+     * sous peine de désynchronisation entre la boîte englobante et le
+     * panneau réellement dessiné (texte invisible, mauvais recadrage).
+     * Ne modifier qu'ici, jamais dupliquer ces chiffres ailleurs.
+     *
+     * La hauteur n'est volontairement PAS fixée : elle continue de
+     * dépendre du nombre de lignes/texte (comme avant), ce qui reste
+     * cohérent entre les deux appelants sans risque de divergence.
+     *
+     * Retourne 0 si le modèle n'a pas de largeur fixe connue (dimensionnement
+     * générique classique, inchangé).
+     */
+    public static float fixedWidthMeters(MotorwaySignPreset preset) {
+        return switch (preset) {
+            /* D51/D52/DA41/DA51/DA52 : SVG autonomes, largeur mesurée sur leur viewBox. */
+            case D51C -> 4.14F;
+            case D51CR -> 6.30F;
+            case D51CR_DC -> 6.60F;
+            case D51D -> 5.02F;
+            case D51DR -> 6.47F;
+            case D52A, D52B -> 4.66F;
+            case D52C -> 4.16F;
+            case DA41A -> 6.59F;
+            case DA41B -> 6.30F;
+            case DA41C -> 3.40F;
+            case DA41D_TOP, DA41D_BOTTOM -> 6.23F;
+            case DA41E_TOP, DA41E_BOTTOM -> 5.03F;
+            case DA41F -> 6.26F;
+            case DA51B -> 4.46F;
+            case DA51BR -> 6.13F;
+            case DA52A -> 5.54F;
+            case DA52B -> 4.98F;
+            /*
+             * D45/D46/D47 : SVG "ensemble" (panneau + pictogrammes CE).
+             * Largeur reprise par analogie (même graphique SERVICES, nombre
+             * de lignes comparable) en attendant une mesure dédiée.
+             * D44 a désormais sa propre géométrie mesurée (voir le switch
+             * explicite ci-dessus) : il ne passe plus par ce chemin générique.
+             */
+            case D45, D45_DC -> 4.60F;
+            case D46A, D46B -> 3.60F;
+            case D47A, D47B, D47C -> 4.00F;
+            default -> 0.0F;
+        };
     }
 
     /** Reproduit les dimensions du renderer paramétrique sans dépendre du moteur de polices client. */
@@ -254,6 +326,10 @@ public record MotorwaySignGeometry(
             }
         }
 
+        float fixedWidth = fixedWidthMeters(preset);
+        if (fixedWidth > 0.0F) {
+            sharedWidth = fixedWidth;
+        }
         sharedWidth = clamp(sharedWidth, 2.30F, 6.80F);
         if (routeCount > 1) {
             routeWidth += 0.075F * (routeCount - 1);
@@ -311,7 +387,7 @@ public record MotorwaySignGeometry(
         return switch (graphic) {
             case DIAGONAL_LEFT, DIAGONAL_RIGHT, EXIT -> 0.82F;
             case SCHEMATIC_LEFT, SCHEMATIC_RIGHT -> 1.02F;
-            case SERVICES, MOTORWAY -> 1.12F;
+            case SERVICES, MOTORWAY -> 0.55F;
             case EXIT_LIST -> 0.36F;
             default -> 0.0F;
         };
