@@ -293,6 +293,18 @@ public class D21ABlockEntity extends BlockEntity {
                             )
                     );
 
+            boolean line1Spacing =
+                    input.getBooleanOr(
+                            prefix + "line1_spacing",
+                            false
+                    );
+
+            boolean line2Spacing =
+                    input.getBooleanOr(
+                            prefix + "line2_spacing",
+                            false
+                    );
+
             this.panels[i] =
                     new D21APanelData(
                             enabled,
@@ -305,7 +317,9 @@ public class D21ABlockEntity extends BlockEntity {
                             autorouteLogo,
                             doubleLine,
                             line1Font,
-                            line2Font
+                            line2Font,
+                            line1Spacing,
+                            line2Spacing
                     );
         }
     }
@@ -387,6 +401,15 @@ public class D21ABlockEntity extends BlockEntity {
             output.putString(
                     prefix + "line2_font",
                     panel.line2Font().getSerializedName()
+            );
+
+            output.putBoolean(
+                    prefix + "line1_spacing",
+                    panel.line1Spacing()
+            );
+            output.putBoolean(
+                    prefix + "line2_spacing",
+                    panel.line2Spacing()
             );
         }
 

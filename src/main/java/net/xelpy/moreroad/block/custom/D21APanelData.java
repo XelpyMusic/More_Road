@@ -11,7 +11,9 @@ public record D21APanelData(
         boolean autorouteLogo,
         boolean doubleLine,
         RoadTextFont line1Font,
-        RoadTextFont line2Font
+        RoadTextFont line2Font,
+        boolean line1Spacing,
+        boolean line2Spacing
 ) {
 
     public D21APanelData {
@@ -22,6 +24,8 @@ public record D21APanelData(
         type = type == null ? D21AType.WHITE : type;
         line1Font = line1Font == null ? RoadTextFont.L1 : line1Font;
         line2Font = line2Font == null ? RoadTextFont.L1 : line2Font;
+        //line1Spacing = line1Spacing;
+        //line2Spacing = false;
 
         /*
          * Le pictogramme autoroute est proposé uniquement sur les
@@ -60,7 +64,9 @@ public record D21APanelData(
                 autorouteLogo,
                 doubleLine,
                 RoadTextFont.L1,
-                RoadTextFont.L1
+                RoadTextFont.L1,
+                false,
+                false
         );
     }
 
@@ -89,7 +95,9 @@ public record D21APanelData(
                 autorouteLogo,
                 false,
                 RoadTextFont.L1,
-                RoadTextFont.L1
+                RoadTextFont.L1,
+                false,
+                false
         );
     }
 
@@ -129,7 +137,9 @@ public record D21APanelData(
                 false,
                 doubleLine,
                 RoadTextFont.L1,
-                RoadTextFont.L1
+                RoadTextFont.L1,
+                false,
+                false
         );
     }
 
@@ -149,7 +159,9 @@ public record D21APanelData(
                 false,
                 doubleLine,
                 RoadTextFont.L1,
-                RoadTextFont.L1
+                RoadTextFont.L1,
+                false,
+                false
         );
     }
 }

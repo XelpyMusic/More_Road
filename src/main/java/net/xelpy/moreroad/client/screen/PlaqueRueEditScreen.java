@@ -390,7 +390,7 @@ public class PlaqueRueEditScreen extends Screen {
         }
         return switch (current) {
             case NORMAL -> RoadTextFont.L1;
-            case L1 -> RoadTextFont.L4;
+            case L1,L2 -> RoadTextFont.L4;
             case L4 -> RoadTextFont.NORMAL;
         };
     }
