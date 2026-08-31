@@ -1299,6 +1299,11 @@ public class MoreRoadBlocks {
             (properties) -> new MotorwaySignBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));
 
+    /** Panneau directionnel modulable générique : posé vierge, composé entièrement dans l'éditeur. */
+    public static final DeferredBlock<Block> GENERIC_DIRECTIONAL_SIGN = registerBlock("generic_directional_sign",
+            (properties) -> new GenericDirectionalSignBlock(properties
+                    .noOcclusion().sound(SoundType.IRON)));
+
     public static final DeferredBlock<Block> DA31C = registerBlock("da31c",
             (properties) -> new DA31CBlock(properties
                     .noOcclusion().sound(SoundType.IRON)));

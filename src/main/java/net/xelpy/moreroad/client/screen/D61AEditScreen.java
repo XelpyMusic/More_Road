@@ -471,24 +471,55 @@ public class D61AEditScreen extends Screen {
             }
 
             if ((!pagedUi() || this.settingsPage == 0) && this.line1FontRect.contains(x, y)) {
-                this.line1Font = this.line1Font.next();
+                /* Sur fond foncé, le cycle L1/L4 n'existe pas en blanc : on reste en L2 (voir D21a2). */
+                if ((this.selectedType == D21AType.BLUE || this.selectedType == D21AType.GREEN)
+                        && (this.line1Font == RoadTextFont.L1 || this.line1Font == RoadTextFont.L4)) {
+                    this.line1Font = RoadTextFont.L2;
+                } else {
+                    this.line1Font = this.line1Font.next();
+                }
                 return true;
             }
             if ((!pagedUi() || this.settingsPage == 0) && this.doubleLine && this.line2FontRect.contains(x, y)) {
-                this.line2Font = this.line2Font.next();
+                if ((this.selectedType == D21AType.BLUE || this.selectedType == D21AType.GREEN)
+                        && (this.line2Font == RoadTextFont.L1 || this.line2Font == RoadTextFont.L4)) {
+                    this.line2Font = RoadTextFont.L2;
+                } else {
+                    this.line2Font = this.line2Font.next();
+                }
                 return true;
             }
             if (!pagedUi() || this.settingsPage == 1) {
                 if (this.whiteRect.contains(x, y)) {
                     selectType(D21AType.WHITE);
+                    /* Fond clair : L2 (police blanche, réservée aux fonds foncés) n'a plus de sens ici. */
+                    if (this.line1Font == RoadTextFont.L2) {
+                        this.line1Font = RoadTextFont.L1;
+                    }
+                    if (this.line2Font == RoadTextFont.L2) {
+                        this.line2Font = RoadTextFont.L1;
+                    }
                     return true;
                 }
                 if (this.greenRect.contains(x, y)) {
                     selectType(D21AType.GREEN);
+                    /* Fond foncé : L1 (noir) illisible, et L4 n'existe pas en blanc -> L2. */
+                    if (this.line1Font == RoadTextFont.L1 || this.line1Font == RoadTextFont.L4) {
+                        this.line1Font = RoadTextFont.L2;
+                    }
+                    if (this.line2Font == RoadTextFont.L1 || this.line2Font == RoadTextFont.L4) {
+                        this.line2Font = RoadTextFont.L2;
+                    }
                     return true;
                 }
                 if (this.blueRect.contains(x, y)) {
                     selectType(D21AType.BLUE);
+                    if (this.line1Font == RoadTextFont.L1 || this.line1Font == RoadTextFont.L4) {
+                        this.line1Font = RoadTextFont.L2;
+                    }
+                    if (this.line2Font == RoadTextFont.L1 || this.line2Font == RoadTextFont.L4) {
+                        this.line2Font = RoadTextFont.L2;
+                    }
                     return true;
                 }
                 if (this.logoRect.contains(x, y) && this.selectedType != D21AType.WHITE) {

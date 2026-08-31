@@ -24,8 +24,16 @@ public record D21APanelData(
         type = type == null ? D21AType.WHITE : type;
         line1Font = line1Font == null ? RoadTextFont.L1 : line1Font;
         line2Font = line2Font == null ? RoadTextFont.L1 : line2Font;
-        //line1Spacing = line1Spacing;
-        //line2Spacing = false;
+
+        /*
+         * Sur un vrai panneau, l'espacement entre les lettres n'est pas une
+         * option : il fait partie de la police. Toujours actif, sans réglage
+         * à faire dans le GUI (les champs restent pour la compatibilité NBT
+         * et réseau des anciennes versions, mais leur valeur n'a plus
+         * d'effet ici).
+         */
+        line1Spacing = true;
+        line2Spacing = true;
 
         /*
          * Le pictogramme autoroute est proposé uniquement sur les

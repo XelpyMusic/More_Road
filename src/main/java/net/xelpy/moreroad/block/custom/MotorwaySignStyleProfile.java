@@ -26,7 +26,21 @@ public record MotorwaySignStyleProfile(
          * dessin réglementaire figé comme D44 : les masquer évite d'exposer
          * une fonctionnalité qui ne correspond à aucun cas d'usage réel.
          */
-        boolean allowsExtraPanels
+        boolean allowsExtraPanels,
+        /*
+         * Onglet "Symbole" (choix d'une flèche/pictogramme) par registre :
+         * inutile sur D31b (ex.1/ex.2), dont la seule flèche du panneau est
+         * fixe et déjà affichée dans le registre principal — les registres
+         * ajoutés (villes) n'ont jamais leur propre symbole sur le vrai
+         * panneau.
+         */
+        boolean allowsCustomGraphic,
+        /*
+         * Choix de couleur par champ (bouton "Blanc"/"Vert"/"Bleu"...) dans
+         * l'éditeur générique : inutile sur D44, qui reste toujours blanc
+         * sur le vrai panneau (présignalisation de village étape).
+         */
+        boolean allowsPerFieldColor
 ) {
 
     private static final float DEFAULT_TEXT_SCALE = 0.044F;
@@ -37,14 +51,27 @@ public record MotorwaySignStyleProfile(
         float textScale = preferredAddedTextScale(safePreset);
         float lineStep = preferredAddedLineStep(safePreset, textScale);
         float leftMargin = switch (safePreset) {
-            case D31B_EX1 -> 0.13F;
-            case D31B_EX2 -> 0.09F;
+            /*
+             * Signalé trop collé au bord gauche sur l'ex.2 (villes) comparé
+             * à l'ex.1, qui a la même marge que le vrai panneau visé.
+             */
+            case D31B_EX1, D31B_EX2 -> 0.13F;
             case D63C -> 0.34F;
             default -> 0.32F;
         };
         float rightMargin = safePreset == MotorwaySignPreset.D63C ? 0.38F : 0.28F;
         float distanceGap = safePreset == MotorwaySignPreset.D63C ? 0.34F : 0.30F;
-        float opticalYOffset = safePreset == MotorwaySignPreset.D63C ? -0.045F : -0.055F;
+        float opticalYOffset = switch (safePreset) {
+            case D63C -> -0.045F;
+            /*
+             * Signalé trop haut / pas assez centré verticalement dans ses
+             * registres (TOULOUSE/MONTAUBAN au-dessus, TULLE/BRIVE en
+             * dessous) : décalage vers le bas un peu plus marqué que la
+             * valeur par défaut.
+             */
+            case D31B_EX1, D31B_EX2 -> -0.075F;
+            default -> -0.055F;
+        };
 
         return new MotorwaySignStyleProfile(
                 textScale,
@@ -59,6 +86,9 @@ public record MotorwaySignStyleProfile(
                         && safePreset != MotorwaySignPreset.D31B_EX2,
                 safePreset == MotorwaySignPreset.D61B,
                 safePreset == MotorwaySignPreset.D31B_EX2 || safePreset == MotorwaySignPreset.D31B_EX1,
+                safePreset != MotorwaySignPreset.D44,
+                safePreset != MotorwaySignPreset.D31B_EX1
+                        && safePreset != MotorwaySignPreset.D31B_EX2,
                 safePreset != MotorwaySignPreset.D44
         );
     }
@@ -106,6 +136,23 @@ public record MotorwaySignStyleProfile(
             return 0.68F;
         }
         float proportional = 0.45F * textScale / DEFAULT_TEXT_SCALE;
+        /*
+         * Signalé trop serré verticalement entre les villes dès 3 lignes
+         * remplies sur l'ex.2 : son texte (0.063) est nettement plus grand
+         * que la référence (0.044), mais le plafond générique de 0.58
+         * empêchait le pas de ligne de suivre cette taille proportionnellement,
+         * ce qui resserrait les lignes par rapport à leur propre hauteur de
+         * glyphe. L'ex.1 (0.044) ne touchait jamais ce plafond, d'où l'écart
+         * de rendu entre les deux malgré la même formule.
+         */
+        if (preset == MotorwaySignPreset.D31B_EX2) {
+            /*
+             * Encore un peu juste même après avoir suivi la proportion du
+             * texte (ci-dessus) : léger supplément au-delà du strict
+             * proportionnel pour aérer un peu plus les 3 lignes.
+             */
+            return proportional * 1.15F;
+        }
         return clamp(proportional, 0.40F, 0.58F);
     }
 

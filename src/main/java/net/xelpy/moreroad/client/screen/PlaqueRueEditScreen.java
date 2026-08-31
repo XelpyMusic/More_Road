@@ -29,6 +29,18 @@ public class PlaqueRueEditScreen extends Screen {
             new FontDescription.Resource(
                     Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
             );
+    private static final FontDescription.Resource ROAD_FONT_L2 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l2")
+            );
+
+    private static FontDescription.Resource roadFontResource(RoadTextFont font) {
+        return switch (font) {
+            case L2 -> ROAD_FONT_L2;
+            case L4 -> ROAD_FONT_L4;
+            case L1, NORMAL -> ROAD_FONT_L1;
+        };
+    }
 
     private final BlockPos blockPos;
     private final String currentLine1;
@@ -377,9 +389,14 @@ public class PlaqueRueEditScreen extends Screen {
         if (roadFont == RoadTextFont.NORMAL) {
             return Component.literal(text);
         }
-        FontDescription.Resource resource = roadFont == RoadTextFont.L4
-                ? ROAD_FONT_L4
-                : ROAD_FONT_L1;
+        /*
+         * La plaque de rue est toujours bleue : L1 (texte sombre) n'a
+         * jamais de sens dessus, donc affiché en L2 (vrai texte blanc),
+         * comme sur les autres panneaux personnalisables. Rien à changer
+         * côté choix utilisateur (Normal/L1/L4), seule la police réellement
+         * affichée est corrigée.
+         */
+        FontDescription.Resource resource = roadFontResource(RoadTextFont.forceForDarkBackground(roadFont));
         return Component.literal(text).withStyle(Style.EMPTY.withFont(resource));
     }
 

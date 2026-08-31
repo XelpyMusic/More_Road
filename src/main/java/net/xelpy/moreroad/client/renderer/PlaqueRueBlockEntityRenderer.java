@@ -36,6 +36,19 @@ public class PlaqueRueBlockEntityRenderer
                     Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
             );
 
+    private static final FontDescription.Resource ROAD_FONT_L2 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l2")
+            );
+
+    private static FontDescription.Resource roadFontResource(RoadTextFont font) {
+        return switch (font) {
+            case L2 -> ROAD_FONT_L2;
+            case L4 -> ROAD_FONT_L4;
+            case L1, NORMAL -> ROAD_FONT_L1;
+        };
+    }
+
     /* Centre vertical du panneau sur poteau : Y 6 -> 12. */
     private static final float STANDING_CENTER_Y = 0.5625F;
     /* Face avant NORTH du modèle sur poteau : Z = 7/16. */
@@ -219,9 +232,12 @@ public class PlaqueRueBlockEntityRenderer
         if (font == RoadTextFont.NORMAL) {
             return Component.literal(text);
         }
-        FontDescription.Resource resource = font == RoadTextFont.L4
-                ? ROAD_FONT_L4
-                : ROAD_FONT_L1;
+        /*
+         * La plaque de rue est toujours bleue : L1 (texte sombre) n'a
+         * jamais de sens dessus, donc affiché en L2 (vrai texte blanc) —
+         * voir la même correction côté aperçu dans PlaqueRueEditScreen.
+         */
+        FontDescription.Resource resource = roadFontResource(RoadTextFont.forceForDarkBackground(font));
         return Component.literal(text).withStyle(Style.EMPTY.withFont(resource));
     }
 

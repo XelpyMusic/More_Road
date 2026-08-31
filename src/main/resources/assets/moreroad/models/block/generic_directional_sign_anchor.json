@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "moreroad:block/da31c_solid_white"
+  }
+}

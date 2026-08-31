@@ -29,6 +29,16 @@ import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.MotorwaySignRole;
 import net.xelpy.moreroad.block.custom.MotorwaySignSlot;
 import net.xelpy.moreroad.block.custom.MotorwaySignStyleProfile;
+import net.xelpy.moreroad.block.custom.D61AArrowDirection;
+import net.xelpy.moreroad.block.custom.D61AArrowPosition;
+import net.xelpy.moreroad.block.custom.GenericArrowShape;
+import net.xelpy.moreroad.block.custom.GenericDestinationRow;
+import net.xelpy.moreroad.block.custom.GenericDirectionalSignData;
+import net.xelpy.moreroad.block.custom.GenericRouteCartoucheData;
+import net.xelpy.moreroad.block.custom.GenericSignAlignment;
+import net.xelpy.moreroad.block.custom.GenericSignHeader;
+import net.xelpy.moreroad.block.custom.GenericSignSymbol;
+import net.xelpy.moreroad.block.entity.GenericDirectionalSignBlockEntity;
 import net.xelpy.moreroad.block.entity.D21ABlockEntity;
 import net.xelpy.moreroad.block.entity.DA31CBlockEntity;
 import net.xelpy.moreroad.block.entity.D42bBlockEntity;
@@ -188,6 +198,12 @@ public final class MoreRoadNetworking {
                 UpdateMotorwaySignPayload.TYPE,
                 UpdateMotorwaySignPayload.STREAM_CODEC,
                 MoreRoadNetworking::handleUpdateMotorwaySign
+        );
+
+        registrar.playToServer(
+                UpdateGenericDirectionalSignPayload.TYPE,
+                UpdateGenericDirectionalSignPayload.STREAM_CODEC,
+                MoreRoadNetworking::handleUpdateGenericDirectionalSign
         );
 
         /*
@@ -855,6 +871,77 @@ public final class MoreRoadNetworking {
 
         BlockState finalState = level.getBlockState(pos);
         level.sendBlockUpdated(pos, finalState, finalState, Block.UPDATE_ALL);
+    }
+
+    /*
+     * ============================================================
+     * Panneau directionnel modulable générique
+     * ============================================================
+     */
+
+    private static void handleUpdateGenericDirectionalSign(
+            UpdateGenericDirectionalSignPayload payload,
+            IPayloadContext context
+    ) {
+        var player = context.player();
+        if (player == null) {
+            return;
+        }
+
+        Level level = player.level();
+        BlockPos pos = payload.pos();
+
+        if (!level.hasChunkAt(pos)) {
+            return;
+        }
+        if (player.blockPosition().distManhattan(pos) > MAX_EDIT_DISTANCE) {
+            return;
+        }
+        if (!(level.getBlockEntity(pos) instanceof GenericDirectionalSignBlockEntity blockEntity)) {
+            return;
+        }
+
+        GenericDirectionalSignData requested = payload.data();
+        GenericSignHeader requestedHeader = requested.header();
+        GenericSignHeader header = new GenericSignHeader(
+                requestedHeader.enabled(),
+                cleanText(requestedHeader.text(), MAX_D21A_LINE_LENGTH),
+                requestedHeader.sameAsPanel(),
+                requestedHeader.color(),
+                requestedHeader.alignment(),
+                requestedHeader.font()
+        );
+        GenericDestinationRow[] rows = new GenericDestinationRow[GenericDirectionalSignData.MAX_ROWS];
+        for (int i = 0; i < rows.length; i++) {
+            GenericDestinationRow row = requested.rows()[i];
+            rows[i] = new GenericDestinationRow(
+                    row.enabled(),
+                    cleanText(row.text(), MAX_D21A_LINE_LENGTH),
+                    row.alignment(),
+                    row.font(),
+                    row.arrowEnabled(),
+                    row.arrowShape(),
+                    row.arrowMirrored(),
+                    row.arrowPosition(),
+                    row.symbolEnabled(),
+                    row.symbol(),
+                    row.symbolPosition()
+            );
+        }
+        GenericRouteCartoucheData[] cartouches =
+                new GenericRouteCartoucheData[GenericDirectionalSignData.MAX_CARTOUCHES];
+        for (int i = 0; i < cartouches.length; i++) {
+            GenericRouteCartoucheData cartouche = requested.cartouches()[i];
+            cartouches[i] = new GenericRouteCartoucheData(
+                    cartouche.type(),
+                    cleanText(cartouche.text(), MAX_CARTOUCHE_TEXT_LENGTH)
+            );
+        }
+
+        blockEntity.setData(new GenericDirectionalSignData(requested.background(), header, rows, cartouches));
+
+        BlockState genericFinalState = level.getBlockState(pos);
+        level.sendBlockUpdated(pos, genericFinalState, genericFinalState, Block.UPDATE_ALL);
     }
 
     /*

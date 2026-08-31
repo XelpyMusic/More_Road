@@ -42,6 +42,17 @@ public class MotorwaySignEditScreen extends Screen {
     private static final FontDescription.Resource ROAD_FONT_L4 = new FontDescription.Resource(
             Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
     );
+    private static final FontDescription.Resource ROAD_FONT_L2 = new FontDescription.Resource(
+            Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l2")
+    );
+
+    private static FontDescription.Resource roadFontResource(RoadTextFont font) {
+        return switch (font) {
+            case L2 -> ROAD_FONT_L2;
+            case L4 -> ROAD_FONT_L4;
+            case L1, NORMAL -> ROAD_FONT_L1;
+        };
+    }
 
     private final BlockPos blockPos;
     private MotorwaySignPreset preset;
@@ -228,10 +239,20 @@ public class MotorwaySignEditScreen extends Screen {
         int colorW = Math.max(62, s(90));
         int fontW = Math.max(56, s(78));
         int controlGap = Math.max(3, s(5));
-        int fieldW = innerW - colorW - fontW - controlGap * 2;
 
         for (int i = 0; i < this.fields.length; i++) {
             int y = rowsTop + i * (rowH + rowGap);
+            /*
+             * Signalé : le numéro de sortie du D31d garde toujours son
+             * apparence prévue (blanc) — inutile d'exposer un choix de
+             * couleur pour ce champ précis, contrairement aux autres lignes
+             * du même panneau. Vérifié par champ, pas seulement par
+             * panneau : allowsPerFieldColor() reste le verrou global (D44).
+             */
+            boolean fieldColor = allowsColorForField(this.preset, i);
+            int fieldW = fieldColor
+                    ? innerW - colorW - fontW - controlGap * 2
+                    : innerW - fontW - controlGap;
             this.fields[i] = new EditBox(
                     this.font,
                     innerX,
@@ -244,7 +265,9 @@ public class MotorwaySignEditScreen extends Screen {
             this.fields[i].setValue(this.initialTexts[i]);
             this.addRenderableWidget(this.fields[i]);
             this.fontRects[i] = new SignEditorUi.Rect(innerX + fieldW + controlGap, y, fontW, fieldH);
-            this.colorRects[i] = new SignEditorUi.Rect(this.fontRects[i].x() + fontW + controlGap, y, colorW, fieldH);
+            this.colorRects[i] = fieldColor
+                    ? new SignEditorUi.Rect(this.fontRects[i].x() + fontW + controlGap, y, colorW, fieldH)
+                    : new SignEditorUi.Rect(0, 0, 0, 0);
         }
 
         int contentCartoucheY = rowsTop + 4 * (rowH + rowGap);
@@ -260,10 +283,16 @@ public class MotorwaySignEditScreen extends Screen {
         this.addRenderableWidget(this.contentCartoucheField);
 
         int customPageGap = Math.max(2, s(4));
-        int customPageW = (innerW - customPageGap * 3) / 4;
+        int visibleCustomPages = allowsCustomGraphic(this.preset) ? this.customPageRects.length : this.customPageRects.length - 1;
+        int customPageW = (innerW - customPageGap * (visibleCustomPages - 1)) / visibleCustomPages;
         for (int index = 0; index < this.customPageRects.length; index++) {
+            if (index >= visibleCustomPages) {
+                /* Onglet masqué (ex. "Symbole" sur D31b) : case vide, jamais cliquable ni dessinée. */
+                this.customPageRects[index] = new SignEditorUi.Rect(0, 0, 0, 0);
+                continue;
+            }
             int x = innerX + index * (customPageW + customPageGap);
-            int width = index == this.customPageRects.length - 1
+            int width = index == visibleCustomPages - 1
                     ? innerX + innerW - x
                     : customPageW;
             this.customPageRects[index] = new SignEditorUi.Rect(x, rowsTop, width, selectorH);
@@ -416,7 +445,7 @@ public class MotorwaySignEditScreen extends Screen {
                 this.windowY,
                 this.windowWidth,
                 this.windowHeight,
-                "D/DA",
+                presetBadge(this.preset),
                 "Panneaux autoroutiers modulables",
                 compactUi() ? "" : "1 seul bloc • modèles classés par fonction • réglages communs"
         );
@@ -445,6 +474,7 @@ public class MotorwaySignEditScreen extends Screen {
                         : this.customPanels[index];
                 SignEditorUi.drawModernButton(
                         graphics, this.font, this.customTabRects[index],
+                        this.customTabRects[index].width() - this.customEnabledRects[index].width(),
                         "Registre " + (index + 1),
                         this.customMode && index == this.selectedCustomPanel,
                         true, mouseX, mouseY
@@ -638,10 +668,18 @@ public class MotorwaySignEditScreen extends Screen {
     }
 
     private void drawCustomControls(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        boolean allowsGraphic = allowsCustomGraphic(this.preset);
+        if (!allowsGraphic && this.customSettingsPage >= 3) {
+            /* Onglet "Symbole" masqué pour ce préréglage (ex. D31b) : jamais un état valide. */
+            this.customSettingsPage = 0;
+        }
         MotorwaySignPanelData current = currentCustomPanelFromWidgets();
+        String[] customPageLabels = allowsGraphic
+                ? new String[]{"Textes", "Format", "Cartouche", "Symbole"}
+                : new String[]{"Textes", "Format", "Cartouche"};
         SignEditorUi.drawPageTabs(
                 graphics, this.font, this.customPageRects,
-                new String[]{"Textes", "Format", "Cartouche", "Symbole"},
+                customPageLabels,
                 this.customSettingsPage, mouseX, mouseY
         );
         switch (this.customSettingsPage) {
@@ -841,7 +879,7 @@ public class MotorwaySignEditScreen extends Screen {
             int height
     ) {
         Component component = Component.literal(fitText(value, width - s(14))).withStyle(
-                Style.EMPTY.withFont(fontType == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1)
+                Style.EMPTY.withFont(roadFontResource(fontType))
         );
         graphics.text(
                 this.font, component,
@@ -863,14 +901,14 @@ public class MotorwaySignEditScreen extends Screen {
             int height
     ) {
         Component distanceComponent = Component.literal(distance == null ? "" : distance).withStyle(
-                Style.EMPTY.withFont(fontType == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1)
+                Style.EMPTY.withFont(roadFontResource(fontType))
         );
         int distanceWidth = distance == null || distance.isBlank()
                 ? 0
                 : this.font.width(distanceComponent) + s(10);
         Component lineComponent = Component.literal(
                 fitText(value, width - distanceWidth - s(18))
-        ).withStyle(Style.EMPTY.withFont(fontType == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1));
+        ).withStyle(Style.EMPTY.withFont(roadFontResource(fontType)));
         int drawY = y + (height - this.font.lineHeight) / 2;
         int contentWidth = width - distanceWidth;
         graphics.text(
@@ -930,14 +968,22 @@ public class MotorwaySignEditScreen extends Screen {
     }
 
     /**
-     * Couleur du registre = celle du premier texte non-ROUTE qui s'y trouve
-     * (un registre ne prend jamais le jaune/rouge d'un simple cartouche de
-     * numéro de route encarté dedans, comme sur le vrai panneau). Blanc par
-     * défaut si le registre ne contient que ça, ou aucun texte.
+     * Couleur du registre : priorité à une DESTINATION/INFO qui s'y trouve,
+     * puis une DISTANCE, et seulement en dernier recours un simple cartouche
+     * de numéro de route encarté dedans — un registre ne prend jamais le
+     * jaune/rouge d'un cartouche de route s'il contient aussi une
+     * destination, comme sur le vrai panneau. Mais si le registre ne
+     * contient QUE le cartouche de route (rien d'autre dedans), c'est bien
+     * sa couleur à lui qui doit s'afficher, pas un blanc par défaut — même
+     * règle que le rendu 3D (voir exactBodyColor dans
+     * MotorwaySignBlockEntityRenderer), que cette méthode reproduisait mal
+     * en ignorant complètement les cartouches de route.
      */
     private MotorwaySignColor exactBodyPreviewColor(MotorwaySignPreviewLayout layout, int bodyIndex) {
         float top = layout.bodyY()[bodyIndex];
         float bottom = top + layout.bodyHeight()[bodyIndex];
+        MotorwaySignColor best = null;
+        int bestPriority = -1;
         for (int index = 0; index < layout.textCount(); index++) {
             float textY = layout.textY()[index];
             if (textY < top || textY > bottom) {
@@ -947,12 +993,18 @@ public class MotorwaySignEditScreen extends Screen {
             if (slot < 0 || slot >= this.preset.getSlotCount()) {
                 continue;
             }
-            if (this.preset.getSlot(slot).role() == MotorwaySignRole.ROUTE) {
-                continue;
+            MotorwaySignRole role = this.preset.getSlot(slot).role();
+            int priority = switch (role) {
+                case DESTINATION, INFO -> 3;
+                case DISTANCE -> 2;
+                case ROUTE -> 1;
+            };
+            if (priority > bestPriority) {
+                bestPriority = priority;
+                best = this.lineColors[slot];
             }
-            return this.lineColors[slot];
         }
-        return MotorwaySignColor.WHITE;
+        return best != null ? best : MotorwaySignColor.WHITE;
     }
 
     /**
@@ -1050,7 +1102,7 @@ public class MotorwaySignEditScreen extends Screen {
     ) {
         String text = fitText(this.fields[index].getValue(), width - s(12));
         Component component = Component.literal(text).withStyle(
-                Style.EMPTY.withFont(this.lineFonts[index] == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1)
+                Style.EMPTY.withFont(roadFontResource(this.lineFonts[index]))
         );
         boolean leftAligned = (this.preset == MotorwaySignPreset.D63C && (index == 2 || index == 3))
                 || (this.preset == MotorwaySignPreset.D44 && index == 2);
@@ -1060,6 +1112,17 @@ public class MotorwaySignEditScreen extends Screen {
         int drawY = y + (height - this.font.lineHeight) / 2;
         if (this.preset == MotorwaySignPreset.D63C) {
             drawY += index == 3 ? s(2) : index == 2 ? s(1) : 0;
+        }
+        if ((this.preset == MotorwaySignPreset.D31B_EX1 || this.preset == MotorwaySignPreset.D31B_EX2)
+                && this.preset.getSlot(index).role() == MotorwaySignRole.ROUTE) {
+            /*
+             * Même recalage optique que le rendu 3D (voir
+             * MotorwaySignBlockEntityRenderer) : signalé trop haut dans son
+             * cartouche (ex. "A 20"). En coordonnées d'écran du GUI (Y vers
+             * le bas), corriger "trop haut" veut dire AUGMENTER Y, pas le
+             * diminuer comme dans le renderer 3D (qui a son axe Y inversé).
+             */
+            drawY += Math.max(1, Math.round(this.font.lineHeight * 0.10F));
         }
         graphics.text(this.font, component, drawX, drawY, this.lineColors[index].getTextArgb(), false);
     }
@@ -1163,7 +1226,9 @@ public class MotorwaySignEditScreen extends Screen {
             }
             for (int i = 0; !this.customMode && i < this.preset.getSlotCount(); i++) {
                 if (this.fontRects[i].contains(event.x(), event.y())) {
-                    this.lineFonts[i] = this.lineFonts[i].next();
+                    this.lineFonts[i] = RoadTextFont.nextForBackground(
+                            this.lineFonts[i], !this.lineColors[i].isLight()
+                    );
                     return true;
                 }
                 if (this.colorRects[i].contains(event.x(), event.y())) {
@@ -1288,41 +1353,90 @@ public class MotorwaySignEditScreen extends Screen {
         return MotorwaySignStyleProfile.forPreset(preset).allowsExtraPanels();
     }
 
+    /** Masque l'onglet "Symbole" par registre, inutile sur D31b (ex.1/ex.2) : voir MotorwaySignStyleProfile. */
+    private static boolean allowsCustomGraphic(MotorwaySignPreset preset) {
+        return MotorwaySignStyleProfile.forPreset(preset).allowsCustomGraphic();
+    }
+
+    /** Masque le choix de couleur par champ, inutile sur D44 (toujours blanc) : voir MotorwaySignStyleProfile. */
+    private static boolean allowsPerFieldColor(MotorwaySignPreset preset) {
+        return MotorwaySignStyleProfile.forPreset(preset).allowsPerFieldColor();
+    }
+
+    /**
+     * Comme allowsPerFieldColor, mais au niveau du champ : le numéro de
+     * sortie du D31d garde toujours son apparence prévue (blanc), sans que
+     * ça retire le choix de couleur des autres lignes du même panneau.
+     */
+    private static boolean allowsColorForField(MotorwaySignPreset preset, int index) {
+        if (!allowsPerFieldColor(preset)) {
+            return false;
+        }
+        return preset != MotorwaySignPreset.D31D || index != 0;
+    }
+
+    /**
+     * Badge affiché dans l'en-tête : le nom du modèle actuellement chargé
+     * (ex. "D31b" pour D31b — exemple 1), pas une étiquette générique figée
+     * qui ne correspondait à aucun préréglage en particulier.
+     */
+    private static String presetBadge(MotorwaySignPreset preset) {
+        if (preset == null) {
+            return "D/DA";
+        }
+        String displayName = preset.getDisplayName();
+        int dashIndex = displayName.indexOf(" — ");
+        return dashIndex >= 0 ? displayName.substring(0, dashIndex) : displayName;
+    }
+
     private static boolean allowsCustomDistances(MotorwaySignPreset preset) {
         return MotorwaySignStyleProfile.forPreset(preset).allowsCustomDistances();
     }
 
     private boolean handleCustomClick(double x, double y) {
         MotorwaySignPanelData current = currentCustomPanelFromWidgets();
+        boolean darkBackground = !current.background().isLight();
         if (this.customSettingsPage == 0 && this.customLine1FontRect.contains(x, y)) {
-            setCurrentCustomPanel(copyPanel(current, null, null, current.line1Font().next(), null, null, null, null));
+            setCurrentCustomPanel(copyPanel(
+                    current, null, null,
+                    RoadTextFont.nextForBackground(current.line1Font(), darkBackground),
+                    null, null, null, null
+            ));
             return true;
         }
         if (this.customSettingsPage == 0 && current.doubleLine() && this.customLine2FontRect.contains(x, y)) {
-            setCurrentCustomPanel(copyPanel(current, null, null, null, current.line2Font().next(), null, null, null));
+            setCurrentCustomPanel(copyPanel(
+                    current, null, null, null,
+                    RoadTextFont.nextForBackground(current.line2Font(), darkBackground),
+                    null, null, null
+            ));
             return true;
         }
         if (this.customSettingsPage == 0 && current.lineCount() >= 3 && this.customLine3FontRect.contains(x, y)) {
-            setCurrentCustomPanel(copyPanelWithFont(current, 2, current.line3Font().next()));
+            setCurrentCustomPanel(copyPanelWithFont(
+                    current, 2, RoadTextFont.nextForBackground(current.line3Font(), darkBackground)
+            ));
             return true;
         }
         if (this.customSettingsPage == 0 && current.lineCount() >= 4 && this.customLine4FontRect.contains(x, y)) {
-            setCurrentCustomPanel(copyPanelWithFont(current, 3, current.line4Font().next()));
+            setCurrentCustomPanel(copyPanelWithFont(
+                    current, 3, RoadTextFont.nextForBackground(current.line4Font(), darkBackground)
+            ));
             return true;
         }
         if (this.customSettingsPage == 1 && this.customWhiteRect.contains(x, y)) {
-            setCurrentCustomPanel(copyPanel(current, null, null, null, null,
-                    MotorwaySignColor.WHITE, null, null));
+            setCurrentCustomPanel(withCorrectedFonts(copyPanel(current, null, null, null, null,
+                    MotorwaySignColor.WHITE, null, null)));
             return true;
         }
         if (this.customSettingsPage == 1 && this.customGreenRect.contains(x, y)) {
-            setCurrentCustomPanel(copyPanel(current, null, null, null, null,
-                    MotorwaySignColor.GREEN, null, null));
+            setCurrentCustomPanel(withCorrectedFonts(copyPanel(current, null, null, null, null,
+                    MotorwaySignColor.GREEN, null, null)));
             return true;
         }
         if (this.customSettingsPage == 1 && this.customBlueRect.contains(x, y)) {
-            setCurrentCustomPanel(copyPanel(current, null, null, null, null,
-                    MotorwaySignColor.BLUE, null, null));
+            setCurrentCustomPanel(withCorrectedFonts(copyPanel(current, null, null, null, null,
+                    MotorwaySignColor.BLUE, null, null)));
             return true;
         }
         if (this.customSettingsPage == 1 && this.customDoubleLineRect.contains(x, y)) {
@@ -1370,6 +1484,31 @@ public class MotorwaySignEditScreen extends Screen {
                 cartoucheType == null ? source.cartoucheType() : cartoucheType,
                 source.cartoucheText(),
                 graphic == null ? source.graphic() : graphic
+        );
+    }
+
+    /*
+     * Corrige les 4 polices d'un panneau custom d'après sa couleur de fond
+     * actuelle (L1/L4 sur fond clair, L2 sur fond foncé) : appelé après un
+     * changement de couleur, puisque copyPanel() ne touche que line1/2Font
+     * et laisse line3/4Font inchangées.
+     */
+    private static MotorwaySignPanelData withCorrectedFonts(MotorwaySignPanelData panel) {
+        MotorwaySignColor color = panel.background();
+        RoadTextFont line1Font = forcedFontForColor(panel.line1Font(), color);
+        RoadTextFont line2Font = forcedFontForColor(panel.line2Font(), color);
+        RoadTextFont line3Font = forcedFontForColor(panel.line3Font(), color);
+        RoadTextFont line4Font = forcedFontForColor(panel.line4Font(), color);
+        if (line1Font == panel.line1Font() && line2Font == panel.line2Font()
+                && line3Font == panel.line3Font() && line4Font == panel.line4Font()) {
+            return panel;
+        }
+        return new MotorwaySignPanelData(
+                panel.enabled(), panel.lineCount(),
+                panel.line1(), panel.line2(), panel.line3(), panel.line4(),
+                panel.distance1(), panel.distance2(), panel.distance3(), panel.distance4(),
+                line1Font, line2Font, line3Font, line4Font,
+                panel.background(), panel.cartoucheType(), panel.cartoucheText(), panel.graphic()
         );
     }
 
@@ -1583,6 +1722,7 @@ public class MotorwaySignEditScreen extends Screen {
     private void setGroupColor(int index, MotorwaySignColor color) {
         MotorwaySignSlot clicked = this.preset.getSlot(index);
         this.lineColors[index] = color;
+        this.lineFonts[index] = forcedFontForColor(this.lineFonts[index], color);
         if (clicked.role() == MotorwaySignRole.ROUTE || clicked.role() == MotorwaySignRole.DISTANCE) {
             return;
         }
@@ -1592,8 +1732,22 @@ public class MotorwaySignEditScreen extends Screen {
                     && candidate.role() != MotorwaySignRole.DISTANCE
                     && candidate.panelGroup() == clicked.panelGroup()) {
                 this.lineColors[i] = color;
+                this.lineFonts[i] = forcedFontForColor(this.lineFonts[i], color);
             }
         }
+    }
+
+    /*
+     * La police n'est pas indépendante de la couleur du fond : L1/L4
+     * dessinent un texte sombre prévu pour un fond clair, L2 dessine un
+     * vrai texte blanc prévu pour un fond foncé (bleu, vert, rouge, noir,
+     * marron, bleu métropolitain...). On corrige donc la police à chaque
+     * changement de couleur, comme sur D21A/D61A.
+     */
+    private static RoadTextFont forcedFontForColor(RoadTextFont font, MotorwaySignColor color) {
+        return color.isLight()
+                ? RoadTextFont.forceForLightBackground(font)
+                : RoadTextFont.forceForDarkBackground(font);
     }
 
     private void save() {

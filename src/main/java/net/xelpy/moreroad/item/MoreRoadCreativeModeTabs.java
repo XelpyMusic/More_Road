@@ -246,6 +246,7 @@ public class MoreRoadCreativeModeTabs {
                         output.accept(MoreRoadBlocks.E31A);
                         output.accept(MoreRoadBlocks.E31B);
                         output.accept(MoreRoadBlocks.MOTORWAY_SIGN);
+                        output.accept(MoreRoadBlocks.GENERIC_DIRECTIONAL_SIGN);
                         output.accept(MoreRoadBlocks.D21A);
                         output.accept(MoreRoadBlocks.D21A2);
                         output.accept(MoreRoadBlocks.D42B);

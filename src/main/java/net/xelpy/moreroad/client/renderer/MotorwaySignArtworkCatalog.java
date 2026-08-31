@@ -484,10 +484,29 @@ public final class MotorwaySignArtworkCatalog {
                     layer("d31d_panel_top.png", 1), layer("d31d_panel_bottom.png", 2)
             },
             new ExactTextPlacement[]{
-                    text(0, 3088.0F, 1965.0F, 4200.0F, 1100.0F),
-                    text(1, 6252.0F, 5716.0F, 11200.0F, 1360.0F),
-                    text(2, 6252.0F, 8550.0F, 11200.0F, 1100.0F),
-                    text(3, 6252.0F, 10300.0F, 8000.0F, 1100.0F)
+                    /*
+                     * Signalé : "19" un peu trop haut dans son cartouche, et
+                     * l'ensemble du panneau (registres 1 à 3) un peu trop
+                     * haut par rapport à la photo de référence — léger
+                     * décalage vers le bas de tous les registres.
+                     * L'écart entre les deux destinations du bas (registre 3)
+                     * était aussi trop large : resserré (1750 -> 1250).
+                     *
+                     * Le premier essai (1965 -> 2300) est allé trop loin :
+                     * le "19" ressortait alors trop bas par rapport à
+                     * l'ovale fixe qui l'entoure (image du cadre, non lié à
+                     * ce placement de texte) — décalage réduit à +85 au lieu
+                     * de +335 pour recentrer le texte dans cet ovale.
+                     *
+                     * Le resserrement à 1250 est ensuite allé trop loin dans
+                     * l'autre sens (les deux noms de villes du bas trop
+                     * collés l'un à l'autre) : réécarté à 1450, entre les
+                     * deux valeurs déjà essayées.
+                     */
+                    text(0, 3088.0F, 2050.0F, 4200.0F, 1100.0F),
+                    text(1, 6252.0F, 5916.0F, 11200.0F, 1360.0F),
+                    text(2, 6252.0F, 9000.0F, 11200.0F, 1100.0F),
+                    text(3, 6252.0F, 10450.0F, 8000.0F, 1100.0F)
             },
             new ExactBody[]{
                     body(0.0F, 0.0F, 12505.0F, 3930.0F),

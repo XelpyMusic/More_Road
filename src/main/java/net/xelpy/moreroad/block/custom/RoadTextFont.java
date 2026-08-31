@@ -65,17 +65,52 @@ public enum RoadTextFont {
         return L1;
     }
 
-    // utilisé pour ajouter un espace entre chaque caractère pour les espacer
-    public static String addSpacing(String text, int spaceCount) {
-        StringBuilder spaced = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            spaced.append(text.charAt(i));
-            if (i < text.length() - 1) {
-                for (int j = 0; j < spaceCount; j++) {
-                    spaced.append(" ");
-                }
-            }
-        }
-        return spaced.toString();
+    /*
+     * Aide partagée par tous les panneaux personnalisables : la police n'est
+     * pas un choix libre indépendant de la couleur du fond, elle en découle
+     * (L1/L4 dessinent un texte sombre prévu pour un fond clair, L2 dessine
+     * un vrai texte blanc prévu pour un fond foncé — ce n'est pas juste L1
+     * recoloré). Centralisé ici pour que chaque éditeur (D21A, D61A, D/DA
+     * autoroutiers...) applique la même règle au lieu de la redéfinir.
+     */
+
+    /**
+     * Police à utiliser quand le fond redevient clair : L2 (texte blanc)
+     * n'a plus de sens dessus, on retombe sur L1. L4 (italique) n'est pas
+     * concernée : elle reste utilisable aussi bien sur fond clair que
+     * foncé.
+     */
+    public static RoadTextFont forceForLightBackground(RoadTextFont current) {
+        return current == L2 ? L1 : current;
     }
+
+    /**
+     * Police à utiliser quand le fond devient foncé (bleu, vert, rouge,
+     * noir, marron, bleu métropolitain...) : L1/L4 sont conçues pour un
+     * texte sombre, on bascule sur L2.
+     */
+    public static RoadTextFont forceForDarkBackground(RoadTextFont current) {
+        return (current == L1 || current == L4) ? L2 : current;
+    }
+
+    /**
+     * Police suivante à afficher en cliquant sur le bouton de cycle, en
+     * tenant compte du fond : sur un fond foncé, on saute directement à L2
+     * au lieu de cycler par L1/L4 (qui ne sont pas prévues pour du texte
+     * blanc) ; sinon, cycle normal.
+     */
+    public static RoadTextFont nextForBackground(RoadTextFont current, boolean darkBackground) {
+        if (darkBackground && (current == L1 || current == L4)) {
+            return L2;
+        }
+        return current.next();
+    }
+
+    // L'espacement des lettres ne passe plus par l'insertion d'un caractère
+    // (une espace ASCII était trop large, et l'espace fine U+2009 s'affichait
+    // en glyphe manquant faute de police de repli) : chaque panneau qui a
+    // besoin d'espacer ses caractères positionne desormais chaque lettre
+    // individuellement avec un petit espace en pixels. Voir
+    // D21ABlockEntityRenderer.submitAnchoredTrackedText (rendu 3D) et
+    // SignEditorUi.drawCenteredTrackedPreviewText (apercu 2D).
 }

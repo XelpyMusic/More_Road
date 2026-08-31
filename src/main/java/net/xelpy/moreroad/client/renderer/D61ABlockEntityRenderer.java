@@ -66,7 +66,24 @@ public class D61ABlockEntityRenderer
                     "textures/block/autoroute_logo.png"
             );
 
-    /* V99 : stabilisation du texte devant la face + POLYGON_OFFSET. */
+    /*
+     * V99 : stabilisation du texte devant la face + POLYGON_OFFSET.
+     *
+     * Un liseré translucide "à travers" le panneau sur le contour des
+     * lettres a été signalé (vanilla, sans shader), absent sur D21A,
+     * uniquement visible en L1 (texte noir sur fond clair) — probablement
+     * présent aussi en L2 mais peu visible sur fond vert/bleu par manque de
+     * contraste. Tentative n°1, écarter le texte de la face (0.1935 ->
+     * 0.205) : sans effet sur le liseré et texte visiblement détaché —
+     * abandonné, revenu à la valeur d'origine.
+     *
+     * Tentative n°2 (voir Font.DisplayMode.POLYGON_OFFSET plus bas) :
+     * Minecraft a son propre mécanisme pour du texte quasi-collé à une
+     * surface sans z-fighting (utilisé par son propre rendu d'ombre de
+     * texte 8x + premier plan) — un décalage de profondeur géré par le
+     * pilote graphique (glPolygonOffset), pas une simple translation. Plus
+     * robuste qu'ajuster TEXT_Z à la main.
+     */
     private static final float TEXT_Z = 0.1935F;
     private static final float ARROW_Z = 0.1925F;
     private static final float AUTOROUTE_LOGO_Z = 0.1915F;
@@ -776,7 +793,7 @@ public class D61ABlockEntityRenderer
         float textY = SIMPLE_LINE_Y + yOffset;
 
         if (!destination.isBlank()) {
-            submitAnchoredText(
+            submitAnchoredTrackedText(
                     destination,
                     destinationLeftEdge,
                     textY,
@@ -883,7 +900,7 @@ public class D61ABlockEntityRenderer
                     ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE
                     : DESTINATION_MAX_WIDTH_WITH_DISTANCE));
 
-            submitAnchoredText(
+            submitAnchoredTrackedText(
                     line1,
                     destinationLeftEdge,
                     line1Y,
@@ -924,7 +941,7 @@ public class D61ABlockEntityRenderer
                     ? DESTINATION_MAX_WIDTH_WITHOUT_DISTANCE
                     : DESTINATION_MAX_WIDTH_WITH_DISTANCE));
 
-            submitAnchoredText(
+            submitAnchoredTrackedText(
                     line2,
                     destinationLeftEdge,
                     line2Y,
@@ -1049,12 +1066,101 @@ public class D61ABlockEntityRenderer
                 textY,
                 text,
                 false,
-                Font.DisplayMode.NORMAL,
+                Font.DisplayMode.POLYGON_OFFSET,
                 renderState.lightCoords,
                 color,
                 0x00000000,
                 0x00000000
         );
+
+        poseStack.popPose();
+    }
+
+    /**
+     * Espacement des lettres réel (chaque lettre dessinée et positionnée
+     * individuellement, avec un petit écart fixe), toujours actif sur les
+     * destinations en L1/L2 — comme sur le D21A. Sans ce petit écart, les
+     * lettres de cette police routière se touchent quasiment, ce qui rend
+     * le texte difficile à lire une fois agrandi à la taille du panneau.
+     * Voir D21ABlockEntityRenderer.submitAnchoredTrackedText pour le détail
+     * du choix (chasse mesurée via Font.getSplitter().stringWidth, pas
+     * Font.width qui arrondit indépendamment chaque lettre).
+     */
+    private static final float LETTER_TRACKING_PIXELS = 1.2F;
+
+    private static void submitAnchoredTrackedText(
+            String value,
+            float anchorX,
+            float worldY,
+            float baseScale,
+            float maxWorldWidth,
+            TextAnchor anchor,
+            RoadTextFont textFont,
+            int color,
+            D61ARenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        boolean tracked = textFont == RoadTextFont.L1 || textFont == RoadTextFont.L2;
+        if (!tracked || value.codePointCount(0, value.length()) <= 1) {
+            submitAnchoredText(
+                    value, anchorX, worldY, baseScale, maxWorldWidth, anchor,
+                    textFont, color, renderState, poseStack, collector
+            );
+            return;
+        }
+
+        Font trackedFont = Minecraft.getInstance().font;
+        FontDescription.Resource resource = getRoadFont(textFont);
+        int[] codePoints = value.codePoints().toArray();
+        float[] charWidths = new float[codePoints.length];
+        FormattedCharSequence[] sequences = new FormattedCharSequence[codePoints.length];
+        for (int index = 0; index < codePoints.length; index++) {
+            sequences[index] = Component.literal(new String(Character.toChars(codePoints[index])))
+                    .withStyle(Style.EMPTY.withFont(resource))
+                    .getVisualOrderText();
+            charWidths[index] = trackedFont.getSplitter().stringWidth(sequences[index]);
+        }
+
+        float[] advances = new float[codePoints.length - 1];
+        float totalWidth = charWidths[codePoints.length - 1];
+        for (int index = 0; index < codePoints.length - 1; index++) {
+            float advance = charWidths[index] + LETTER_TRACKING_PIXELS;
+            advances[index] = advance;
+            totalWidth += advance;
+        }
+        if (totalWidth <= 0.0F) {
+            return;
+        }
+
+        float scale = Math.min(baseScale, maxWorldWidth / totalWidth);
+
+        poseStack.pushPose();
+        poseStack.translate(0.5F, worldY, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(getFacingRotation(renderState.facing)));
+        poseStack.translate(anchorX - 0.5F, 0F, TEXT_Z);
+        poseStack.scale(scale, -scale, scale);
+
+        float startX = switch (anchor) {
+            case LEFT -> 0F;
+            case CENTER -> -totalWidth / 2.0F;
+            case RIGHT -> -totalWidth;
+        };
+        float textY = -trackedFont.lineHeight / 2.0F;
+
+        float cursor = startX;
+        for (int index = 0; index < codePoints.length; index++) {
+            collector.submitText(
+                    poseStack, cursor, textY, sequences[index], false,
+                    Font.DisplayMode.POLYGON_OFFSET, renderState.lightCoords, color, 0x00000000, 0x00000000
+            );
+            if (index < advances.length) {
+                cursor += advances[index];
+            }
+        }
 
         poseStack.popPose();
     }

@@ -286,6 +286,7 @@
   "item.moreroad.road_builder": "Constructeur de Route",
   "block.moreroad.panonceau": "Panonceau routier configurable",
   "block.moreroad.motorway_sign": "Panneau autoroutier personnalisable",
+  "block.moreroad.generic_directional_sign": "Panneau directionnel modulable",
   "block.moreroad.da31c": "DA31C — Grand panneau autoroutier",
   "block.moreroad.support_da31c_pied": "DA31C — Pied de portique",
   "block.moreroad.support_da31c_poteau": "DA31C — Poteau de portique",

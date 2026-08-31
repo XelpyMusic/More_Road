@@ -94,6 +94,17 @@ public class MoreRoadBlockEntities {
                     )
             );
 
+    public static final Supplier<BlockEntityType<GenericDirectionalSignBlockEntity>>
+            GENERIC_DIRECTIONAL_SIGN =
+            BLOCK_ENTITY_TYPES.register(
+                    "generic_directional_sign",
+                    () -> new BlockEntityType<>(
+                            GenericDirectionalSignBlockEntity::new,
+                            false,
+                            MoreRoadBlocks.GENERIC_DIRECTIONAL_SIGN.get()
+                    )
+            );
+
 
     /*
      * ============================================================

@@ -34,6 +34,28 @@ public final class MotorwayD63CEditScreen extends Screen {
     private static final FontDescription.Resource ROAD_FONT_L4 = new FontDescription.Resource(
             Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
     );
+    private static final FontDescription.Resource ROAD_FONT_L2 = new FontDescription.Resource(
+            Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l2")
+    );
+
+    private static FontDescription.Resource roadFontResource(RoadTextFont font) {
+        return switch (font) {
+            case L2 -> ROAD_FONT_L2;
+            case L4 -> ROAD_FONT_L4;
+            case L1, NORMAL -> ROAD_FONT_L1;
+        };
+    }
+
+    /*
+     * La police n'est pas indépendante de la couleur du fond : L1/L4
+     * dessinent un texte sombre prévu pour un fond clair, L2 dessine un
+     * vrai texte blanc prévu pour un fond foncé (bleu, vert...).
+     */
+    private static RoadTextFont forcedFontForColor(RoadTextFont font, MotorwaySignColor color) {
+        return color.isLight()
+                ? RoadTextFont.forceForLightBackground(font)
+                : RoadTextFont.forceForDarkBackground(font);
+    }
 
     private final BlockPos blockPos;
     private final MotorwaySignLineData[] baseLines =
@@ -701,7 +723,7 @@ public final class MotorwayD63CEditScreen extends Screen {
     private Component roadText(String value, RoadTextFont roadFont, int maxWidth) {
         String fitted = SignEditorUi.fitText(this.font, value == null ? "" : value, Math.max(8, maxWidth));
         return Component.literal(fitted).withStyle(
-                Style.EMPTY.withFont(roadFont == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1)
+                Style.EMPTY.withFont(roadFontResource(roadFont))
         );
     }
 
@@ -771,7 +793,9 @@ public final class MotorwayD63CEditScreen extends Screen {
                 if (this.settingsPage == 0) {
                     for (int index = 0; index < 4; index++) {
                         if (this.baseFontRects[index].contains(x, y)) {
-                            this.baseLines[index] = withFont(this.baseLines[index], this.baseLines[index].font().next());
+                            this.baseLines[index] = withFont(this.baseLines[index], RoadTextFont.nextForBackground(
+                                    this.baseLines[index].font(), !this.baseLines[index].color().isLight()
+                            ));
                             return true;
                         }
                         if (this.baseColorRects[index].contains(x, y)) {
@@ -792,7 +816,9 @@ public final class MotorwayD63CEditScreen extends Screen {
                 if (this.settingsPage == 0) {
                     if (this.baseFontRects[lineIndex].contains(x, y)) {
                         this.baseLines[lineIndex] = withFont(
-                                this.baseLines[lineIndex], this.baseLines[lineIndex].font().next()
+                                this.baseLines[lineIndex], RoadTextFont.nextForBackground(
+                                        this.baseLines[lineIndex].font(), !this.baseLines[lineIndex].color().isLight()
+                                )
                         );
                         return true;
                     }
@@ -821,7 +847,8 @@ public final class MotorwayD63CEditScreen extends Screen {
                 if (this.settingsPage == 0) {
                     for (int index = 0; index < current.lineCount(); index++) {
                         if (this.cityFontRects[index].contains(x, y)) {
-                            this.panels[selectedCustomPanelIndex()] = withPanelFont(current, index, current.font(index).next());
+                            this.panels[selectedCustomPanelIndex()] = withPanelFont(current, index,
+                                    RoadTextFont.nextForBackground(current.font(index), !current.background().isLight()));
                             loadPanelIntoWidgets();
                             return true;
                         }
@@ -1017,8 +1044,12 @@ public final class MotorwayD63CEditScreen extends Screen {
     }
 
     private static MotorwaySignPanelData withBackground(MotorwaySignPanelData panel, MotorwaySignColor color) {
-        return copyPanel(panel, panel.enabled(), panel.lineCount(), allowedPanelColor(color), panel.graphic(),
-                panel.line1Font(), panel.line2Font(), panel.line3Font(), panel.line4Font());
+        MotorwaySignColor allowed = allowedPanelColor(color);
+        return copyPanel(panel, panel.enabled(), panel.lineCount(), allowed, panel.graphic(),
+                forcedFontForColor(panel.line1Font(), allowed),
+                forcedFontForColor(panel.line2Font(), allowed),
+                forcedFontForColor(panel.line3Font(), allowed),
+                forcedFontForColor(panel.line4Font(), allowed));
     }
 
     private static MotorwaySignPanelData withGraphic(MotorwaySignPanelData panel, MotorwaySignGraphic graphic) {
@@ -1068,7 +1099,7 @@ public final class MotorwayD63CEditScreen extends Screen {
     }
 
     private static MotorwaySignLineData withColor(MotorwaySignLineData line, MotorwaySignColor color) {
-        return new MotorwaySignLineData(line.text(), line.font(), color);
+        return new MotorwaySignLineData(line.text(), forcedFontForColor(line.font(), color), color);
     }
 
     private static MotorwaySignColor nextBaseColor(MotorwaySignColor current) {

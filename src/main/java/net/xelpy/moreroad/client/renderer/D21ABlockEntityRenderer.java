@@ -603,8 +603,8 @@ public class D21ABlockEntityRenderer
             SubmitNodeCollector collector
     ) {
         float destinationMaxWidth;
-        if ((destinationFont == RoadTextFont.L1 || destinationFont == RoadTextFont.L2) && destinationSpacing)
-            destination = RoadTextFont.addSpacing(destination,1);
+        boolean destinationTracked = (destinationFont == RoadTextFont.L1 || destinationFont == RoadTextFont.L2)
+                && destinationSpacing;
 
         if (showAutorouteLogo) {
             destinationMaxWidth =
@@ -627,7 +627,7 @@ public class D21ABlockEntityRenderer
 
         if (arrowRight) {
             if (!destination.isBlank()) {
-                submitAnchoredText(
+                submitAnchoredTrackedText(
                         destination,
                         showAutorouteLogo
                                 ? RIGHT_DESTINATION_LEFT_EDGE_WITH_AUTOROUTE_LOGO
@@ -638,6 +638,7 @@ public class D21ABlockEntityRenderer
                         TextAnchor.LEFT,
                         destinationFont,
                         textColor,
+                        destinationTracked,
                         renderState,
                         poseStack,
                         collector
@@ -678,7 +679,7 @@ public class D21ABlockEntityRenderer
         }
 
         if (!destination.isBlank()) {
-            submitAnchoredText(
+            submitAnchoredTrackedText(
                     destination,
                     showAutorouteLogo
                             ? LEFT_DESTINATION_RIGHT_EDGE_WITH_AUTOROUTE_LOGO
@@ -689,6 +690,7 @@ public class D21ABlockEntityRenderer
                     TextAnchor.RIGHT,
                     destinationFont,
                     textColor,
+                    destinationTracked,
                     renderState,
                     poseStack,
                     collector
@@ -714,10 +716,8 @@ public class D21ABlockEntityRenderer
             PoseStack poseStack,
             SubmitNodeCollector collector
     ) {
-        if ((line1Font == RoadTextFont.L1 || line1Font == RoadTextFont.L2) && line1Spacing)
-            line1 = RoadTextFont.addSpacing(line1,1);
-        if ((line2Font == RoadTextFont.L1 || line2Font == RoadTextFont.L2) && line2Spacing)
-            line2 = RoadTextFont.addSpacing(line2,1);
+        boolean line1Tracked = (line1Font == RoadTextFont.L1 || line1Font == RoadTextFont.L2) && line1Spacing;
+        boolean line2Tracked = (line2Font == RoadTextFont.L1 || line2Font == RoadTextFont.L2) && line2Spacing;
 
         boolean hasDistance1 = !distance1.isBlank();
         boolean hasDistance2 = !distance2.isBlank();
@@ -789,7 +789,7 @@ public class D21ABlockEntityRenderer
         }
 
         if (hasTop) {
-            submitAnchoredText(
+            submitAnchoredTrackedText(
                     line1,
                     destinationAnchor,
                     line1Y,
@@ -798,6 +798,7 @@ public class D21ABlockEntityRenderer
                     destinationTextAnchor,
                     line1Font,
                     textColor,
+                    line1Tracked,
                     renderState,
                     poseStack,
                     collector
@@ -805,7 +806,7 @@ public class D21ABlockEntityRenderer
         }
 
         if (hasBottom) {
-            submitAnchoredText(
+            submitAnchoredTrackedText(
                     line2,
                     destinationAnchor,
                     line2Y,
@@ -814,6 +815,7 @@ public class D21ABlockEntityRenderer
                     destinationTextAnchor,
                     line2Font,
                     textColor,
+                    line2Tracked,
                     renderState,
                     poseStack,
                     collector
@@ -898,6 +900,122 @@ public class D21ABlockEntityRenderer
                 poseStack,
                 collector
         );
+    }
+
+    /**
+     * Espacement des lettres réel (mots dessinés lettre par lettre, chacune
+     * positionnée individuellement), et non plus une espace insérée dans le
+     * texte : une espace pleine entre chaque lettre (629/2048 em, mesuré sur
+     * caracteres_l1.ttf) est bien plus large que l'espacement d'un vrai
+     * panneau, et une espace fine Unicode (U+2009) ressort en glyphe
+     * manquant faute d'exister dans la police routière ou son repli.
+     *
+     * Un essai d'espacement "optique" (annuler le vide de bord propre à
+     * chaque lettre, mesuré sur le contour réel des .ttf, avant d'ajouter
+     * l'écart) a été tenté puis abandonné : sur le "L", ce vide mesuré sur
+     * le tracé vectoriel est bien plus grand que ce que Minecraft affiche
+     * réellement une fois la police rasterisée, et l'annuler faisait
+     * carrément chevaucher le "L" et la lettre suivante. Espacement fixe
+     * donc, plus sûr et prévisible, même s'il reste un peu moins régulier
+     * que l'idéal théorique sur certaines lettres.
+     *
+     * Valeur en pixels de police (comme font.width(...), pas en unités de
+     * dessin de la police) : à ajuster si l'écart ne correspond pas encore
+     * aux vrais panneaux.
+     */
+    private static final float LETTER_TRACKING_PIXELS = 1.2F;
+
+    private static void submitAnchoredTrackedText(
+            String value,
+            float anchorX,
+            float worldY,
+            float baseScale,
+            float maxWorldWidth,
+            TextAnchor anchor,
+            RoadTextFont textFont,
+            int color,
+            boolean tracked,
+            D21ARenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        if (!tracked || value.codePointCount(0, value.length()) <= 1) {
+            submitAnchoredText(
+                    value, anchorX, worldY, baseScale, maxWorldWidth, anchor,
+                    textFont, color, renderState, poseStack, collector
+            );
+            return;
+        }
+
+        Font trackedFont = Minecraft.getInstance().font;
+        FontDescription.Resource resource = getRoadFont(textFont);
+        int[] codePoints = value.codePoints().toArray();
+        /*
+         * Font.width(...) fait Mth.ceil(...) sur la largeur : appelé lettre
+         * par lettre, chaque appel arrondit indépendamment au pixel
+         * supérieur, ajoutant jusqu'à ~1px de bruit différent par lettre
+         * (au lieu d'un seul arrondi sur la largeur totale de la chaîne).
+         * C'était la vraie cause de l'espacement irrégulier : on utilise
+         * donc stringWidth (float, sans arrondi intermédiaire) via le même
+         * splitter que Font.width().
+         */
+        float[] charWidths = new float[codePoints.length];
+        FormattedCharSequence[] sequences = new FormattedCharSequence[codePoints.length];
+        for (int index = 0; index < codePoints.length; index++) {
+            sequences[index] = Component.literal(new String(Character.toChars(codePoints[index])))
+                    .withStyle(Style.EMPTY.withFont(resource))
+                    .getVisualOrderText();
+            charWidths[index] = trackedFont.getSplitter().stringWidth(sequences[index]);
+        }
+
+        float[] advances = new float[codePoints.length - 1];
+        float totalWidth = charWidths[codePoints.length - 1];
+        for (int index = 0; index < codePoints.length - 1; index++) {
+            float advance = charWidths[index] + LETTER_TRACKING_PIXELS;
+            advances[index] = advance;
+            totalWidth += advance;
+        }
+        if (totalWidth <= 0.0F) {
+            return;
+        }
+
+        float scale = Math.min(baseScale, maxWorldWidth / totalWidth);
+
+        poseStack.pushPose();
+        poseStack.translate(0.5F, worldY, 0.5F);
+        float rotation = switch (renderState.facing) {
+            case SOUTH -> 0F;
+            case WEST -> -90F;
+            case NORTH -> 180F;
+            case EAST -> 90F;
+            default -> 0F;
+        };
+        poseStack.mulPose(Axis.YP.rotationDegrees(rotation));
+        poseStack.translate(anchorX - 0.5F, 0F, TEXT_Z);
+        poseStack.scale(scale, -scale, scale);
+
+        float startX = switch (anchor) {
+            case LEFT -> 0F;
+            case CENTER -> -totalWidth / 2.0F;
+            case RIGHT -> -totalWidth;
+        };
+        float textY = -trackedFont.lineHeight / 2.0F;
+
+        float cursor = startX;
+        for (int index = 0; index < codePoints.length; index++) {
+            collector.submitText(
+                    poseStack, cursor, textY, sequences[index], false,
+                    Font.DisplayMode.NORMAL, renderState.lightCoords, color, 0x00000000, 0x00000000
+            );
+            if (index < advances.length) {
+                cursor += advances[index];
+            }
+        }
+
+        poseStack.popPose();
     }
 
     private static void submitAnchoredText(

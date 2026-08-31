@@ -37,6 +37,26 @@ public record MotorwaySignPanelData(
         line3Font = line3Font == null ? RoadTextFont.L1 : line3Font;
         line4Font = line4Font == null ? RoadTextFont.L1 : line4Font;
         background = background == null ? MotorwaySignColor.BLUE : background;
+        /*
+         * La police n'est pas indépendante de la couleur de fond : L1/L4
+         * sont conçues pour un texte sombre sur fond clair, L2 pour un vrai
+         * texte blanc sur fond foncé. Forcé ici, dans le constructeur, pour
+         * couvrir toutes les sources de données (valeurs par défaut,
+         * réseau, anciennes sauvegardes), pas seulement les clics dans le
+         * GUI.
+         */
+        line1Font = background.isLight()
+                ? RoadTextFont.forceForLightBackground(line1Font)
+                : RoadTextFont.forceForDarkBackground(line1Font);
+        line2Font = background.isLight()
+                ? RoadTextFont.forceForLightBackground(line2Font)
+                : RoadTextFont.forceForDarkBackground(line2Font);
+        line3Font = background.isLight()
+                ? RoadTextFont.forceForLightBackground(line3Font)
+                : RoadTextFont.forceForDarkBackground(line3Font);
+        line4Font = background.isLight()
+                ? RoadTextFont.forceForLightBackground(line4Font)
+                : RoadTextFont.forceForDarkBackground(line4Font);
         cartoucheType = cartoucheType == null ? CartoucheType.NONE : cartoucheType;
         cartoucheText = cartoucheText == null ? "" : cartoucheText;
         graphic = graphic == null ? MotorwaySignGraphic.NONE : graphic;

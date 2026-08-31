@@ -13,6 +13,7 @@ import net.xelpy.moreroad.client.renderer.D61ABlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.EB10BlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.E31BlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.MotorwaySignBlockEntityRenderer;
+import net.xelpy.moreroad.client.renderer.GenericDirectionalSignBlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.PanonceauBlockEntityRenderer;
 import net.xelpy.moreroad.client.renderer.PlaqueRueBlockEntityRenderer;
 
@@ -47,6 +48,11 @@ public final class MoreRoadClientEvents {
         event.registerBlockEntityRenderer(
                 MoreRoadBlockEntities.MOTORWAY_SIGN.get(),
                 MotorwaySignBlockEntityRenderer::new
+        );
+
+        event.registerBlockEntityRenderer(
+                MoreRoadBlockEntities.GENERIC_DIRECTIONAL_SIGN.get(),
+                GenericDirectionalSignBlockEntityRenderer::new
         );
 
         event.registerBlockEntityRenderer(

@@ -293,19 +293,25 @@ public class D42bEditScreen extends Screen {
             }
             if (!pagedUi() || this.settingsPage == 1) {
                 if (this.line1FontRect.contains(x, y)) {
-                    this.line1Font = this.line1Font.next();
+                    this.line1Font = RoadTextFont.nextForBackground(
+                            this.line1Font, this.line1Color != D42bLabelColor.NONE
+                    );
                     return true;
                 }
                 if (this.line2FontRect.contains(x, y)) {
-                    this.line2Font = this.line2Font.next();
+                    this.line2Font = RoadTextFont.nextForBackground(
+                            this.line2Font, this.line2Color != D42bLabelColor.NONE
+                    );
                     return true;
                 }
                 if (this.line1ColorRect.contains(x, y)) {
                     this.line1Color = this.line1Color.next();
+                    this.line1Font = forcedFontForLabelColor(this.line1Font, this.line1Color);
                     return true;
                 }
                 if (this.line2ColorRect.contains(x, y)) {
                     this.line2Color = this.line2Color.next();
+                    this.line2Font = forcedFontForLabelColor(this.line2Font, this.line2Color);
                     return true;
                 }
             }
@@ -319,6 +325,18 @@ public class D42bEditScreen extends Screen {
             }
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    /*
+     * La police n'est pas indépendante du fond de l'encart : L1/L4
+     * dessinent un texte sombre prévu pour un fond clair, L2 dessine un
+     * vrai texte blanc prévu pour un fond foncé (vert/bleu) — voir la même
+     * règle dans D42bBlockEntityRenderer.effectiveLabelFont.
+     */
+    private static RoadTextFont forcedFontForLabelColor(RoadTextFont font, D42bLabelColor color) {
+        return color == D42bLabelColor.NONE
+                ? RoadTextFont.forceForLightBackground(font)
+                : RoadTextFont.forceForDarkBackground(font);
     }
 
     private D42bBranchData[] previewBranches() {

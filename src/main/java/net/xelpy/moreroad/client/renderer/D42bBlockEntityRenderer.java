@@ -162,6 +162,31 @@ public class D42bBlockEntityRenderer
                     Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l4")
             );
 
+    private static final FontDescription.Resource ROAD_FONT_L2 =
+            new FontDescription.Resource(
+                    Identifier.fromNamespaceAndPath(MoreRoad.MODID, "caracteres_l2")
+            );
+
+    private static FontDescription.Resource roadFontResource(RoadTextFont font) {
+        return switch (font) {
+            case L2 -> ROAD_FONT_L2;
+            case L4 -> ROAD_FONT_L4;
+            case L1, NORMAL -> ROAD_FONT_L1;
+        };
+    }
+
+    /*
+     * La police n'est pas indépendante du fond de l'encart : L1/L4
+     * dessinent un texte sombre prévu pour un fond clair, L2 dessine un
+     * vrai texte blanc prévu pour un fond foncé (vert/bleu).
+     */
+    private static RoadTextFont effectiveLabelFont(RoadTextFont font, D42bLabelColor background) {
+        if (background == null || background == D42bLabelColor.NONE) {
+            return RoadTextFont.forceForLightBackground(font);
+        }
+        return RoadTextFont.forceForDarkBackground(font);
+    }
+
     private static final float TEXT_BASE_SCALE = 0.0109F;
     private static final float TEXT_PADDING_X = 0.032F;
     private static final float TEXT_PADDING_Y = 0.018F;
@@ -459,7 +484,8 @@ public class D42bBlockEntityRenderer
             SubmitNodeCollector collector
     ) {
         Font font = Minecraft.getInstance().font;
-        FormattedCharSequence text = formattedText(value, textFont);
+        RoadTextFont effectiveFont = effectiveLabelFont(textFont, background);
+        FormattedCharSequence text = formattedText(value, effectiveFont);
         int textWidth = font.width(text);
 
         if (textWidth <= 0) {
@@ -882,9 +908,7 @@ public class D42bBlockEntityRenderer
             String value,
             RoadTextFont font
     ) {
-        FontDescription.Resource resource = font == RoadTextFont.L4
-                ? ROAD_FONT_L4
-                : ROAD_FONT_L1;
+        FontDescription.Resource resource = roadFontResource(font);
 
         return Component.literal(value)
                 .withStyle(Style.EMPTY.withFont(resource))

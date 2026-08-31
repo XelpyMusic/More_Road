@@ -483,45 +483,45 @@ public final class SignEditorUi {
         if (panel.doubleLine()) {
             int y1 = y + height / 3 - 4;
             int y2 = y + (height * 2) / 3 - 4;
-            if ((panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2) && panel.line1Spacing())
-                line1 = RoadTextFont.addSpacing(line1,1);
-            if ((panel.line2Font() == RoadTextFont.L1 || panel.line2Font() == RoadTextFont.L2) && panel.line2Spacing())
-                line2 = RoadTextFont.addSpacing(line2,1);
-            drawCenteredPreviewText(
+            boolean line1Tracked = (panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2)
+                    && panel.line1Spacing();
+            boolean line2Tracked = (panel.line2Font() == RoadTextFont.L1 || panel.line2Font() == RoadTextFont.L2)
+                    && panel.line2Spacing();
+            drawCenteredTrackedPreviewText(
                     graphics,
                     font,
                     shorten(line1, Math.max(8, (textRight - textLeft) / 6)),
                     textCenter,
                     y1,
                     textColor,
-                    false,
-                    panel.line1Font()
+                    panel.line1Font(),
+                    line1Tracked
             );
-            drawCenteredPreviewText(
+            drawCenteredTrackedPreviewText(
                     graphics,
                     font,
                     shorten(line2, Math.max(8, (textRight - textLeft) / 6)),
                     textCenter,
                     y2,
                     textColor,
-                    false,
-                    panel.line2Font()
+                    panel.line2Font(),
+                    line2Tracked
             );
             drawCenteredPreviewText(graphics, font, shorten(distance1, 6), distanceCenter, y1, textColor, textShadow);
             drawCenteredPreviewText(graphics, font, shorten(distance2, 6), distanceCenter, y2, textColor, textShadow);
         } else {
-            if ((panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2) && panel.line1Spacing())
-                line1 = RoadTextFont.addSpacing(line1,1);
+            boolean line1Tracked = (panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2)
+                    && panel.line1Spacing();
             int textY = y + height / 2 - 4;
-            drawCenteredPreviewText(
+            drawCenteredTrackedPreviewText(
                     graphics,
                     font,
                     shorten(line1, Math.max(8, (textRight - textLeft) / 6)),
                     textCenter,
                     textY,
                     textColor,
-                    false,
-                    panel.line1Font()
+                    panel.line1Font(),
+                    line1Tracked
             );
             drawCenteredPreviewText(graphics, font, shorten(distance1, 6), distanceCenter, textY, textColor, textShadow);
         }
@@ -597,8 +597,66 @@ public final class SignEditorUi {
         graphics.text(font, component, textX, y, color, false);
     }
 
+    /**
+     * Espacement des lettres de l'aperçu : mêmes lettres dessinées une à une
+     * avec un petit vide, pas une espace insérée dans le texte (une espace
+     * pleine est trop large, et l'espace fine Unicode ressort en glyphe
+     * manquant faute d'exister dans la police routière) — voir le même
+     * choix, ainsi que l'abandon de l'espacement "optique" par lettre au
+     * profit d'un écart fixe, dans
+     * D21ABlockEntityRenderer.submitAnchoredTrackedText.
+     */
+    private static final float PREVIEW_LETTER_TRACKING_PIXELS = 1F;
+
+    private static void drawCenteredTrackedPreviewText(
+            GuiGraphicsExtractor graphics,
+            Font font,
+            String value,
+            int centerX,
+            int y,
+            int color,
+            RoadTextFont roadFont,
+            boolean tracked
+    ) {
+        String safeValue = value == null ? "" : value;
+        if (!tracked || safeValue.codePointCount(0, safeValue.length()) <= 1) {
+            drawCenteredPreviewText(graphics, font, safeValue, centerX, y, color, false, roadFont);
+            return;
+        }
+        int[] codePoints = safeValue.codePoints().toArray();
+        Component[] chars = new Component[codePoints.length];
+        /*
+         * Font.width(...) arrondit (Mth.ceil) : appelé lettre par lettre,
+         * chaque appel ajoute son propre arrondi indépendant, jusqu'à ~1px
+         * de bruit différent par lettre. stringWidth (float, sans arrondi
+         * intermédiaire, même splitter) évite ce bruit — voir la même
+         * remarque dans D21ABlockEntityRenderer.submitAnchoredTrackedText.
+         */
+        float[] widths = new float[codePoints.length];
+        for (int index = 0; index < codePoints.length; index++) {
+            chars[index] = roadComponent(new String(Character.toChars(codePoints[index])), roadFont);
+            widths[index] = font.getSplitter().stringWidth(chars[index]);
+        }
+
+        float[] advances = new float[codePoints.length - 1];
+        float totalWidth = widths[codePoints.length - 1];
+        for (int index = 0; index < codePoints.length - 1; index++) {
+            float advance = widths[index] + PREVIEW_LETTER_TRACKING_PIXELS;
+            advances[index] = advance;
+            totalWidth += advance;
+        }
+
+        float cursor = centerX - totalWidth / 2F;
+        for (int index = 0; index < codePoints.length; index++) {
+            graphics.text(font, chars[index], Math.round(cursor), y, color, false);
+            if (index < advances.length) {
+                cursor += advances[index];
+            }
+        }
+    }
+
     private static Component roadComponent(String value, RoadTextFont roadFont) {
-        FontDescription.Resource resource = /*roadFont == RoadTextFont.L4 ? ROAD_FONT_L4 : ROAD_FONT_L1;*/ switch (roadFont) {
+        FontDescription.Resource resource = switch (roadFont) {
             case L1,NORMAL -> ROAD_FONT_L1;
             case L2 -> ROAD_FONT_L2;
             case L4 ->  ROAD_FONT_L4;
@@ -1553,9 +1611,16 @@ public final class SignEditorUi {
         int iconY = y + (ultraCompactHeader ? 6 : compactHeader ? 7 : 10);
         graphics.fill(iconX, iconY, iconX + iconSize, iconY + iconSize, MODERN_BLUE_DARK);
         graphics.outline(iconX, iconY, iconSize, iconSize, 0xFF2C8CFF);
+        /*
+         * shorten() coupe par NOMBRE de caractères, pas par largeur réelle :
+         * un badge de 4 caractères larges (ex. "D/DA") pouvait donc
+         * dépasser cette petite case, alors qu'un badge à 3 lettres fines
+         * y tenait. fitText() mesure en pixels et garantit que le badge
+         * reste dans la case quelle que soit sa longueur.
+         */
         graphics.centeredText(
                 font,
-                Component.literal(shorten(iconLabel == null ? "" : iconLabel, 4)),
+                Component.literal(fitText(font, iconLabel == null ? "" : iconLabel, iconSize - 4)),
                 iconX + iconSize / 2,
                 iconY + Math.max(4, (iconSize - 9) / 2),
                 COLOR_WHITE
@@ -1657,6 +1722,26 @@ public final class SignEditorUi {
             double mouseX,
             double mouseY
     ) {
+        drawModernButton(graphics, font, rect, rect.width(), label, selected, enabled, mouseX, mouseY);
+    }
+
+    /**
+     * Variante avec une largeur de texte distincte de la largeur du fond :
+     * utilisée quand un autre élément (ex. une case à cocher) est dessiné
+     * par-dessus une partie du bouton, pour que le texte se centre et se
+     * tronque sur la zone réellement libre au lieu de déborder dessous.
+     */
+    public static void drawModernButton(
+            GuiGraphicsExtractor graphics,
+            Font font,
+            Rect rect,
+            int textAreaWidth,
+            String label,
+            boolean selected,
+            boolean enabled,
+            double mouseX,
+            double mouseY
+    ) {
         boolean hovered = enabled && rect.contains(mouseX, mouseY);
         int background = selected
                 ? MODERN_PANEL_SELECTED
@@ -1668,9 +1753,9 @@ public final class SignEditorUi {
 
         graphics.fill(rect.x(), rect.y(), rect.x() + rect.width(), rect.y() + rect.height(), background);
         graphics.outline(rect.x(), rect.y(), rect.width(), rect.height(), border);
-        if (rect.height() >= font.lineHeight + 2 && rect.width() >= 8) {
-            String fitted = fitText(font, label, Math.max(0, rect.width() - 8));
-            graphics.centeredText(font, Component.literal(fitted), rect.x() + rect.width() / 2, rect.y() + Math.max(2, (rect.height() - font.lineHeight) / 2), textColor);
+        if (rect.height() >= font.lineHeight + 2 && textAreaWidth >= 8) {
+            String fitted = fitText(font, label, Math.max(0, textAreaWidth - 8));
+            graphics.centeredText(font, Component.literal(fitted), rect.x() + textAreaWidth / 2, rect.y() + Math.max(2, (rect.height() - font.lineHeight) / 2), textColor);
         }
     }
 
