@@ -234,7 +234,16 @@ public class MotorwaySignEditScreen extends Screen {
         int rowsTop = editorTabsY + selectorH + s(13);
         int availableRowsH = this.contentRect.y() + this.contentRect.height() - rowsTop - s(9);
         int rowGap = Math.max(3, s(7));
-        int rowH = Math.max(18, (availableRowsH - rowGap * 7) / 8);
+        /*
+         * Signalé : la cartouche du panneau principal (rangée bouton +
+         * rangée champ) chevauchait les derniers champs des modèles à
+         * beaucoup de lignes (ex. D31d, 7 champs) — le budget de rangées
+         * ci-dessous ne suivait pas MAX_SLOTS (initialement calé sur 6
+         * champs + 2 rangées de cartouche = 8). Recalé sur la vraie
+         * capacité maximale : MAX_SLOTS champs + 2 rangées de cartouche.
+         */
+        int maxRows = MotorwaySignBlockEntity.MAX_SLOTS + 2;
+        int rowH = Math.max(18, (availableRowsH - rowGap * (maxRows - 1)) / maxRows);
         int fieldH = Math.min(rowH, Math.max(20, s(25)));
         int colorW = Math.max(62, s(90));
         int fontW = Math.max(56, s(78));
@@ -270,20 +279,38 @@ public class MotorwaySignEditScreen extends Screen {
                     : new SignEditorUi.Rect(0, 0, 0, 0);
         }
 
-        int contentCartoucheY = rowsTop + 4 * (rowH + rowGap);
+        /*
+         * Signalé : la cartouche du "Panneau principal" doit apparaître
+         * directement sous les champs propres au modèle plutôt qu'à une
+         * rangée figée (4) — correcte seulement tant que le modèle a
+         * exactement 4 champs (D63C), mais chevauchant les champs suivants
+         * dès qu'un modèle en a plus (ex. D31d, 7 champs).
+         */
+        int contentCartoucheY = rowsTop + this.preset.getSlotCount() * (rowH + rowGap);
         this.contentCartoucheRect = new SignEditorUi.Rect(
                 innerX, contentCartoucheY, innerW, fieldH
         );
         this.contentCartoucheField = new EditBox(
                 this.font, innerX, contentCartoucheY + fieldH + rowGap,
-                innerW, fieldH, Component.literal("Texte du cartouche du panneau 1")
+                innerW, fieldH, Component.literal("Texte du cartouche du panneau")
         );
         this.contentCartoucheField.setMaxLength(24);
         this.contentCartoucheField.setHint(Component.literal("Texte du cartouche (ex. M 337)"));
         this.addRenderableWidget(this.contentCartoucheField);
 
         int customPageGap = Math.max(2, s(4));
-        int visibleCustomPages = allowsCustomGraphic(this.preset) ? this.customPageRects.length : this.customPageRects.length - 1;
+        /*
+         * Signalé : nombre d'onglets réellement visibles, en cohérence avec
+         * customPageLabels dans drawCustomControls (même logique à 3
+         * branches) — sinon un onglet supplémentaire, invisible mais quand
+         * même cliquable/dessiné en blanc, resterait présent quand "Symbole"
+         * ET "Cartouche" sont tous les deux absents (ex. D31d).
+         */
+        boolean allowsGraphicTab = allowsCustomGraphic(this.preset);
+        boolean allowsCartoucheTabInit = !allowsMainCartoucheField(this.preset);
+        int visibleCustomPages = allowsGraphicTab
+                ? 4
+                : (allowsCartoucheTabInit ? 3 : 2);
         int customPageW = (innerW - customPageGap * (visibleCustomPages - 1)) / visibleCustomPages;
         for (int index = 0; index < this.customPageRects.length; index++) {
             if (index >= visibleCustomPages) {
@@ -516,11 +543,14 @@ public class MotorwaySignEditScreen extends Screen {
                         false, true, mouseX, mouseY
                 );
             }
-            if (this.preset == MotorwaySignPreset.D63C) {
+            if (allowsMainCartoucheField(this.preset)) {
                 MotorwaySignPanelData cartouche = contentCartouchePanelFromWidgets();
+                String label = this.preset == MotorwaySignPreset.D63C
+                        ? "Cartouche du panneau 1 : " + cartouche.cartoucheType().getDisplayName()
+                        : "Cartouche : " + cartouche.cartoucheType().getDisplayName();
                 SignEditorUi.drawModernButton(
                         graphics, this.font, this.contentCartoucheRect,
-                        "Cartouche du panneau 1 : " + cartouche.cartoucheType().getDisplayName(),
+                        label,
                         cartouche.cartoucheType().isVisible(), true, mouseX, mouseY
                 );
             }
@@ -559,6 +589,21 @@ public class MotorwaySignEditScreen extends Screen {
              * dessous). Schéma dédié, cohérent avec D44_ARTWORK.
              */
             drawD44Preview(graphics, x, y, w, h);
+            return;
+        }
+
+        if (this.preset == MotorwaySignPreset.D31D || this.preset == MotorwaySignPreset.D31E) {
+            /*
+             * Signalé : les registres vert et "destination locale" peuvent
+             * désormais compter jusqu'à 4 villes chacun, avec un panneau qui
+             * s'agrandit d'autant (voir MotorwaySignBlockEntityRenderer.
+             * drawD31DStackText/StackPlate, réutilisés pour le D31e). Le
+             * schéma générique ci-dessous (comme drawExactPreview) reprend
+             * des tailles/positions figées mesurées sur le SVG à une seule
+             * ville : il ne peut pas suivre ce changement de taille. Schéma
+             * dédié, recalculé à chaque frappe.
+             */
+            drawD31DPreview(graphics, x, y, w, h);
             return;
         }
 
@@ -673,10 +718,34 @@ public class MotorwaySignEditScreen extends Screen {
             /* Onglet "Symbole" masqué pour ce préréglage (ex. D31b) : jamais un état valide. */
             this.customSettingsPage = 0;
         }
+        boolean allowsCartoucheTab = !allowsMainCartoucheField(this.preset);
+        if (!allowsCartoucheTab && this.customSettingsPage == 2) {
+            /* Cartouche de ce panonceau désormais choisie sur "Panneau principal" : jamais un état valide ici, quel que soit le registre. */
+            this.customSettingsPage = 0;
+        }
         MotorwaySignPanelData current = currentCustomPanelFromWidgets();
-        String[] customPageLabels = allowsGraphic
-                ? new String[]{"Textes", "Format", "Cartouche", "Symbole"}
-                : new String[]{"Textes", "Format", "Cartouche"};
+        /*
+         * Signalé : sur ce panonceau, la cartouche se choisit désormais sur
+         * "Panneau principal" pour les modèles qui l'exposent là-bas
+         * (allowsMainCartoucheField) — l'onglet "Cartouche" n'a alors plus
+         * lieu d'exister ici du tout. Attention cependant : "Cartouche" est
+         * au milieu de la liste (index 2), et "Symbole" juste après (index
+         * 3) — les retirer tous les deux ferait glisser "Symbole" à
+         * l'index 2, alors que customSettingsPage == 2 route ailleurs dans
+         * cette classe vers les widgets "Cartouche", pas "Symbole" (bug déjà
+         * évité une fois, voir l'historique). On ne réduit donc la liste que
+         * lorsque "Symbole" est ÉGALEMENT absent (ex. D31d) : dans tous les
+         * autres cas, l'onglet "Cartouche" reste affiché (mais inerte, voir
+         * plus haut) pour ne jamais décaler "Symbole".
+         */
+        String[] customPageLabels;
+        if (allowsGraphic) {
+            customPageLabels = new String[]{"Textes", "Format", "Cartouche", "Symbole"};
+        } else if (allowsCartoucheTab) {
+            customPageLabels = new String[]{"Textes", "Format", "Cartouche"};
+        } else {
+            customPageLabels = new String[]{"Textes", "Format"};
+        }
         SignEditorUi.drawPageTabs(
                 graphics, this.font, this.customPageRects,
                 customPageLabels,
@@ -1079,6 +1148,94 @@ public class MotorwaySignEditScreen extends Screen {
         graphics.fill(centerX - s(14), poleBottom - s(8), centerX + s(14), poleBottom, poleColor);
     }
 
+    /**
+     * Schéma dédié au D31d et au D31e : registre "sortie"/"route" fixe en
+     * haut, puis deux registres extensibles (vert : slots 1/2/3/4 ;
+     * "destination locale" : slots 5/6/7 pour le D31d — 2 villes par
+     * défaut, dessin d'origine — ou 5/6/7/8 pour le D31e — 1 ville par
+     * défaut) dont la hauteur suit le nombre de villes réellement tapées
+     * dans chacun — même logique de croissance/réduction que
+     * MotorwaySignBlockEntityRenderer.drawD31DStackText/StackPlate, en 2D.
+     */
+    private void drawD31DPreview(GuiGraphicsExtractor graphics, int x, int y, int w, int h) {
+        int signW = Math.min(w - s(24), Math.max(s(200), (int) (w * 0.80F)));
+        int centerX = x + w / 2;
+        int poleColor = 0xFF2C2C2C;
+
+        boolean isD31E = this.preset == MotorwaySignPreset.D31E;
+        int[] localeSlots = isD31E ? new int[]{5, 6, 7, 8} : new int[]{5, 6, 7};
+        int localeBaseline = isD31E ? 1 : 2;
+
+        int lineStep = Math.max(14, s(18));
+        int gap = Math.max(3, s(5));
+        int exitHeight = Math.max(s(34), (int) (h * 0.24F));
+        int greenCount = countPreviewStackLines(new int[]{1, 2, 3, 4}, 1);
+        int localeCount = countPreviewStackLines(localeSlots, localeBaseline);
+        int greenHeight = Math.max(s(30), greenCount * lineStep + s(14));
+        int localeHeight = Math.max(s(30), localeCount * lineStep + s(14));
+        int totalHeight = exitHeight + greenHeight + localeHeight + gap * 2;
+        int available = h - s(16);
+        if (totalHeight > available && totalHeight > 0) {
+            float shrink = (float) available / totalHeight;
+            exitHeight = Math.round(exitHeight * shrink);
+            greenHeight = Math.round(greenHeight * shrink);
+            localeHeight = Math.round(localeHeight * shrink);
+            gap = Math.max(2, Math.round(gap * shrink));
+            totalHeight = exitHeight + greenHeight + localeHeight + gap * 2;
+        }
+        int top = y + Math.max(0, (h - totalHeight) / 2);
+
+        graphics.fill(centerX - s(5), top + totalHeight, centerX + s(5), y + h - s(4), poleColor);
+        graphics.fill(centerX - s(14), y + h - s(12), centerX + s(14), y + h - s(4), poleColor);
+
+        /*
+         * Signalé : l'aperçu affichait toujours ce registre en blanc, même
+         * quand sa couleur est réellement choisissable (D31e : cartouche de
+         * numéro de route rouge/jaune/vert/bleu) — contrairement au numéro
+         * de sortie du D31d, toujours blanc par réglementation.
+         */
+        drawPreviewPlate(graphics, centerX - signW / 2, top, signW, exitHeight,
+                isD31E ? this.lineColors[0] : MotorwaySignColor.WHITE);
+        drawPreviewText(graphics, 0, centerX - signW / 2, top, signW, exitHeight);
+
+        int greenTop = top + exitHeight + gap;
+        drawPreviewStackLines(graphics, new int[]{1, 2, 3, 4}, greenCount, centerX, signW, greenTop, greenHeight, lineStep);
+
+        int localeTop = greenTop + greenHeight + gap;
+        drawPreviewStackLines(graphics, localeSlots, localeCount, centerX, signW, localeTop, localeHeight, lineStep);
+    }
+
+    /**
+     * Comme MotorwaySignBlockEntityRenderer.computeD31DStackInfo (compte les
+     * villes remplies, en s'arrêtant à la première vide ; retombe sur le
+     * nombre "naturel" si rien n'est encore rempli), mais lu directement
+     * depuis les champs de saisie plutôt que depuis les données envoyées au
+     * serveur — c'est ce que l'utilisateur tape à l'instant qui doit piloter
+     * l'aperçu, avant même d'appliquer.
+     */
+    private int countPreviewStackLines(int[] slots, int baseline) {
+        int count = 0;
+        for (int slotIndex : slots) {
+            if (this.fields[slotIndex].getValue().isBlank()) {
+                break;
+            }
+            count++;
+        }
+        return count == 0 ? baseline : count;
+    }
+
+    private void drawPreviewStackLines(
+            GuiGraphicsExtractor graphics, int[] slots, int count, int centerX, int signW, int top, int height, int lineStep
+    ) {
+        drawPreviewPlate(graphics, centerX - signW / 2, top, signW, height, this.lineColors[slots[0]]);
+        int step = Math.max(1, Math.min(lineStep, (height - s(6)) / count));
+        int textY = top + (height - count * step) / 2;
+        for (int index = 0; index < count; index++) {
+            drawPreviewText(graphics, slots[index], centerX - signW / 2, textY, signW, step);
+            textY += step;
+        }
+    }
+
     private void drawPreviewPlate(
             GuiGraphicsExtractor graphics,
             int x,
@@ -1205,7 +1362,7 @@ public class MotorwaySignEditScreen extends Screen {
             if (this.customMode && handleCustomClick(event.x(), event.y())) {
                 return true;
             }
-            if (!this.customMode && this.preset == MotorwaySignPreset.D63C
+            if (!this.customMode && allowsMainCartoucheField(this.preset)
                     && this.contentCartoucheRect.contains(event.x(), event.y())) {
                 storeContentCartouche();
                 MotorwaySignPanelData panel = this.customPanels[0];
@@ -1330,14 +1487,25 @@ public class MotorwaySignEditScreen extends Screen {
             this.customLine4Field.active = textPage && panel.lineCount() >= 4;
             this.customDistance4Field.visible = textPage && allowDistances && panel.lineCount() >= 4;
             this.customDistance4Field.active = textPage && allowDistances && panel.lineCount() >= 4;
+            /*
+             * Signalé : la cartouche du premier panonceau (seul à en porter
+             * une réellement — voir MotorwaySignBlockEntityRenderer.
+             * firstConfiguredPanel) doit se choisir sur "Panneau principal",
+             * pas ici, dès que ce modèle expose ce choix là-bas
+             * (allowsMainCartoucheField) — sinon les deux onglets
+             * modifieraient la même donnée, source de confusion. S'applique
+             * à tous les registres (1 à 4), pas seulement au premier : le
+             * choix "Cartouche" n'a plus lieu d'être ici du tout pour ces
+             * modèles.
+             */
             boolean cartouchePage = this.customMode && this.customSettingsPage == 2
-                    && this.selectedCustomPanel == 0
-                    && allowsCustomCartouche(this.preset);
+                    && allowsCustomCartouche(this.preset)
+                    && !allowsMainCartoucheField(this.preset);
             this.customCartoucheField.visible = cartouchePage;
             this.customCartoucheField.active = cartouchePage && panel.cartoucheType().isVisible();
         }
         if (this.contentCartoucheField != null) {
-            boolean visible = !this.customMode && this.preset == MotorwaySignPreset.D63C;
+            boolean visible = !this.customMode && allowsMainCartoucheField(this.preset);
             this.contentCartoucheField.visible = visible;
             this.contentCartoucheField.active = visible
                     && this.customPanels[0].cartoucheType().isVisible();
@@ -1346,6 +1514,23 @@ public class MotorwaySignEditScreen extends Screen {
 
     private static boolean allowsCustomCartouche(MotorwaySignPreset preset) {
         return MotorwaySignStyleProfile.forPreset(preset).allowsCustomCartouche();
+    }
+
+    /**
+     * Signalé : le choix de la cartouche d'un modèle "au dessin figé"
+     * (ex. D31d) doit se faire directement sur l'onglet "Panneau
+     * principal", pas via un "Registre N" qui n'a de toute façon aucun
+     * effet propre (seul le premier panonceau, index 0, porte réellement
+     * une cartouche — voir MotorwaySignBlockEntityRenderer.firstConfiguredPanel).
+     * Ce champ (déjà utilisé par le D63C) est donc généralisé à tout
+     * modèle qui autorise une cartouche personnalisée, sauf D61b et la
+     * construction libre qui ont chacun leur propre mécanisme de cartouche
+     * "au sommet" (voir buildD61BStackLayout / showTopCartouche).
+     */
+    private static boolean allowsMainCartoucheField(MotorwaySignPreset preset) {
+        return allowsCustomCartouche(preset)
+                && preset != MotorwaySignPreset.D61B
+                && preset != MotorwaySignPreset.FREEFORM;
     }
 
     /** Masque les onglets "Registre N" pour les panneaux au dessin figé (D44...) : voir MotorwaySignStyleProfile. */
@@ -1366,13 +1551,24 @@ public class MotorwaySignEditScreen extends Screen {
     /**
      * Comme allowsPerFieldColor, mais au niveau du champ : le numéro de
      * sortie du D31d garde toujours son apparence prévue (blanc), sans que
-     * ça retire le choix de couleur des autres lignes du même panneau.
+     * ça retire le choix de couleur des autres lignes du même panneau. Les
+     * deux villes vertes supplémentaires (index 2 et 3) partagent le même
+     * registre que "Destination verte" (index 1) : leur couleur suit
+     * toujours celle de cette première ligne, pas de choix indépendant qui
+     * n'aurait pas de sens sur un seul registre physique.
      */
     private static boolean allowsColorForField(MotorwaySignPreset preset, int index) {
         if (!allowsPerFieldColor(preset)) {
             return false;
         }
-        return preset != MotorwaySignPreset.D31D || index != 0;
+        if (preset == MotorwaySignPreset.D31D) {
+            return index != 0 && index != 2 && index != 3 && index != 4;
+        }
+        if (preset == MotorwaySignPreset.D31E) {
+            /* Les villes vertes 2/3/4 partagent le registre de la première (index 1) : voir la remarque D31d ci-dessus. */
+            return index != 2 && index != 3 && index != 4;
+        }
+        return true;
     }
 
     /**
@@ -1583,7 +1779,7 @@ public class MotorwaySignEditScreen extends Screen {
     }
 
     private void storeContentCartouche() {
-        if (this.contentCartoucheField != null && this.preset == MotorwaySignPreset.D63C) {
+        if (this.contentCartoucheField != null && allowsMainCartoucheField(this.preset)) {
             this.customPanels[0] = contentCartouchePanelFromWidgets();
         }
     }
@@ -1763,12 +1959,10 @@ public class MotorwaySignEditScreen extends Screen {
         ClientPacketDistributor.sendToServer(new UpdateMotorwaySignPayload(
                 this.blockPos,
                 this.preset.getSerializedName(),
-                data[0], data[1], data[2], data[3], data[4], data[5],
+                data,
                 false,
-                this.customPanels[0], this.customPanels[1],
-                this.customPanels[2], this.customPanels[3],
-                this.services[0], this.services[1], this.services[2],
-                this.services[3], this.services[4], this.services[5]
+                this.customPanels,
+                this.services
         ));
         this.onClose();
     }

@@ -1107,31 +1107,47 @@ public final class MoreRoadNetworking {
             MotorwaySignStyleProfile style = MotorwaySignStyleProfile.forPreset(preset);
             boolean allowCustomDistances = style.allowsCustomDistances();
             MotorwaySignColor background = style.sanitizeCustomBackground(requested.background());
+            boolean carriesCartouche = style.allowsCustomCartouche()
+                    && (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1));
+            /*
+             * Signalé : sur un modèle "au dessin figé" (D31d...), ce
+             * panonceau ne sert plus qu'à porter la cartouche du panneau
+             * principal (voir MotorwaySignEditScreen.allowsMainCartoucheField)
+             * — il n'a plus d'onglet "Panneau principal" en propre où mettre
+             * du texte. Un reliquat de texte tapé avant ce changement (ou
+             * pendant un essai sur l'onglet "Registre 1", resté sans effet
+             * visible à l'époque) le faisait ressortir comme un vrai
+             * panonceau supplémentaire — un rectangle vide qui repoussait et
+             * décalait le panneau principal. On l'ignore donc ici pour ce
+             * cas précis. D61b et la construction libre gardent leur texte
+             * (leur premier panonceau porte réellement du contenu), tout
+             * comme le D63c dont les deux panonceaux ont toujours porté à la
+             * fois texte et cartouche (comportement d'origine, avant cette
+             * généralisation, à ne pas changer).
+             */
+            boolean textIgnoredHere = carriesCartouche
+                    && preset != MotorwaySignPreset.D61B
+                    && preset != MotorwaySignPreset.FREEFORM
+                    && preset != MotorwaySignPreset.D63C;
             panels[index] = new MotorwaySignPanelData(
-                    requested.enabled(),
+                    requested.enabled() && !textIgnoredHere,
                     requested.lineCount(),
-                    cleanText(requested.line1(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
-                    cleanText(requested.line2(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
-                    cleanText(requested.line3(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
-                    cleanText(requested.line4(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
-                    allowCustomDistances ? cleanText(requested.distance1(), MAX_D21A_DISTANCE_LENGTH) : "",
-                    allowCustomDistances ? cleanText(requested.distance2(), MAX_D21A_DISTANCE_LENGTH) : "",
-                    allowCustomDistances ? cleanText(requested.distance3(), MAX_D21A_DISTANCE_LENGTH) : "",
-                    allowCustomDistances ? cleanText(requested.distance4(), MAX_D21A_DISTANCE_LENGTH) : "",
+                    textIgnoredHere ? "" : cleanText(requested.line1(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    textIgnoredHere ? "" : cleanText(requested.line2(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    textIgnoredHere ? "" : cleanText(requested.line3(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    textIgnoredHere ? "" : cleanText(requested.line4(), MAX_MOTORWAY_SIGN_TEXT_LENGTH),
+                    textIgnoredHere || !allowCustomDistances ? "" : cleanText(requested.distance1(), MAX_D21A_DISTANCE_LENGTH),
+                    textIgnoredHere || !allowCustomDistances ? "" : cleanText(requested.distance2(), MAX_D21A_DISTANCE_LENGTH),
+                    textIgnoredHere || !allowCustomDistances ? "" : cleanText(requested.distance3(), MAX_D21A_DISTANCE_LENGTH),
+                    textIgnoredHere || !allowCustomDistances ? "" : cleanText(requested.distance4(), MAX_D21A_DISTANCE_LENGTH),
                     requested.line1Font(),
                     requested.line2Font(),
                     requested.line3Font(),
                     requested.line4Font(),
                     background,
-                    style.allowsCustomCartouche()
-                            && (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
-                            ? requested.cartoucheType()
-                            : CartoucheType.NONE,
-                    style.allowsCustomCartouche()
-                            && (index == 0 || (preset == MotorwaySignPreset.D63C && index == 1))
-                            ? cleanText(requested.cartoucheText(), MAX_CARTOUCHE_TEXT_LENGTH)
-                            : "",
-                    style.forceBlueCustomPanels()
+                    carriesCartouche ? requested.cartoucheType() : CartoucheType.NONE,
+                    carriesCartouche ? cleanText(requested.cartoucheText(), MAX_CARTOUCHE_TEXT_LENGTH) : "",
+                    style.forceBlueCustomPanels() || textIgnoredHere
                             ? net.xelpy.moreroad.block.custom.MotorwaySignGraphic.NONE
                             : requested.graphic()
             );

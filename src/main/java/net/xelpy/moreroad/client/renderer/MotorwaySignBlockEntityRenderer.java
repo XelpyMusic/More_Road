@@ -505,10 +505,10 @@ public class MotorwaySignBlockEntityRenderer
          * drawExactMappedArtwork sans le recalculer, et garder le poteau
          * cohérent avec le panneau réduit.
          */
-        ExactMappedArtwork earlyArtwork = style.normalizeMainDestinationStack()
+        ExactMappedArtwork earlyArtwork = style.normalizeMainDestinationStack() || usesD31DStyleStacks(preset)
                 ? MotorwaySignArtworkCatalog.exactMappedArtwork(preset)
                 : null;
-        MainDestinationStackInfo mainStackInfo = earlyArtwork != null
+        MainDestinationStackInfo mainStackInfo = earlyArtwork != null && style.normalizeMainDestinationStack()
                 ? computeMainDestinationStackInfo(preset, state.lines, earlyArtwork)
                 : null;
         /*
@@ -528,6 +528,30 @@ public class MotorwaySignBlockEntityRenderer
                     * (1.0F - mainStackInfo.body().y() / earlyArtwork.sourceHeight());
             float shrunkWorldHeight = style.addedPanelHeight(mainStackInfo.count(), MotorwaySignGraphic.NONE);
             mainStackRise = Math.max(0.0F, remainingHeightBelowDestTop - shrunkWorldHeight);
+        }
+        /*
+         * Signalé : sur le même principe que mainStackRise ci-dessus, mais
+         * pour les DEUX registres extensibles du D31d (vert et "destination
+         * locale"), qui peuvent chacun grandir OU rétrécir. Le décalage qui
+         * positionne le panneau principal au-dessus des registres "extra"
+         * doit tenir compte de l'écart NET de hauteur du panneau par
+         * rapport à sa taille naturelle — sinon un panneau agrandi (plus de
+         * villes) chevauche les registres "extra" en dessous, comme un
+         * panneau rétréci laisserait un vide.
+         */
+        float d31dExtraShift = 0.0F;
+        if (usesD31DStyleStacks(preset) && earlyArtwork != null) {
+            float earlyArtworkHeight = earlyArtwork.physicalWidth()
+                    * earlyArtwork.sourceHeight() / earlyArtwork.sourceWidth();
+            D31DStackInfo earlyGreenStack = computeD31DStackInfo(
+                    preset, state.lines, style, earlyArtwork, 1, greenStackSlots(preset),
+                    greenStackBaseline(preset), 0.0F, earlyArtworkHeight
+            );
+            D31DStackInfo earlyLocaleStack = computeD31DStackInfo(
+                    preset, state.lines, style, earlyArtwork, 2, localeStackSlots(preset),
+                    localeStackBaseline(preset), 0.0F, earlyArtworkHeight
+            );
+            d31dExtraShift = -belowD31DStacksShift(Float.MAX_VALUE, earlyGreenStack, earlyLocaleStack);
         }
 
         DEFERRED_TEXT_CONTEXT.set(new DeferredTextContext(
@@ -594,11 +618,25 @@ public class MotorwaySignBlockEntityRenderer
                     float originalHeight = MotorwaySignGeometry.forPreset(
                             preset, state.lines, state.mountedOnCrossbar
                     ).height() / MotorwaySignGeometry.WORLD_SCALE;
+                    /*
+                     * Signalé : la cartouche se dessine dans un repère
+                     * séparé du panneau principal (avant la mise à l'échelle
+                     * commune plus bas), donc son propre calcul de "sommet
+                     * du panneau" doit suivre le même écart d31dExtraShift
+                     * que originalShift dès qu'un registre "extra" pousse
+                     * réellement le panneau principal plus bas — sinon elle
+                     * reste plaquée au sommet naturel du D31d pendant que le
+                     * panneau descend d'autant. Sans registre "extra", ce
+                     * décalage ne s'applique jamais (voir plus bas,
+                     * !additions.panels().isEmpty()) : la cartouche doit
+                     * alors garder sa formule d'origine, déjà correcte.
+                     */
                     float originalTop = state.mountedOnCrossbar
                             ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
                             : 2.05F + customPanelHeight
                             + (customLayout.panels().isEmpty() ? 0.0F : PANEL_GAP)
-                            + originalHeight;
+                            + originalHeight
+                            + (customLayout.panels().isEmpty() ? 0.0F : d31dExtraShift);
                     cartoucheTop = originalTop + PANEL_GAP + D61_CARTOUCHE_HEIGHT;
                 }
                 submitCustomCartouche(
@@ -657,8 +695,14 @@ public class MotorwaySignBlockEntityRenderer
                     preset, state.lines, state.mountedOnCrossbar
             ).height() / MotorwaySignGeometry.WORLD_SCALE;
             if (state.mountedOnCrossbar) {
+                /*
+                 * d31dExtraShift : le haut du D31d est fixe une fois monté
+                 * sur traverse, seul son bas varie avec les registres
+                 * vert/local — ce bas doit donc être corrigé du même écart
+                 * avant de positionner le registre "extra" juste en dessous.
+                 */
                 float originalBottom = MotorwaySignGeometry.MOUNTED_PANEL_TOP
-                        / MotorwaySignGeometry.WORLD_SCALE - originalHeight;
+                        / MotorwaySignGeometry.WORLD_SCALE - originalHeight - d31dExtraShift;
                 drawCustomStack(
                         collector, poseStack, font, additions,
                         originalBottom - PANEL_GAP, state.lightCoords, style, false
@@ -669,8 +713,11 @@ public class MotorwaySignBlockEntityRenderer
                  * lignes que prévu) "remonte" son propre bas, mais ce
                  * décalage qui le positionne au-dessus des registres
                  * "extra" ne le savait pas et laissait un vide en dessous.
+                 * d31dExtraShift : même idée pour le D31d, dont les
+                 * registres vert/local peuvent grandir (chevauchement avec
+                 * les registres "extra" sinon) ou rétrécir (vide sinon).
                  */
-                float originalShift = customPanelHeight + PANEL_GAP - mainStackRise;
+                float originalShift = customPanelHeight + PANEL_GAP - mainStackRise + d31dExtraShift;
                 drawCustomStack(
                         collector, poseStack, font, additions,
                         2.05F + customPanelHeight, state.lightCoords, style, false
@@ -1135,14 +1182,33 @@ public class MotorwaySignBlockEntityRenderer
                 ? sourceY(top, height, mainStackInfo.body().y(), artwork.sourceHeight())
                 : 0.0F;
         /*
+         * Signalé : le registre vert (destination principale) ET le
+         * registre "destination locale" du D31d doivent tous les deux
+         * pouvoir compter de 1 à 3 villes (le second en compte 2 par
+         * défaut, dessin d'origine), le panneau s'agrandissant ou se
+         * réduisant d'autant à chacun — comme le registre principal de
+         * D31b — exemple 2. Tant qu'un registre a son nombre de villes
+         * "naturel" (1 pour le vert, 2 pour "destination locale"), rien ne
+         * change : c'est le dessin d'origine, calé au pixel près.
+         */
+        D31DStackInfo greenStack = computeD31DStackInfo(
+                preset, values, style, artwork, 1, greenStackSlots(preset), greenStackBaseline(preset), top, height
+        );
+        D31DStackInfo localeStack = computeD31DStackInfo(
+                preset, values, style, artwork, 2, localeStackSlots(preset), localeStackBaseline(preset), top, height
+        );
+        /*
          * Signalé : le poteau/support restait attaché à la pleine hauteur
          * du SVG même quand le registre principal est redessiné en plus
          * petit, laissant un vide entre le bas du panneau et le poteau (et
          * donc aussi avec un éventuel registre "extra" en dessous, dont la
          * position ne bouge pas). Le poteau doit rejoindre le nouveau bas,
-         * plus haut, du panneau réduit.
+         * plus haut, du panneau réduit — ou, à l'inverse, suivre le panneau
+         * agrandi (registres du D31d) plus bas.
          */
-        float effectiveBottom = shrinkMainStack ? destTopWorld - shrunkWorldHeight : bottom;
+        float effectiveBottom = shrinkMainStack
+                ? destTopWorld - shrunkWorldHeight
+                : bottom + belowD31DStacksShift(Float.MAX_VALUE, greenStack, localeStack);
 
         if (!mountedOnCrossbar) {
             drawExactJunctionSupports(collector, poseStack, width, effectiveBottom, artwork.doublePost(), light);
@@ -1159,15 +1225,29 @@ public class MotorwaySignBlockEntityRenderer
         int roadCartoucheBodies = standaloneRoadCartoucheCount(preset, artwork);
         for (int bodyIndex = roadCartoucheBodies; bodyIndex < artwork.bodies().length; bodyIndex++) {
             ExactBody body = artwork.bodies()[bodyIndex];
+            if ((stackDiffers(greenStack) && body == greenStack.body())
+                    || (stackDiffers(localeStack) && body == localeStack.body())) {
+                /* Remplacé par la plaque générique du registre agrandi/réduit, dessinée plus bas. */
+                continue;
+            }
             boolean isShrunkMainBody = shrinkMainStack && body == mainStackInfo.body();
+            float belowShift = belowD31DStacksShift(body.y(), greenStack, localeStack);
             float bodyLeft = sourceX(left, width, body.x(), artwork.sourceWidth());
             float bodyRight = sourceX(left, width, body.x() + body.width(), artwork.sourceWidth());
-            float bodyTop = sourceY(top, height, body.y(), artwork.sourceHeight());
+            float bodyTop = sourceY(top, height, body.y(), artwork.sourceHeight()) + belowShift;
             float bodyBottom = isShrunkMainBody
                     ? destTopWorld - shrunkWorldHeight
-                    : sourceY(top, height, body.y() + body.height(), artwork.sourceHeight());
+                    : sourceY(top, height, body.y() + body.height(), artwork.sourceHeight()) + belowShift;
             submitTexturedPanelBody(collector, poseStack, bodyLeft, bodyRight, bodyBottom, bodyTop,
                     BACK_Z, FRONT_Z, light, -30, textureBodyCornerRadius(preset));
+        }
+        if (stackDiffers(greenStack)) {
+            drawD31DStackPlate(collector, poseStack, preset, values, style, artwork,
+                    left, width, top, height, greenStack, light);
+        }
+        if (stackDiffers(localeStack)) {
+            drawD31DStackPlate(collector, poseStack, preset, values, style, artwork,
+                    left, width, top, height, localeStack, light, greenStack);
         }
 
         if (shrinkMainStack) {
@@ -1193,7 +1273,8 @@ public class MotorwaySignBlockEntityRenderer
                     FRONT_Z + 0.0035F, panelBorderColor(mainStackInfo.lines()[0].color()), light, -18,
                     textureBodyCornerRadius(preset));
         } else {
-            drawArtworkLayer(collector, poseStack, artwork.frame(), left, right, bottom, top,
+            drawFullCanvasLayerWithD31DShift(collector, poseStack, artwork.frame(), left, right, bottom, top,
+                    artwork.sourceHeight(), greenStack, localeStack,
                     FRONT_Z + 0.002F, 0xFFFFFFFF, light, -18);
         }
         for (int layerIndex = 0; layerIndex < artwork.layers().length; layerIndex++) {
@@ -1209,6 +1290,12 @@ public class MotorwaySignBlockEntityRenderer
                     && (layerSlot.role() == MotorwaySignRole.DESTINATION
                     || layerSlot.role() == MotorwaySignRole.INFO)) {
                 /* Registre principal redessiné en plus petit plus bas : son ancien calque plein format est ignoré. */
+                continue;
+            }
+            if (layer.fixedArgb() == 0
+                    && ((stackDiffers(greenStack) && layer.slotIndex() == greenStackSlots(preset)[0])
+                    || (stackDiffers(localeStack) && layer.slotIndex() == localeStackSlots(preset)[0]))) {
+                /* Registre redessiné en plus grand/petit (voir la plaque générique ci-dessus) : son calque teinté d'origine est ignoré. */
                 continue;
             }
             MotorwaySignLineData data = safeLine(values, layer.slotIndex(), layerSlot);
@@ -1237,10 +1324,12 @@ public class MotorwaySignBlockEntityRenderer
                  */
                 ExactBody colorBody = findBodyForSlot(preset, artwork, layer.slotIndex());
                 if (colorBody != null) {
+                    float colorBodyBelowShift = belowD31DStacksShift(colorBody.y(), greenStack, localeStack);
                     float colorBodyLeft = sourceX(left, width, colorBody.x(), artwork.sourceWidth());
                     float colorBodyRight = sourceX(left, width, colorBody.x() + colorBody.width(), artwork.sourceWidth());
-                    float colorBodyTop = sourceY(top, height, colorBody.y(), artwork.sourceHeight());
-                    float colorBodyBottom = sourceY(top, height, colorBody.y() + colorBody.height(), artwork.sourceHeight());
+                    float colorBodyTop = sourceY(top, height, colorBody.y(), artwork.sourceHeight()) + colorBodyBelowShift;
+                    float colorBodyBottom = sourceY(top, height, colorBody.y() + colorBody.height(), artwork.sourceHeight())
+                            + colorBodyBelowShift;
                     submitRoundedFace(collector, poseStack, colorBodyLeft, colorBodyRight, colorBodyBottom, colorBodyTop,
                             FRONT_Z + 0.0035F, panelBorderColor(data.color()), light, -18,
                             textureBodyCornerRadius(preset));
@@ -1250,14 +1339,16 @@ public class MotorwaySignBlockEntityRenderer
                 drawEnlargedRouteCartoucheLayer(collector, poseStack, layer.texture(), left, right, bottom, top,
                         FRONT_Z + 0.004F + layerIndex * 0.0005F, layerColor, light, -17 + layerIndex);
             } else {
-                drawArtworkLayer(collector, poseStack, layer.texture(), left, right, bottom, top,
+                drawFullCanvasLayerWithD31DShift(collector, poseStack, layer.texture(), left, right, bottom, top,
+                        artwork.sourceHeight(), greenStack, localeStack,
                         FRONT_Z + 0.004F + layerIndex * 0.0005F, layerColor, light, -17 + layerIndex);
             }
         }
         overlayWhiteExactPanelBodies(
                 collector, poseStack, preset, values, artwork,
                 left, width, top, height, light,
-                shrinkMainStack ? mainStackInfo.body() : null
+                shrinkMainStack ? mainStackInfo.body() : null,
+                greenStack, localeStack
         );
         redrawExactRoadCartoucheLayers(
                 collector, poseStack, preset, values, artwork,
@@ -1308,7 +1399,8 @@ public class MotorwaySignBlockEntityRenderer
             }
         }
         if (artwork.graphics() != null) {
-            drawArtworkLayer(collector, poseStack, artwork.graphics(), left, right, bottom, top,
+            drawFullCanvasLayerWithD31DShift(collector, poseStack, artwork.graphics(), left, right, bottom, top,
+                    artwork.sourceHeight(), greenStack, localeStack,
                     FRONT_Z + 0.008F, 0xFFFFFFFF, light, -15);
         }
         if (preset == MotorwaySignPreset.D44) {
@@ -1352,6 +1444,15 @@ public class MotorwaySignBlockEntityRenderer
                  */
                 y -= scale * font.lineHeight * 0.10F;
             }
+            if (preset == MotorwaySignPreset.D31E && slot.role() == MotorwaySignRole.ROUTE) {
+                /*
+                 * Signalé "D 1" encore trop haut malgré le même recalage que
+                 * D31b ci-dessus (0,10) : la cartouche du D31e a des
+                 * proportions différentes (plus haute), un supplément plus
+                 * marqué est nécessaire pour recentrer visuellement.
+                 */
+                y -= scale * font.lineHeight * 0.20F;
+            }
             if (preset == MotorwaySignPreset.D63C
                     && (placement.slotIndex() == 2 || placement.slotIndex() == 3)) {
                 float pixelWidth = trackedTextWidth(font, data.font(), data.text());
@@ -1375,20 +1476,42 @@ public class MotorwaySignBlockEntityRenderer
                         leftX, y, maximumWidth, data.font(), data.color().getTextArgb(), scale, light);
                 continue;
             }
-            if (preset == MotorwaySignPreset.D31D && slot.role() == MotorwaySignRole.DESTINATION) {
+            if (usesD31DStyleStacks(preset) && slot.role() == MotorwaySignRole.DESTINATION) {
+                if ((stackDiffers(greenStack) && slot.panelGroup() == 0)
+                        || (stackDiffers(localeStack) && slot.panelGroup() == 1)) {
+                    /* Registre redessiné en plus grand/petit : dessiné séparément, voir drawD31DStackText. */
+                    continue;
+                }
                 /*
-                 * Signalé centré alors que le vrai panneau aligne ANGERS et
-                 * les deux destinations locales à gauche, collées près du
-                 * bord comme sur les autres panneaux (ex. D31b ex.1/ex.2,
-                 * marge ~0,13 bloc). Bord gauche commun aux trois registres
-                 * (pas le bord propre à chaque placement, qui varie avec sa
-                 * largeur max et désalignerait les lignes entre elles).
+                 * Signalé centré alors que le vrai panneau aligne les
+                 * destinations à gauche, collées près du bord comme sur les
+                 * autres panneaux (ex. D31b ex.1/ex.2, marge ~0,13 bloc).
+                 * Bord gauche commun à tous les registres (pas le bord
+                 * propre à chaque placement, qui varie avec sa largeur max
+                 * et désalignerait les lignes entre elles). Vaut pour le
+                 * D31d ET le D31e (demande explicite : même alignement que
+                 * les autres panneaux, pas de traitement centré à part).
                  *
-                 * Premier essai (652, dérivé du centre/largeur du placement
-                 * le plus large) laissait trop de blanc à gauche par rapport
-                 * aux autres panneaux : resserré à 300.
+                 * Un registre à son nombre de villes "naturel" (non
+                 * redessiné séparément) suit quand même le décalage vers le
+                 * bas d'un AUTRE registre du même panneau qui, lui, serait
+                 * agrandi/réduit — sinon il resterait à sa position
+                 * d'origine pendant que le reste du panneau bouge.
                  */
-                float leftX = sourceX(left, width, 300.0F, artwork.sourceWidth());
+                if (preset == MotorwaySignPreset.D31E) {
+                    /*
+                     * Signalé "SONJA" trop haut dans son registre à 1 seule
+                     * ville (nombre "naturel", dessin d'origine non
+                     * redessiné) : même recalage optique que D44/D31b plus
+                     * haut (texte tout en majuscules, sans descendante).
+                     * Pas appliqué au D31d : ses propres placements ont déjà
+                     * été recalés empiriquement (retours précédents "trop
+                     * haut") et absorbent donc déjà ce biais.
+                     */
+                    y -= scale * font.lineHeight * 0.10F;
+                }
+                y += belowD31DStacksShift(placement.y(), greenStack, localeStack);
+                float leftX = d31dStackLeftX(left, width, artwork);
                 drawLeftAlignedText(collector, poseStack, font, data.text(),
                         leftX, y, maximumWidth, data.font(), data.color().getTextArgb(), scale, light);
                 continue;
@@ -1413,6 +1536,14 @@ public class MotorwaySignBlockEntityRenderer
                     textureBodyCornerRadius(preset)
             );
         }
+        if (stackDiffers(greenStack)) {
+            drawD31DStackText(collector, poseStack, font, preset, values, style, artwork,
+                    left, width, top, height, greenStack, light);
+        }
+        if (stackDiffers(localeStack)) {
+            drawD31DStackText(collector, poseStack, font, preset, values, style, artwork,
+                    left, width, top, height, localeStack, light, greenStack);
+        }
     }
 
     /**
@@ -1434,28 +1565,372 @@ public class MotorwaySignBlockEntityRenderer
             float top,
             float height,
             int light,
-            ExactBody excludedBody
+            ExactBody excludedBody,
+            D31DStackInfo greenStack,
+            D31DStackInfo localeStack
     ) {
         int standaloneRoadBodies = standaloneRoadCartoucheCount(preset, artwork);
         for (int bodyIndex = standaloneRoadBodies; bodyIndex < artwork.bodies().length; bodyIndex++) {
             ExactBody body = artwork.bodies()[bodyIndex];
-            if (body == excludedBody) {
-                /* Registre principal redessiné en plus petit plus bas (voir drawNormalizedMainDestinationStack). */
+            if (body == excludedBody
+                    || (stackDiffers(greenStack) && body == greenStack.body())
+                    || (stackDiffers(localeStack) && body == localeStack.body())) {
+                /* Registre principal redessiné en plus petit/grand plus bas (voir drawNormalizedMainDestinationStack / les plaques du D31d). */
                 continue;
             }
             MotorwaySignColor color = exactBodyColor(preset, values, artwork, body);
             if (color != MotorwaySignColor.WHITE) {
                 continue;
             }
+            float belowShift = belowD31DStacksShift(body.y(), greenStack, localeStack);
             float bodyLeft = sourceX(left, width, body.x(), artwork.sourceWidth());
             float bodyRight = sourceX(left, width, body.x() + body.width(), artwork.sourceWidth());
-            float bodyTop = sourceY(top, height, body.y(), artwork.sourceHeight());
-            float bodyBottom = sourceY(top, height, body.y() + body.height(), artwork.sourceHeight());
+            float bodyTop = sourceY(top, height, body.y(), artwork.sourceHeight()) + belowShift;
+            float bodyBottom = sourceY(top, height, body.y() + body.height(), artwork.sourceHeight()) + belowShift;
             drawPlate(
                     collector, poseStack,
                     bodyLeft, bodyRight, bodyBottom, bodyTop,
                     MotorwaySignColor.WHITE, light
             );
+        }
+    }
+
+    /** Slots du registre vert extensible du D31d (1 = ville d'origine, 2/3/4 = villes optionnelles). */
+    private static final int[] D31D_GREEN_STACK_SLOTS = {1, 2, 3, 4};
+    /** Slots du registre "destination locale" extensible du D31d (5/6 = villes d'origine, 7 = ville optionnelle). */
+    private static final int[] D31D_LOCALE_STACK_SLOTS = {5, 6, 7};
+    /** Slots du registre vert extensible du D31e (1 = ville d'origine, 2/3/4 = villes optionnelles). */
+    private static final int[] D31E_GREEN_STACK_SLOTS = {1, 2, 3, 4};
+    /** Slots du registre "destination locale" extensible du D31e (5 = ville d'origine, 6/7/8 = villes optionnelles). */
+    private static final int[] D31E_LOCALE_STACK_SLOTS = {5, 6, 7, 8};
+
+    /**
+     * Signalé : même mécanisme d'agrandissement/réduction que le D31d pour
+     * le D31e (registres vert et "destination locale"), dont seul le
+     * nombre de villes "naturel" (baseline) du second registre diffère (1
+     * pour le D31e, contre 2 pour le D31d, qui a un dessin d'origine à 2
+     * villes locales) — d'où ces petits accesseurs par préréglage plutôt
+     * que de dupliquer tout le mécanisme pour le D31e.
+     */
+    private static boolean usesD31DStyleStacks(MotorwaySignPreset preset) {
+        return preset == MotorwaySignPreset.D31D || preset == MotorwaySignPreset.D31E;
+    }
+
+    private static int[] greenStackSlots(MotorwaySignPreset preset) {
+        return preset == MotorwaySignPreset.D31E ? D31E_GREEN_STACK_SLOTS : D31D_GREEN_STACK_SLOTS;
+    }
+
+    private static int[] localeStackSlots(MotorwaySignPreset preset) {
+        return preset == MotorwaySignPreset.D31E ? D31E_LOCALE_STACK_SLOTS : D31D_LOCALE_STACK_SLOTS;
+    }
+
+    private static int localeStackBaseline(MotorwaySignPreset preset) {
+        return preset == MotorwaySignPreset.D31E ? 1 : 2;
+    }
+
+    /**
+     * Signalé : sur le D31e, le registre vert mesuré sur le SVG (dessin
+     * d'origine) est nettement plus haut que nécessaire pour une seule
+     * ville — sa police y est plus grosse que celle du registre local, d'où
+     * une boîte proportionnellement plus grande même à 1 ligne. Contraire à
+     * la demande ("réduire la boîte pour 1 ville, quitte à diverger de la
+     * mesure SVG"). En fixant sa baseline à 0 (jamais atteignable, puisque
+     * countFilledLeadingLines retombe au minimum à 1 dès qu'une ville est
+     * tapée), ce registre "diffère" toujours dès qu'il contient du texte et
+     * utilise systématiquement la plaque générique compacte — jamais le
+     * dessin d'origine surdimensionné. Le D31d n'a pas ce problème (sa
+     * boîte verte est déjà correctement proportionnée à 1 ville) : baseline
+     * 1 inchangée pour lui.
+     */
+    private static int greenStackBaseline(MotorwaySignPreset preset) {
+        return preset == MotorwaySignPreset.D31E ? 0 : 1;
+    }
+
+    /**
+     * Marge gauche du texte empilé (villes 2 et suivantes, ou toute ville
+     * d'un registre agrandi/réduit) : le D31d a sa propre constante mesurée
+     * sur son SVG (voir plus haut, 300 en unités source) ; le D31e n'a pas
+     * cette tare, donc on reprend la marge générique du mod (déjà utilisée
+     * par tous les registres "extra" et le registre principal de D31b —
+     * exemple 2) plutôt qu'un nombre inventé sans mesure de référence.
+     */
+    private static float d31dStackLeftX(float left, float width, ExactMappedArtwork artwork) {
+        /*
+         * Signalé : pas assez collé à gauche par rapport aux autres
+         * panneaux avec la marge générique (addedLeftMargin, ~0,32 bloc,
+         * pensée pour les registres "extra" plus étroits). Les deux corps
+         * SVG du D31d et du D31e démarrent tous les deux à x proche de 0
+         * (pas de recul propre au corps) avec une largeur totale du même
+         * ordre de grandeur (~12500-13400 unités source) : la même marge en
+         * unités source (300, mesurée sur le D31d) donne donc une marge
+         * relative très proche sur le D31e — pas besoin d'une constante
+         * séparée mesurée sur son propre SVG.
+         */
+        return sourceX(left, width, 300.0F, artwork.sourceWidth());
+    }
+
+    /**
+     * Un registre extensible du D31d (vert ou "destination locale"), avec
+     * son nombre de villes réellement rempli et l'écart de hauteur monde
+     * (positif si agrandi, négatif si réduit) par rapport à son nombre de
+     * villes "naturel" (baseline : 1 pour le vert, 2 pour "destination
+     * locale") — celui du dessin d'origine, calé au pixel près.
+     */
+    private record D31DStackInfo(ExactBody body, int count, int baseline, float shift, float bottomSourceY, int[] slots) {
+    }
+
+    private static boolean stackDiffers(D31DStackInfo stack) {
+        return stack != null && stack.count() != stack.baseline();
+    }
+
+    /**
+     * Calcule le nombre de villes réellement renseignées pour un registre
+     * extensible du D31d (en s'arrêtant à la première ligne vide, une ligne
+     * laissée vide ne "libère" pas une place plus loin dans la liste), et
+     * l'écart de hauteur qui en résulte. Si AUCUNE ville n'est renseignée
+     * (registre pas encore touché par l'utilisateur), on retombe sur le
+     * nombre "naturel" du dessin d'origine plutôt que sur 0, pour ne rien
+     * changer avant que l'utilisateur n'ait effectivement tapé quelque
+     * chose dans ce registre.
+     */
+    private static D31DStackInfo computeD31DStackInfo(
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            MotorwaySignStyleProfile style,
+            ExactMappedArtwork artwork,
+            int bodyIndex,
+            int[] slots,
+            int baseline,
+            float top,
+            float height
+    ) {
+        if (!usesD31DStyleStacks(preset)) {
+            return null;
+        }
+        ExactBody body = artwork.bodies()[bodyIndex];
+        int count = 0;
+        for (int slotIndex : slots) {
+            MotorwaySignLineData data = safeLine(values, slotIndex, preset.getSlot(slotIndex));
+            if (data.text() == null || data.text().isBlank()) {
+                break;
+            }
+            count++;
+        }
+        if (count == 0) {
+            count = baseline;
+        }
+        float shift = 0.0F;
+        if (count != baseline) {
+            float naturalTop = sourceY(top, height, body.y(), artwork.sourceHeight());
+            float naturalBottom = sourceY(top, height, body.y() + body.height(), artwork.sourceHeight());
+            float customHeight = style.addedPanelHeight(count, MotorwaySignGraphic.NONE);
+            shift = customHeight - (naturalTop - naturalBottom);
+        }
+        return new D31DStackInfo(body, count, baseline, shift, body.y() + body.height(), slots);
+    }
+
+    /**
+     * Décalage monde cumulé (vers le bas si négatif) à appliquer à tout ce
+     * qui, dans le dessin d'origine, se trouve au niveau ou en dessous du
+     * bas d'un registre extensible du D31d agrandi/réduit — additionné sur
+     * les deux registres (vert, puis "destination locale") qui précèdent
+     * la position donnée. Nul dès qu'aucun registre concerné n'est en jeu
+     * (autre préréglage, ou nombre de villes "naturel" partout).
+     */
+    private static float belowD31DStacksShift(float sourceYValue, D31DStackInfo... stacks) {
+        float shift = 0.0F;
+        for (D31DStackInfo stack : stacks) {
+            if (stackDiffers(stack) && sourceYValue >= stack.bottomSourceY() - 0.5F) {
+                shift -= stack.shift();
+            }
+        }
+        return shift;
+    }
+
+    private static ExactTextPlacement findPlacementForSlot(ExactMappedArtwork artwork, int slotIndex) {
+        for (ExactTextPlacement placement : artwork.texts()) {
+            if (placement.slotIndex() == slotIndex) {
+                return placement;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Comme drawArtworkLayer, mais scinde le calque en segments quand un ou
+     * deux registres extensibles du D31d sont agrandis/réduits : chaque
+     * segment reste à sa place ou suit le décalage cumulé des registres qui
+     * le précèdent, et le segment couvrant un registre remplacé par sa
+     * propre plaque générique est purement omis — sans quoi un calque
+     * "pleine toile" (cadre, graphics, calque teinté "destination
+     * locale"...) resterait figé à sa position d'origine, ou continuerait
+     * d'afficher un registre qui n'existe plus sous cette forme.
+     */
+    private static void drawFullCanvasLayerWithD31DShift(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            Identifier texture,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float sourceHeight,
+            D31DStackInfo greenStack,
+            D31DStackInfo localeStack,
+            float z,
+            int color,
+            int light,
+            int order
+    ) {
+        boolean greenDiffers = stackDiffers(greenStack);
+        boolean localeDiffers = stackDiffers(localeStack);
+        if (!greenDiffers && !localeDiffers) {
+            drawArtworkLayer(collector, poseStack, texture, left, right, bottom, top, z, color, light, order);
+            return;
+        }
+        float cursorV = 0.0F;
+        float cursorShift = 0.0F;
+        if (greenDiffers) {
+            float greenTopV = greenStack.body().y() / sourceHeight;
+            drawD31DCanvasSegment(collector, poseStack, texture, left, right, bottom, top,
+                    cursorV, greenTopV, cursorShift, z, color, light, order);
+            cursorV = greenStack.bottomSourceY() / sourceHeight;
+            cursorShift -= greenStack.shift();
+        }
+        if (localeDiffers) {
+            float localeTopV = localeStack.body().y() / sourceHeight;
+            drawD31DCanvasSegment(collector, poseStack, texture, left, right, bottom, top,
+                    cursorV, localeTopV, cursorShift, z, color, light, order);
+            /* Rien après : "destination locale" est le dernier registre du dessin d'origine. */
+        } else {
+            drawD31DCanvasSegment(collector, poseStack, texture, left, right, bottom, top,
+                    cursorV, 1.0F, cursorShift, z, color, light, order);
+        }
+    }
+
+    private static void drawD31DCanvasSegment(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            Identifier texture,
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float vTop,
+            float vBottom,
+            float shift,
+            float z,
+            int color,
+            int light,
+            int order
+    ) {
+        if (vBottom <= vTop) {
+            return;
+        }
+        float worldTop = top - (top - bottom) * vTop + shift;
+        float worldBottom = top - (top - bottom) * vBottom + shift;
+        drawArtworkLayerCroppedV(collector, poseStack, texture, left, right, worldBottom, worldTop,
+                vTop, vBottom, z, color, light, order);
+    }
+
+    /**
+     * Dessine la plaque générique (corps 3D + listel + fond) d'un registre
+     * extensible du D31d agrandi/réduit, à la place de son dessin exact
+     * d'origine — même rayon de coin que les autres registres du panneau,
+     * couleur de la première ville du registre (seule avec un sélecteur de
+     * couleur dans l'éditeur). aboveStacks : les registres au-dessus de
+     * celui-ci dont l'écart de hauteur doit décaler sa position (mais pas
+     * son propre écart, qui ne fait que changer sa hauteur).
+     */
+    private static void drawD31DStackPlate(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            MotorwaySignStyleProfile style,
+            ExactMappedArtwork artwork,
+            float left,
+            float width,
+            float top,
+            float height,
+            D31DStackInfo stack,
+            int light,
+            D31DStackInfo... aboveStacks
+    ) {
+        float aboveShift = belowD31DStacksShift(stack.body().y(), aboveStacks);
+        float plateTop = sourceY(top, height, stack.body().y(), artwork.sourceHeight()) + aboveShift;
+        float plateBottom = plateTop - style.addedPanelHeight(stack.count(), MotorwaySignGraphic.NONE);
+        float plateLeft = sourceX(left, width, stack.body().x(), artwork.sourceWidth());
+        float plateRight = sourceX(left, width, stack.body().x() + stack.body().width(), artwork.sourceWidth());
+        drawPlate(collector, poseStack, plateLeft, plateRight, plateBottom, plateTop,
+                safeLine(values, stack.slots()[0], preset.getSlot(stack.slots()[0])).color(),
+                light, textureBodyCornerRadius(preset));
+    }
+
+    /**
+     * Dessine les 1 à 3 villes d'un registre extensible du D31d agrandi ou
+     * réduit, avec le même style (police, marge gauche, couleur/listel) que
+     * le dessin d'origine — même échelle de texte et même pas de ligne que
+     * les autres registres à plusieurs lignes du mod (registres "extra",
+     * registre principal de D31b — exemple 2), pour un espacement cohérent
+     * au lieu de la taille "pleine ligne unique" du dessin d'origine, bien
+     * trop grande une fois plusieurs lignes empilées.
+     */
+    private static void drawD31DStackText(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            Font font,
+            MotorwaySignPreset preset,
+            MotorwaySignLineData[] values,
+            MotorwaySignStyleProfile style,
+            ExactMappedArtwork artwork,
+            float left,
+            float width,
+            float top,
+            float height,
+            D31DStackInfo stack,
+            int light,
+            D31DStackInfo... aboveStacks
+    ) {
+        ExactTextPlacement basePlacement = findPlacementForSlot(artwork, stack.slots()[0]);
+        if (basePlacement == null) {
+            return;
+        }
+        float aboveShift = belowD31DStacksShift(stack.body().y(), aboveStacks);
+        float plateTop = sourceY(top, height, stack.body().y(), artwork.sourceHeight()) + aboveShift;
+        float plateBottom = plateTop - style.addedPanelHeight(stack.count(), MotorwaySignGraphic.NONE);
+        float maximumWidth = width * basePlacement.maximumWidth() / artwork.sourceWidth();
+        float lineStep = style.addedLineStep();
+        float scale = style.addedTextScale();
+        float centerY = (plateTop + plateBottom) / 2.0F;
+        /*
+         * Signalé encore un peu trop haut dans sa plaque malgré l'offset
+         * optique standard (style.addedOpticalYOffset ci-dessous, partagé
+         * avec le reste du panneau) : léger supplément propre à ce bloc de
+         * texte empilé, pour redescendre encore un peu l'ensemble.
+         */
+        float extraDownwardNudge = -0.05F;
+        float y = centerY + (stack.count() - 1) * lineStep / 2.0F
+                + style.addedOpticalYOffset() + extraDownwardNudge;
+        /*
+         * Toutes les villes de ce registre partagent la même plaque, donc la
+         * même couleur de fond : la couleur choisie pour la première ville
+         * (seule avec un sélecteur de couleur dans l'éditeur) fait foi pour
+         * le texte de toutes.
+         */
+        int textArgb = safeLine(values, stack.slots()[0], preset.getSlot(stack.slots()[0])).color().getTextArgb();
+        /*
+         * Signalé : le D31e doit s'aligner à gauche comme les autres
+         * panneaux (D31d compris), pas rester centré — même marge générique
+         * que les registres "extra" (voir d31dStackLeftX).
+         */
+        float leftX = d31dStackLeftX(left, width, artwork);
+        for (int index = 0; index < stack.count(); index++) {
+            int slotIndex = stack.slots()[index];
+            MotorwaySignLineData data = safeLine(values, slotIndex, preset.getSlot(slotIndex));
+            float lineY = y - index * lineStep;
+            drawLeftAlignedText(collector, poseStack, font, data.text(),
+                    leftX, lineY, maximumWidth, data.font(), textArgb, scale, light);
         }
     }
 
@@ -2007,6 +2482,19 @@ public class MotorwaySignBlockEntityRenderer
             for (int configuredIndex = 0; configuredIndex < configuredPanels.length; configuredIndex++) {
                 MotorwaySignPanelData panel = configuredPanels[configuredIndex];
                 if (panel != null && panel.enabled()) {
+                    /*
+                     * Signalé : un registre "extra" activé (case cochée)
+                     * mais dont on n'a encore rien tapé (ni texte, ni
+                     * cartouche) ressortait quand même comme une pancarte
+                     * vide — un rectangle blanc sans rien dedans. Aucun
+                     * préréglage n'a de raison d'afficher un registre
+                     * réellement vide : on l'ignore ici, quel que soit
+                     * includeCartoucheOnlyPanel (qui ne tranche que le cas
+                     * "cartouche seule, sans texte", pas "rien du tout").
+                     */
+                    if (!panel.hasPanelContent() && !panel.cartoucheType().isVisible()) {
+                        continue;
+                    }
                     if (!includeCartoucheOnlyPanel
                             && panel.cartoucheType().isVisible()
                             && !panel.hasPanelContent()) {

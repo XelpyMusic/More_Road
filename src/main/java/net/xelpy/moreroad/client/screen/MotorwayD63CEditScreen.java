@@ -986,14 +986,14 @@ public final class MotorwayD63CEditScreen extends Screen {
         this.panels[1] = withCartouche(
                 this.panels[1], this.secondCartoucheType, this.secondCartoucheField.getValue()
         );
+        MotorwaySignServiceIcon[] noServices = new MotorwaySignServiceIcon[MotorwaySignServiceIcon.MAX_SLOTS];
+        java.util.Arrays.fill(noServices, MotorwaySignServiceIcon.NONE);
         ClientPacketDistributor.sendToServer(new UpdateMotorwaySignPayload(
                 this.blockPos, MotorwaySignPreset.D63C.getSerializedName(),
-                this.baseLines[0], this.baseLines[1], this.baseLines[2],
-                this.baseLines[3], this.baseLines[4], this.baseLines[5],
+                this.baseLines,
                 false,
-                this.panels[0], this.panels[1], this.panels[2], this.panels[3],
-                MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE,
-                MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE, MotorwaySignServiceIcon.NONE
+                this.panels,
+                noServices
         ));
         this.onClose();
     }

@@ -44,6 +44,16 @@ public record MotorwaySignGeometry(
         switch (preset) {
             case D31B_EX1 -> { width = 4.20F; height = scaled(width, 4993.0F, 7832.0F); }
             case D31B_EX2 -> { width = 6.00F; height = scaled(width, 11745.0F, 15397.0F); }
+            /*
+             * Signalé : agrandir cette hauteur avec les registres extensibles
+             * (comme pour la boîte de rendu/collision, tenté puis retiré)
+             * casse le calcul de la cartouche "premier registre" plus loin
+             * (MotorwaySignBlockEntityRenderer.submit), qui suppose que ce
+             * haut de panneau reste fixe et que seul le bas s'étire vers le
+             * poteau — l'agrandir ici faisait flotter la cartouche bien trop
+             * haut. On garde donc la hauteur naturelle (1 ville / 2 villes),
+             * cohérente avec le sommet réellement fixe du dessin.
+             */
             case D31D -> { width = 5.50F; height = scaled(width, 11429.0F, 12505.0F); }
             case D31E -> { width = 5.80F; height = scaled(width, 11036.0F, 13403.0F); }
             case D32A, D32A_DC -> { width = 5.20F; height = scaled(width, 3922.0F, 11621.0F); }

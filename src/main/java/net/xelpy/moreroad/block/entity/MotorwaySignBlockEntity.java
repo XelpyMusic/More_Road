@@ -22,7 +22,7 @@ import net.xelpy.moreroad.block.custom.RoadTextFont;
 /** Données persistantes du panneau autoroutier paramétrique. */
 public class MotorwaySignBlockEntity extends BlockEntity {
 
-    public static final int MAX_SLOTS = 6;
+    public static final int MAX_SLOTS = 9;
     public static final int MAX_CUSTOM_PANELS = 4;
 
     private MotorwaySignPreset preset = MotorwaySignPreset.FREEFORM;

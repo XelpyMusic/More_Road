@@ -23,15 +23,40 @@ public enum MotorwaySignPreset {
             line("Destination 1", "ROUEN", MotorwaySignColor.BLUE, 0),
             line("Destination 2", "ST QUENTIN EN YNES", MotorwaySignColor.BLUE, 0),
             line("Destination 3", "VERSAILLES", MotorwaySignColor.BLUE, 0)),
+    /*
+     * Signalé : le registre vert (destination principale) doit pouvoir
+     * accueillir jusqu'à 4 villes (comme sur les vrais panneaux, ex.
+     * PARIS/-PTE DE LA VILLETTE/LA COURNEUVE/DRANCY), et le registre
+     * "destination locale" jusqu'à 3 (il en compte 2 par défaut, dessin
+     * d'origine). Le panneau s'agrandit ou se réduit d'autant. Chaque ville
+     * optionnelle est placée juste après la première du même registre, pour
+     * apparaître au bon endroit dans l'éditeur.
+     */
     D31D("d31d", "D31d", MotorwaySignGraphic.EXIT, MotorwaySignSupport.POLE,
             route("Numéro de sortie", "19", MotorwaySignColor.WHITE),
             line("Destination verte", "CLERMONT-FD", MotorwaySignColor.GREEN, 0),
+            line("Destination verte 2", "", MotorwaySignColor.GREEN, 0),
+            line("Destination verte 3", "", MotorwaySignColor.GREEN, 0),
+            line("Destination verte 4", "", MotorwaySignColor.GREEN, 0),
             line("Destination locale 1", "CHAMALIÈRES", MotorwaySignColor.WHITE, 1),
-            line("Destination locale 2", "ROYAT", MotorwaySignColor.WHITE, 1)),
+            line("Destination locale 2", "ROYAT", MotorwaySignColor.WHITE, 1),
+            line("Destination locale 3", "", MotorwaySignColor.WHITE, 1)),
+    /*
+     * Signalé : comme le D31d, les deux registres (vert et "destination
+     * locale") doivent tous les deux pouvoir accueillir de 1 à 4 villes —
+     * y compris le premier, contrairement au D31d où il compte 1 ville de
+     * base. Le panneau s'agrandit ou se réduit d'autant à chacun.
+     */
     D31E("d31e", "D31e", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
             route("Numéro de route", "N 144", MotorwaySignColor.RED),
             line("Destination verte", "MONTLUÇON", MotorwaySignColor.GREEN, 0),
-            line("Destination locale", "ST ÉLOI LES MINES", MotorwaySignColor.WHITE, 1)),
+            line("Destination verte 2", "", MotorwaySignColor.GREEN, 0),
+            line("Destination verte 3", "", MotorwaySignColor.GREEN, 0),
+            line("Destination verte 4", "", MotorwaySignColor.GREEN, 0),
+            line("Destination locale", "ST ÉLOI LES MINES", MotorwaySignColor.WHITE, 1),
+            line("Destination locale 2", "", MotorwaySignColor.WHITE, 1),
+            line("Destination locale 3", "", MotorwaySignColor.WHITE, 1),
+            line("Destination locale 4", "", MotorwaySignColor.WHITE, 1)),
     D32A("d32a", "D32a", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
             line("Ligne 1", "AIRE DE", MotorwaySignColor.WHITE, 0),
             line("Ligne 2", "LIMOURS-JANVRY", MotorwaySignColor.WHITE, 0)),

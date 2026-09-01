@@ -481,7 +481,7 @@ public final class MotorwaySignArtworkCatalog {
             12505.0F, 11429.0F, 5.50F, artwork("d31d_frame.png"), artwork("d31d_graphics.png"),
             new ExactTintedLayer[]{
                     fixedLayer("d31d_panel_middle.png", MotorwaySignColor.WHITE),
-                    layer("d31d_panel_top.png", 1), layer("d31d_panel_bottom.png", 2)
+                    layer("d31d_panel_top.png", 1), layer("d31d_panel_bottom.png", 5)
             },
             new ExactTextPlacement[]{
                     /*
@@ -505,8 +505,8 @@ public final class MotorwaySignArtworkCatalog {
                      */
                     text(0, 3088.0F, 2050.0F, 4200.0F, 1100.0F),
                     text(1, 6252.0F, 5916.0F, 11200.0F, 1360.0F),
-                    text(2, 6252.0F, 9000.0F, 11200.0F, 1100.0F),
-                    text(3, 6252.0F, 10450.0F, 8000.0F, 1100.0F)
+                    text(5, 6252.0F, 9000.0F, 11200.0F, 1100.0F),
+                    text(6, 6252.0F, 10450.0F, 8000.0F, 1100.0F)
             },
             new ExactBody[]{
                     body(0.0F, 0.0F, 12505.0F, 3930.0F),
@@ -519,12 +519,12 @@ public final class MotorwaySignArtworkCatalog {
             13403.0F, 11036.0F, 5.80F, artwork("d31e_frame.png"), artwork("d31e_graphics.png"),
             new ExactTintedLayer[]{
                     fixedLayer("d31e_panel_top.png", MotorwaySignColor.WHITE),
-                    layer("d31e_route.png", 0), layer("d31e_panel_middle.png", 1), layer("d31e_panel_bottom.png", 2)
+                    layer("d31e_route.png", 0), layer("d31e_panel_middle.png", 1), layer("d31e_panel_bottom.png", 5)
             },
             new ExactTextPlacement[]{
                     text(0, 2684.5F, 1469.0F, 3700.0F, 1062.0F),
                     text(1, 6701.5F, 6300.0F, 12100.0F, 1484.0F),
-                    text(2, 6701.5F, 9800.0F, 12100.0F, 1100.0F)
+                    text(5, 6701.5F, 9800.0F, 12100.0F, 1100.0F)
             },
             new ExactBody[]{
                     body(0.0F, 0.0F, 13403.0F, 4005.0F),

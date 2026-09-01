@@ -82,13 +82,31 @@ public record MotorwaySignStyleProfile(
                 opticalYOffset,
                 safePreset != MotorwaySignPreset.D31B_EX1
                         && safePreset != MotorwaySignPreset.D31B_EX2,
+                /*
+                 * Signalé : le D31e porte déjà sa propre cartouche de
+                 * numéro de route (registre du haut, dessin d'origine),
+                 * comme D31b (ex.1/ex.2) exclus ci-dessus pour la même
+                 * raison — inutile d'en exposer une deuxième sur "Panneau
+                 * principal".
+                 */
                 safePreset != MotorwaySignPreset.D31B_EX1
-                        && safePreset != MotorwaySignPreset.D31B_EX2,
+                        && safePreset != MotorwaySignPreset.D31B_EX2
+                        && safePreset != MotorwaySignPreset.D31E,
                 safePreset == MotorwaySignPreset.D61B,
                 safePreset == MotorwaySignPreset.D31B_EX2 || safePreset == MotorwaySignPreset.D31B_EX1,
                 safePreset != MotorwaySignPreset.D44,
+                /*
+                 * Signalé : "Symbole" (choix d'une flèche/pictogramme) par
+                 * registre ne sert à rien sur le D31d ni le D31e — leur
+                 * seule flèche est fixe et déjà affichée sur le panneau
+                 * principal, comme sur D31b (ex.1/ex.2) déjà exclus
+                 * ci-dessus.
+                 */
                 safePreset != MotorwaySignPreset.D31B_EX1
-                        && safePreset != MotorwaySignPreset.D31B_EX2,
+                        && safePreset != MotorwaySignPreset.D31B_EX2
+                        && safePreset != MotorwaySignPreset.D31D
+                        && safePreset != MotorwaySignPreset.D31E
+                        && safePreset != MotorwaySignPreset.D31D,
                 safePreset != MotorwaySignPreset.D44
         );
     }
@@ -145,11 +163,18 @@ public record MotorwaySignStyleProfile(
          * glyphe. L'ex.1 (0.044) ne touchait jamais ce plafond, d'où l'écart
          * de rendu entre les deux malgré la même formule.
          */
-        if (preset == MotorwaySignPreset.D31B_EX2) {
+        if (preset == MotorwaySignPreset.D31B_EX2 || preset == MotorwaySignPreset.D31D
+                || preset == MotorwaySignPreset.D31E) {
             /*
              * Encore un peu juste même après avoir suivi la proportion du
              * texte (ci-dessus) : léger supplément au-delà du strict
              * proportionnel pour aérer un peu plus les 3 lignes.
+             *
+             * Signalé sur le D31d (registres vert et "destination locale"
+             * agrandis) : même symptôme, même correctif, pour que
+             * l'espacement reste identique sur tous les panneaux à
+             * plusieurs lignes empilées du mod. D31e : même demande
+             * explicite (mêmes espacements que les autres panneaux).
              */
             return proportional * 1.15F;
         }

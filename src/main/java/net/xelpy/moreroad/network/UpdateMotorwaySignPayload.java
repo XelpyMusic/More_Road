@@ -17,26 +17,24 @@ import net.xelpy.moreroad.block.custom.MotorwaySignServiceIcon;
 import net.xelpy.moreroad.block.custom.RoadTextFont;
 import net.xelpy.moreroad.block.entity.MotorwaySignBlockEntity;
 
+/**
+ * Signalé : ce paquet portait un champ nommé par ligne (line0, line1...),
+ * en dur pour un nombre de champs fixe. Chaque ajout d'un nouveau champ au
+ * D31d/D31e a nécessité de garder à la main le decode() (nombre d'appels à
+ * decodeLine), le constructeur compact, l'accesseur line(int) ET tous les
+ * appelants de ce constructeur en phase avec MotorwaySignBlockEntity.
+ * MAX_SLOTS — un oubli côté decode() a déjà provoqué un plantage réseau
+ * (désynchronisation encode/decode). Tableau de taille MAX_SLOTS à la
+ * place : plus aucun de ces endroits à maintenir séparément la prochaine
+ * fois qu'un modèle gagne un champ.
+ */
 public record UpdateMotorwaySignPayload(
         BlockPos pos,
         String presetName,
-        MotorwaySignLineData line0,
-        MotorwaySignLineData line1,
-        MotorwaySignLineData line2,
-        MotorwaySignLineData line3,
-        MotorwaySignLineData line4,
-        MotorwaySignLineData line5,
+        MotorwaySignLineData[] lines,
         boolean customMode,
-        MotorwaySignPanelData panel0,
-        MotorwaySignPanelData panel1,
-        MotorwaySignPanelData panel2,
-        MotorwaySignPanelData panel3,
-        MotorwaySignServiceIcon service0,
-        MotorwaySignServiceIcon service1,
-        MotorwaySignServiceIcon service2,
-        MotorwaySignServiceIcon service3,
-        MotorwaySignServiceIcon service4,
-        MotorwaySignServiceIcon service5
+        MotorwaySignPanelData[] panels,
+        MotorwaySignServiceIcon[] services
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateMotorwaySignPayload> TYPE =
@@ -45,16 +43,22 @@ public record UpdateMotorwaySignPayload(
     public static final StreamCodec<ByteBuf, UpdateMotorwaySignPayload> STREAM_CODEC = new StreamCodec<>() {
         @Override
         public UpdateMotorwaySignPayload decode(ByteBuf buffer) {
-            return new UpdateMotorwaySignPayload(
-                    BlockPos.STREAM_CODEC.decode(buffer),
-                    ByteBufCodecs.STRING_UTF8.decode(buffer),
-                    decodeLine(buffer), decodeLine(buffer), decodeLine(buffer),
-                    decodeLine(buffer), decodeLine(buffer), decodeLine(buffer),
-                    ByteBufCodecs.BOOL.decode(buffer),
-                    decodePanel(buffer), decodePanel(buffer), decodePanel(buffer), decodePanel(buffer),
-                    decodeService(buffer), decodeService(buffer), decodeService(buffer),
-                    decodeService(buffer), decodeService(buffer), decodeService(buffer)
-            );
+            BlockPos pos = BlockPos.STREAM_CODEC.decode(buffer);
+            String presetName = ByteBufCodecs.STRING_UTF8.decode(buffer);
+            MotorwaySignLineData[] lines = new MotorwaySignLineData[MotorwaySignBlockEntity.MAX_SLOTS];
+            for (int i = 0; i < lines.length; i++) {
+                lines[i] = decodeLine(buffer);
+            }
+            boolean customMode = ByteBufCodecs.BOOL.decode(buffer);
+            MotorwaySignPanelData[] panels = new MotorwaySignPanelData[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
+            for (int i = 0; i < panels.length; i++) {
+                panels[i] = decodePanel(buffer);
+            }
+            MotorwaySignServiceIcon[] services = new MotorwaySignServiceIcon[MotorwaySignServiceIcon.MAX_SLOTS];
+            for (int i = 0; i < services.length; i++) {
+                services[i] = decodeService(buffer);
+            }
+            return new UpdateMotorwaySignPayload(pos, presetName, lines, customMode, panels, services);
         }
 
         @Override
@@ -76,56 +80,48 @@ public record UpdateMotorwaySignPayload(
 
     public UpdateMotorwaySignPayload {
         presetName = MotorwaySignPreset.fromSerializedName(presetName).getSerializedName();
-        line0 = safe(line0);
-        line1 = safe(line1);
-        line2 = safe(line2);
-        line3 = safe(line3);
-        line4 = safe(line4);
-        line5 = safe(line5);
-        panel0 = safePanel(panel0);
-        panel1 = safePanel(panel1);
-        panel2 = safePanel(panel2);
-        panel3 = safePanel(panel3);
-        service0 = safeService(service0);
-        service1 = safeService(service1);
-        service2 = safeService(service2);
-        service3 = safeService(service3);
-        service4 = safeService(service4);
-        service5 = safeService(service5);
+        lines = sanitizedLines(lines);
+        panels = sanitizedPanels(panels);
+        services = sanitizedServices(services);
+    }
+
+    private static MotorwaySignLineData[] sanitizedLines(MotorwaySignLineData[] source) {
+        MotorwaySignLineData[] result = new MotorwaySignLineData[MotorwaySignBlockEntity.MAX_SLOTS];
+        for (int i = 0; i < result.length; i++) {
+            MotorwaySignLineData value = source != null && i < source.length ? source[i] : null;
+            result[i] = safe(value);
+        }
+        return result;
+    }
+
+    private static MotorwaySignPanelData[] sanitizedPanels(MotorwaySignPanelData[] source) {
+        MotorwaySignPanelData[] result = new MotorwaySignPanelData[MotorwaySignBlockEntity.MAX_CUSTOM_PANELS];
+        for (int i = 0; i < result.length; i++) {
+            MotorwaySignPanelData value = source != null && i < source.length ? source[i] : null;
+            result[i] = safePanel(value);
+        }
+        return result;
+    }
+
+    private static MotorwaySignServiceIcon[] sanitizedServices(MotorwaySignServiceIcon[] source) {
+        MotorwaySignServiceIcon[] result = new MotorwaySignServiceIcon[MotorwaySignServiceIcon.MAX_SLOTS];
+        for (int i = 0; i < result.length; i++) {
+            MotorwaySignServiceIcon value = source != null && i < source.length ? source[i] : null;
+            result[i] = safeService(value);
+        }
+        return result;
     }
 
     public MotorwaySignPanelData panel(int index) {
-        return switch (index) {
-            case 0 -> panel0;
-            case 1 -> panel1;
-            case 2 -> panel2;
-            case 3 -> panel3;
-            default -> MotorwaySignPanelData.disabled();
-        };
+        return index >= 0 && index < this.panels.length ? this.panels[index] : MotorwaySignPanelData.disabled();
     }
 
     public MotorwaySignServiceIcon service(int index) {
-        return switch (index) {
-            case 0 -> service0;
-            case 1 -> service1;
-            case 2 -> service2;
-            case 3 -> service3;
-            case 4 -> service4;
-            case 5 -> service5;
-            default -> MotorwaySignServiceIcon.NONE;
-        };
+        return index >= 0 && index < this.services.length ? this.services[index] : MotorwaySignServiceIcon.NONE;
     }
 
     public MotorwaySignLineData line(int index) {
-        return switch (index) {
-            case 0 -> line0;
-            case 1 -> line1;
-            case 2 -> line2;
-            case 3 -> line3;
-            case 4 -> line4;
-            case 5 -> line5;
-            default -> MotorwaySignLineData.empty();
-        };
+        return index >= 0 && index < this.lines.length ? this.lines[index] : MotorwaySignLineData.empty();
     }
 
     private static MotorwaySignLineData safe(MotorwaySignLineData line) {
