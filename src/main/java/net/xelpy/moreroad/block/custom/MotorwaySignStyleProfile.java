@@ -91,10 +91,12 @@ public record MotorwaySignStyleProfile(
                  */
                 safePreset != MotorwaySignPreset.D31B_EX1
                         && safePreset != MotorwaySignPreset.D31B_EX2
-                        && safePreset != MotorwaySignPreset.D31E,
+                        && safePreset != MotorwaySignPreset.D31E
+                        && safePreset != MotorwaySignPreset.D32A,
                 safePreset == MotorwaySignPreset.D61B,
                 safePreset == MotorwaySignPreset.D31B_EX2 || safePreset == MotorwaySignPreset.D31B_EX1,
-                safePreset != MotorwaySignPreset.D44,
+                safePreset != MotorwaySignPreset.D44
+                        && safePreset != MotorwaySignPreset.D32A,
                 /*
                  * Signalé : "Symbole" (choix d'une flèche/pictogramme) par
                  * registre ne sert à rien sur le D31d ni le D31e — leur
@@ -106,7 +108,7 @@ public record MotorwaySignStyleProfile(
                         && safePreset != MotorwaySignPreset.D31B_EX2
                         && safePreset != MotorwaySignPreset.D31D
                         && safePreset != MotorwaySignPreset.D31E
-                        && safePreset != MotorwaySignPreset.D31D,
+                        && safePreset != MotorwaySignPreset.D32A,
                 safePreset != MotorwaySignPreset.D44
         );
     }
@@ -124,8 +126,7 @@ public record MotorwaySignStyleProfile(
             case D31B_EX2 -> 0.063F;
             case D31D -> 0.054F;
             case D31E -> 0.062F;
-            case D32A, D32A_DC -> 0.048F;
-            case D32B -> 0.049F;
+            case D32A -> 0.048F;
             case D41A -> 0.054F;
             case D41B -> 0.058F;
             case D41C -> 0.056F;
@@ -163,18 +164,19 @@ public record MotorwaySignStyleProfile(
          * glyphe. L'ex.1 (0.044) ne touchait jamais ce plafond, d'où l'écart
          * de rendu entre les deux malgré la même formule.
          */
-        if (preset == MotorwaySignPreset.D31B_EX2 || preset == MotorwaySignPreset.D31D
-                || preset == MotorwaySignPreset.D31E) {
+        if (preset == MotorwaySignPreset.D31B_EX1 || preset == MotorwaySignPreset.D31B_EX2
+                || preset == MotorwaySignPreset.D31D || preset == MotorwaySignPreset.D31E) {
             /*
              * Encore un peu juste même après avoir suivi la proportion du
              * texte (ci-dessus) : léger supplément au-delà du strict
              * proportionnel pour aérer un peu plus les 3 lignes.
              *
-             * Signalé sur le D31d (registres vert et "destination locale"
-             * agrandis) : même symptôme, même correctif, pour que
-             * l'espacement reste identique sur tous les panneaux à
-             * plusieurs lignes empilées du mod. D31e : même demande
-             * explicite (mêmes espacements que les autres panneaux).
+             * Signalé sur le D31b ex.1 (registres ajoutés, notamment le
+             * panneau bleu à 3 villes) : même symptôme de lignes trop
+             * serrées. On lui applique donc le même supplément de 15 % que
+             * les autres panneaux multi-lignes afin d'harmoniser l'espacement.
+             * D31d/D31e conservent ce même correctif pour leurs registres
+             * empilés.
              */
             return proportional * 1.15F;
         }

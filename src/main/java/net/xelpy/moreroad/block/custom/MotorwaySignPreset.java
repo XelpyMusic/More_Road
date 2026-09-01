@@ -57,15 +57,15 @@ public enum MotorwaySignPreset {
             line("Destination locale 2", "", MotorwaySignColor.WHITE, 1),
             line("Destination locale 3", "", MotorwaySignColor.WHITE, 1),
             line("Destination locale 4", "", MotorwaySignColor.WHITE, 1)),
+    /*
+     * D32a : un seul modèle pour les deux variantes réglementaires de fond.
+     * La typographie est toujours L4 (italique), comme sur les panneaux
+     * d'aire réels ; la couleur du panneau est choisie dans l'éditeur
+     * (blanc ou bleu uniquement).
+     */
     D32A("d32a", "D32a", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
-            line("Ligne 1", "AIRE DE", MotorwaySignColor.WHITE, 0),
-            line("Ligne 2", "LIMOURS-JANVRY", MotorwaySignColor.WHITE, 0)),
-    D32A_DC("d32a_dc", "D32a — caractères L4", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
             italic("Ligne 1", "AIRE DE", MotorwaySignColor.WHITE, 0),
             italic("Ligne 2", "LIMOURS-JANVRY", MotorwaySignColor.WHITE, 0)),
-    D32B("d32b", "D32b", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
-            line("Ligne 1", "AIRE DE", MotorwaySignColor.BLUE, 0),
-            line("Ligne 2", "LIMOURS-JANVRY", MotorwaySignColor.BLUE, 0)),
 
     D41A("d41a", "D41a", MotorwaySignGraphic.EXIT, MotorwaySignSupport.POLE,
             route("Numéro de sortie", "4", MotorwaySignColor.WHITE),
@@ -388,6 +388,14 @@ public enum MotorwaySignPreset {
 
     public static MotorwaySignPreset fromSerializedName(String value) {
         if (value != null) {
+            /*
+             * Migration transparente des deux anciens doublons désormais
+             * fusionnés dans D32a : les mondes existants conservent leur
+             * texte/couleur mais utilisent le modèle unique.
+             */
+            if ("d32a_dc".equals(value) || "d32b".equals(value)) {
+                return D32A;
+            }
             for (MotorwaySignPreset preset : values()) {
                 if (preset.serializedName.equals(value)) {
                     return preset;

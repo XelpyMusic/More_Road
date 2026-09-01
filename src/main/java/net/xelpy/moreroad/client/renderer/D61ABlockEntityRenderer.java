@@ -1104,7 +1104,7 @@ public class D61ABlockEntityRenderer
         if (value == null || value.isBlank()) {
             return;
         }
-        boolean tracked = textFont == RoadTextFont.L1 || textFont == RoadTextFont.L2;
+        boolean tracked = RoadTextFont.usesRegulatoryLetterSpacing(textFont);
         if (!tracked || value.codePointCount(0, value.length()) <= 1) {
             submitAnchoredText(
                     value, anchorX, worldY, baseScale, maxWorldWidth, anchor,

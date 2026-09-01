@@ -603,7 +603,7 @@ public class D21ABlockEntityRenderer
             SubmitNodeCollector collector
     ) {
         float destinationMaxWidth;
-        boolean destinationTracked = (destinationFont == RoadTextFont.L1 || destinationFont == RoadTextFont.L2)
+        boolean destinationTracked = RoadTextFont.usesRegulatoryLetterSpacing(destinationFont)
                 && destinationSpacing;
 
         if (showAutorouteLogo) {
@@ -716,8 +716,8 @@ public class D21ABlockEntityRenderer
             PoseStack poseStack,
             SubmitNodeCollector collector
     ) {
-        boolean line1Tracked = (line1Font == RoadTextFont.L1 || line1Font == RoadTextFont.L2) && line1Spacing;
-        boolean line2Tracked = (line2Font == RoadTextFont.L1 || line2Font == RoadTextFont.L2) && line2Spacing;
+        boolean line1Tracked = RoadTextFont.usesRegulatoryLetterSpacing(line1Font) && line1Spacing;
+        boolean line2Tracked = RoadTextFont.usesRegulatoryLetterSpacing(line2Font) && line2Spacing;
 
         boolean hasDistance1 = !distance1.isBlank();
         boolean hasDistance2 = !distance2.isBlank();

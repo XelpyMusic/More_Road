@@ -56,8 +56,7 @@ public record MotorwaySignGeometry(
              */
             case D31D -> { width = 5.50F; height = scaled(width, 11429.0F, 12505.0F); }
             case D31E -> { width = 5.80F; height = scaled(width, 11036.0F, 13403.0F); }
-            case D32A, D32A_DC -> { width = 5.20F; height = scaled(width, 3922.0F, 11621.0F); }
-            case D32B -> { width = 5.20F; height = scaled(width, 4938.0F, 13504.0F); }
+            case D32A -> { width = 5.20F; height = scaled(width, 3922.0F, 11621.0F); }
             case D41A -> { width = 5.50F; height = scaled(width, 11270.0F, 12467.0F); }
             case D41B -> { width = 5.20F; height = scaled(width, 8413.0F, 11536.0F); }
             case D41C -> { width = 5.50F; height = scaled(width, 11401.0F, 13098.0F); }
@@ -195,7 +194,12 @@ public record MotorwaySignGeometry(
             );
         }
         MotorwaySignGeometry original = forPreset(preset, values, mountedOnCrossbar);
-        MotorwaySignGeometry additions = forCustomPanels(panels, mountedOnCrossbar, style);
+        /*
+         * Les panneaux au dessin figé (D44, D32a...) ne doivent jamais
+         * agrandir leur géométrie à cause d'anciens registres restés en NBT.
+         */
+        MotorwaySignPanelData[] effectivePanels = style.allowsExtraPanels() ? panels : null;
+        MotorwaySignGeometry additions = forCustomPanels(effectivePanels, mountedOnCrossbar, style);
         if (additions.height() <= 0.0F) {
             return original;
         }

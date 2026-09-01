@@ -106,6 +106,19 @@ public enum RoadTextFont {
         return current.next();
     }
 
+    /**
+     * Les caractères routiers du mod (L1/L2/L4) sont rendus lettre par
+     * lettre quand l'espacement réglementaire doit être respecté. NORMAL
+     * reste la police Minecraft standard et n'utilise pas ce traitement.
+     */
+    public boolean usesRegulatoryLetterSpacing() {
+        return this == L1 || this == L2 || this == L4;
+    }
+
+    public static boolean usesRegulatoryLetterSpacing(RoadTextFont font) {
+        return font != null && font.usesRegulatoryLetterSpacing();
+    }
+
     // L'espacement des lettres ne passe plus par l'insertion d'un caractère
     // (une espace ASCII était trop large, et l'espace fine U+2009 s'affichait
     // en glyphe manquant faute de police de repli) : chaque panneau qui a

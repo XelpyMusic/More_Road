@@ -560,17 +560,24 @@ public class MotorwaySignBlockEntityRenderer
         ));
         boolean freeformStack = preset == MotorwaySignPreset.FREEFORM;
         boolean standaloneStack = preset == MotorwaySignPreset.D61B || freeformStack;
+        /*
+         * Un dessin figé comme D32a/D44 ne doit jamais réafficher d'anciens
+         * registres supplémentaires encore présents dans une sauvegarde.
+         */
+        MotorwaySignPanelData[] effectiveCustomPanels = standaloneStack || style.allowsExtraPanels()
+                ? state.customPanels
+                : new MotorwaySignPanelData[0];
         CustomStackLayout customLayout;
         if (preset == MotorwaySignPreset.D61B) {
-            customLayout = buildD61BStackLayout(font, state.customPanels, style);
+            customLayout = buildD61BStackLayout(font, effectiveCustomPanels, style);
         } else if (freeformStack) {
-            customLayout = buildCustomStackLayout(font, state.customPanels, true, style);
+            customLayout = buildCustomStackLayout(font, effectiveCustomPanels, true, style);
         } else {
             float presetWidth = MotorwaySignGeometry.forPreset(
                     preset, state.lines, state.mountedOnCrossbar
             ).width() / MotorwaySignGeometry.WORLD_SCALE;
             customLayout = withSharedPanelWidth(
-                    buildCustomStackLayout(font, state.customPanels, false, style),
+                    buildCustomStackLayout(font, effectiveCustomPanels, false, style),
                     presetWidth
             );
         }
@@ -579,7 +586,7 @@ public class MotorwaySignBlockEntityRenderer
         if (standaloneStack) {
             customTop = state.mountedOnCrossbar
                     ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
-                    : d61PanelBottomInternal(state.customPanels) + customLayout.totalHeight();
+                    : d61PanelBottomInternal(effectiveCustomPanels) + customLayout.totalHeight();
         } else if (!customLayout.panels().isEmpty()) {
             float originalHeight = MotorwaySignGeometry.forPreset(
                     preset, state.lines, state.mountedOnCrossbar
@@ -609,7 +616,7 @@ public class MotorwaySignBlockEntityRenderer
         } else {
             MotorwaySignPanelData cartouchePanel = standaloneStack
                     ? (customLayout.panels().isEmpty() ? null : customLayout.panels().getFirst())
-                    : firstConfiguredPanel(state.customPanels);
+                    : firstConfiguredPanel(effectiveCustomPanels);
             if (style.allowsCustomCartouche()
                     && cartouchePanel != null
                     && cartouchePanel.cartoucheType().isVisible()) {
@@ -657,7 +664,7 @@ public class MotorwaySignBlockEntityRenderer
 
         if (!state.mountedOnCrossbar) {
             MotorwaySignGeometry groundGeometry = MotorwaySignGeometry.forComposite(
-                    preset, state.lines, state.customPanels, false
+                    preset, state.lines, effectiveCustomPanels, false
             );
             submitD61CentralSupport(
                     state, groundGeometry.supportTop(), poseStack, collector
@@ -1250,10 +1257,19 @@ public class MotorwaySignBlockEntityRenderer
                     left, width, top, height, localeStack, light, greenStack);
         }
 
+        int exactFrameTint = 0xFFFFFFFF;
+        if (preset == MotorwaySignPreset.D32A) {
+            /*
+             * D32a blanc : listel sombre. D32a bleu : listel blanc.
+             * Le cadre est un masque blanc, teinté avec la même couleur de
+             * contraste que le texte et la flèche.
+             */
+            exactFrameTint = safeLine(values, 0, preset.getSlot(0)).color().getTextArgb();
+        }
         if (shrinkMainStack) {
             float destTopSourceV = mainStackInfo.body().y() / artwork.sourceHeight();
             drawArtworkLayerCroppedV(collector, poseStack, artwork.frame(), left, right, destTopWorld, top,
-                    0.0F, destTopSourceV, FRONT_Z + 0.002F, 0xFFFFFFFF, light, -18);
+                    0.0F, destTopSourceV, FRONT_Z + 0.002F, exactFrameTint, light, -18);
             /*
              * Signalé : sur ce registre principal redessiné en plus petit, le
              * coin restait plus pointu que les autres registres du même
@@ -1275,7 +1291,7 @@ public class MotorwaySignBlockEntityRenderer
         } else {
             drawFullCanvasLayerWithD31DShift(collector, poseStack, artwork.frame(), left, right, bottom, top,
                     artwork.sourceHeight(), greenStack, localeStack,
-                    FRONT_Z + 0.002F, 0xFFFFFFFF, light, -18);
+                    FRONT_Z + 0.002F, exactFrameTint, light, -18);
         }
         for (int layerIndex = 0; layerIndex < artwork.layers().length; layerIndex++) {
             ExactTintedLayer layer = artwork.layers()[layerIndex];
@@ -1399,9 +1415,16 @@ public class MotorwaySignBlockEntityRenderer
             }
         }
         if (artwork.graphics() != null) {
+            /*
+             * Le D32a unique réutilise un masque blanc : flèche sombre sur
+             * fond blanc, flèche blanche sur fond bleu.
+             */
+            int graphicsTint = preset == MotorwaySignPreset.D32A
+                    ? exactFrameTint
+                    : 0xFFFFFFFF;
             drawFullCanvasLayerWithD31DShift(collector, poseStack, artwork.graphics(), left, right, bottom, top,
                     artwork.sourceHeight(), greenStack, localeStack,
-                    FRONT_Z + 0.008F, 0xFFFFFFFF, light, -15);
+                    FRONT_Z + 0.008F, graphicsTint, light, -15);
         }
         if (preset == MotorwaySignPreset.D44) {
             drawD44ServiceRow(collector, poseStack, left, width, top, height, artwork, services, light);
@@ -1463,6 +1486,21 @@ public class MotorwaySignBlockEntityRenderer
                 x = left + 0.32F + pixelWidth * actualScale / 2.0F;
                 maximumWidth = availableWidth;
             }
+            if (preset == MotorwaySignPreset.D32A) {
+                /*
+                 * Les deux lignes du D32a réel sont en caractères L4 et
+                 * alignées sur la même marge gauche, jamais centrées mot par
+                 * mot (ce qui décalait TULLE/BRIVE différemment).
+                 */
+                float leftX = sourceX(left, width, 700.0F, artwork.sourceWidth());
+                float availableWidth = width * 6500.0F / artwork.sourceWidth();
+                drawLeftAlignedText(
+                        collector, poseStack, font, data.text(),
+                        leftX, y, availableWidth, RoadTextFont.L4,
+                        data.color().getTextArgb(), scale, light
+                );
+                continue;
+            }
             if ((preset == MotorwaySignPreset.D44)
                     && placement.slotIndex() == 2) {
                 /*
@@ -1508,7 +1546,7 @@ public class MotorwaySignBlockEntityRenderer
                      * été recalés empiriquement (retours précédents "trop
                      * haut") et absorbent donc déjà ce biais.
                      */
-                    y -= scale * font.lineHeight * 0.10F;
+                    y -= scale * font.lineHeight * 0.15F;
                 }
                 y += belowD31DStacksShift(placement.y(), greenStack, localeStack);
                 float leftX = d31dStackLeftX(left, width, artwork);
@@ -1521,12 +1559,23 @@ public class MotorwaySignBlockEntityRenderer
                     || slot.role() == MotorwaySignRole.INFO)) {
                 continue;
             }
+            /*
+             * Les cartouches routiers intégrés directement au dessin du panneau
+             * utilisent toujours les caractères L1, quelle que soit leur couleur.
+             * Les cartouches 3D séparés sont rendus par le chemin dédié plus bas
+             * et ne passent pas par cette branche.
+             */
+            RoadTextFont effectiveFont = preset == MotorwaySignPreset.D32A
+                    ? RoadTextFont.L4
+                    : slot.role() == MotorwaySignRole.ROUTE
+                    ? RoadTextFont.L1
+                    : data.font();
             if (isExitNumberSlot(slot)) {
                 drawExitNumber(collector, poseStack, font, data.text(), x, y, maximumWidth,
-                        data.font(), data.color().getTextArgb(), scale, light);
+                        effectiveFont, data.color().getTextArgb(), scale, light);
             } else {
                 drawText(collector, poseStack, font, data.text(), x, y, maximumWidth,
-                        data.font(), data.color().getTextArgb(), scale, light);
+                        effectiveFont, data.color().getTextArgb(), scale, light);
             }
         }
         if (style.normalizeMainDestinationStack()) {
@@ -3870,7 +3919,7 @@ public class MotorwaySignBlockEntityRenderer
     /* Visibilité élargie : réutilisée par GenericDirectionalSignBlockEntityRenderer. */
     static float trackedTextWidth(Font font, RoadTextFont roadFont, String value) {
         String safeValue = value == null ? "" : value;
-        boolean tracked = roadFont == RoadTextFont.L1 || roadFont == RoadTextFont.L2;
+        boolean tracked = RoadTextFont.usesRegulatoryLetterSpacing(roadFont);
         if (!tracked) {
             return font.width(styled(safeValue, roadFont));
         }
@@ -3900,7 +3949,7 @@ public class MotorwaySignBlockEntityRenderer
             int light
     ) {
         String safeValue = value == null ? "" : value;
-        boolean tracked = roadFont == RoadTextFont.L1 || roadFont == RoadTextFont.L2;
+        boolean tracked = RoadTextFont.usesRegulatoryLetterSpacing(roadFont);
         int[] codePoints = tracked ? safeValue.codePoints().toArray() : null;
         if (!tracked || codePoints.length <= 1) {
             FormattedCharSequence sequence = styled(safeValue, roadFont);

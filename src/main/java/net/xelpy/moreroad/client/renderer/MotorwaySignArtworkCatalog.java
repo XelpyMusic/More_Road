@@ -72,8 +72,6 @@ public final class MotorwaySignArtworkCatalog {
             case D31D -> D31D_ARTWORK;
             case D31E -> D31E_ARTWORK;
             case D32A -> D32A_ARTWORK;
-            case D32A_DC -> D32A_DC_ARTWORK;
-            case D32B -> D32B_ARTWORK;
             case D41A -> D41A_ARTWORK;
             case D41B -> D41B_ARTWORK;
             case D41C -> D41C_ARTWORK;
@@ -503,7 +501,13 @@ public final class MotorwaySignArtworkCatalog {
                      * collés l'un à l'autre) : réécarté à 1450, entre les
                      * deux valeurs déjà essayées.
                      */
-                    text(0, 3088.0F, 2050.0F, 4200.0F, 1100.0F),
+                    /*
+                     * D31d : cartouche de sortie agrandi de 10 % dans
+                     * d31d_graphics.png. Le pictogramme + numéro suivent la
+                     * même proportion afin de conserver l'équilibre du vrai
+                     * cartouche autoroutier.
+                     */
+                    text(0, 3088.0F, 2050.0F, 4600.0F, 1210.0F),
                     text(1, 6252.0F, 5916.0F, 11200.0F, 1360.0F),
                     text(5, 6252.0F, 9000.0F, 11200.0F, 1100.0F),
                     text(6, 6252.0F, 10450.0F, 8000.0F, 1100.0F)
@@ -537,26 +541,10 @@ public final class MotorwaySignArtworkCatalog {
             11621.0F, 3922.0F, 5.20F, artwork("d32a_frame.png"), artwork("d32a_graphics.png"),
             new ExactTintedLayer[]{layer("d32a_panel.png", 0)},
             new ExactTextPlacement[]{
-                    text(0, 3800.0F, 1250.0F, 6500.0F, 850.0F),
-                    text(1, 3800.0F, 2850.0F, 6800.0F, 1100.0F)
+                    text(0, 3725.0F, 1225.0F, 6350.0F, 835.0F),
+                    text(1, 3725.0F, 2810.0F, 6700.0F, 1075.0F)
             },
             new ExactBody[]{body(0.0F, 0.0F, 11621.0F, 3922.0F)}, true
-    );
-
-    static final ExactMappedArtwork D32A_DC_ARTWORK = new ExactMappedArtwork(
-            11621.0F, 3922.0F, 5.20F, artwork("d32a_dc_frame.png"), artwork("d32a_dc_graphics.png"),
-            new ExactTintedLayer[]{layer("d32a_dc_panel.png", 0)},
-            D32A_ARTWORK.texts(), D32A_ARTWORK.bodies(), true
-    );
-
-    static final ExactMappedArtwork D32B_ARTWORK = new ExactMappedArtwork(
-            13504.0F, 4938.0F, 5.20F, artwork("d32b_frame.png"), artwork("d32b_graphics.png"),
-            new ExactTintedLayer[]{layer("d32b_panel.png", 0)},
-            new ExactTextPlacement[]{
-                    text(0, 4300.0F, 1450.0F, 7500.0F, 1050.0F),
-                    text(1, 4300.0F, 3400.0F, 7800.0F, 1250.0F)
-            },
-            new ExactBody[]{body(0.0F, 0.0F, 13504.0F, 4938.0F)}, true
     );
 
     static final ExactMappedArtwork D41A_ARTWORK = new ExactMappedArtwork(

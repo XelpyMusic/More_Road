@@ -121,16 +121,21 @@ public class MotorwaySignBlockEntity extends BlockEntity {
         this.preset = preset == null ? MotorwaySignPreset.FREEFORM : preset;
         for (int i = 0; i < MAX_SLOTS; i++) {
             if (values != null && i < values.length && values[i] != null) {
-                this.lines[i] = values[i];
+                this.lines[i] = normalizeLineForPreset(this.preset, i, values[i]);
             } else if (i < this.preset.getSlotCount()) {
                 this.lines[i] = MotorwaySignLineData.blankForSlot(this.preset.getSlot(i));
             } else {
                 this.lines[i] = MotorwaySignLineData.empty();
             }
         }
-        this.customMode = customMode;
+        this.customMode = this.preset != MotorwaySignPreset.D32A && customMode;
         this.additivePanels = true;
         for (int index = 0; index < MAX_CUSTOM_PANELS; index++) {
+            if (this.preset == MotorwaySignPreset.D32A) {
+                /* D32a n'a ni registre ajouté ni cartouche : on purge les anciennes données. */
+                this.customPanels[index] = MotorwaySignPanelData.disabled();
+                continue;
+            }
             MotorwaySignPanelData panel = panels != null && index < panels.length
                     ? panels[index]
                     : null;
@@ -153,6 +158,26 @@ public class MotorwaySignBlockEntity extends BlockEntity {
         setChanged();
     }
 
+
+    /**
+     * D32a n'expose qu'une seule construction : caractères L4, fond blanc
+     * ou bleu. On normalise aussi les anciennes sauvegardes D32a/D32b afin
+     * qu'elles ne puissent pas réintroduire L1/L2, vert, rouge, etc.
+     */
+    private static MotorwaySignLineData normalizeLineForPreset(
+            MotorwaySignPreset preset,
+            int index,
+            MotorwaySignLineData line
+    ) {
+        if (preset == MotorwaySignPreset.D32A && index >= 0 && index < 2) {
+            MotorwaySignColor color = line.color() == MotorwaySignColor.BLUE
+                    ? MotorwaySignColor.BLUE
+                    : MotorwaySignColor.WHITE;
+            return new MotorwaySignLineData(line.text(), RoadTextFont.L4, color);
+        }
+        return line;
+    }
+
     private void applyPresetDefaults(MotorwaySignPreset targetPreset) {
         for (int i = 0; i < MAX_SLOTS; i++) {
             this.lines[i] = i < targetPreset.getSlotCount()
@@ -164,27 +189,37 @@ public class MotorwaySignBlockEntity extends BlockEntity {
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.preset = MotorwaySignPreset.fromSerializedName(
-                input.getStringOr("preset", MotorwaySignPreset.FREEFORM.getSerializedName())
+        String serializedPreset = input.getStringOr(
+                "preset", MotorwaySignPreset.FREEFORM.getSerializedName()
         );
+        boolean legacyD32Blue = "d32b".equals(serializedPreset);
+        this.preset = MotorwaySignPreset.fromSerializedName(serializedPreset);
         for (int i = 0; i < MAX_SLOTS; i++) {
             MotorwaySignLineData fallback = i < this.preset.getSlotCount()
                     ? MotorwaySignLineData.blankForSlot(this.preset.getSlot(i))
                     : MotorwaySignLineData.empty();
+            MotorwaySignColor fallbackColor = legacyD32Blue && i < 2
+                    ? MotorwaySignColor.BLUE
+                    : fallback.color();
             String prefix = "slot_" + i + "_";
-            this.lines[i] = new MotorwaySignLineData(
-                    input.getStringOr(prefix + "text", fallback.text()),
-                    RoadTextFont.fromSerializedName(input.getStringOr(prefix + "font", fallback.font().getSerializedName())),
-                    MotorwaySignColor.fromSerializedName(input.getStringOr(prefix + "color", fallback.color().getSerializedName()))
+            this.lines[i] = normalizeLineForPreset(
+                    this.preset,
+                    i,
+                    new MotorwaySignLineData(
+                            input.getStringOr(prefix + "text", fallback.text()),
+                            RoadTextFont.fromSerializedName(input.getStringOr(prefix + "font", fallback.font().getSerializedName())),
+                            MotorwaySignColor.fromSerializedName(input.getStringOr(prefix + "color", fallbackColor.getSerializedName()))
+                    )
             );
         }
 
-        this.customMode = input.getBooleanOr("custom_mode", false);
+        this.customMode = this.preset != MotorwaySignPreset.D32A
+                && input.getBooleanOr("custom_mode", false);
         this.additivePanels = input.getBooleanOr("additive_panels", false);
         for (int index = 0; index < MAX_CUSTOM_PANELS; index++) {
             String prefix = "custom_panel_" + index + "_";
             MotorwaySignPanelData fallback = MotorwaySignPanelData.disabled();
-            this.customPanels[index] = new MotorwaySignPanelData(
+            MotorwaySignPanelData loadedPanel = new MotorwaySignPanelData(
                     input.getBooleanOr(prefix + "enabled", fallback.enabled()),
                     input.getIntOr(
                             prefix + "line_count",
@@ -221,6 +256,9 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                             prefix + "graphic", MotorwaySignGraphic.NONE.name()
                     ))
             );
+            this.customPanels[index] = this.preset == MotorwaySignPreset.D32A
+                    ? MotorwaySignPanelData.disabled()
+                    : loadedPanel;
         }
 
         MotorwaySignServiceIcon[] serviceDefaults = MotorwaySignServiceIcon.defaults();

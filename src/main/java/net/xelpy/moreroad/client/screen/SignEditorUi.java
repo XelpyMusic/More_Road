@@ -483,9 +483,9 @@ public final class SignEditorUi {
         if (panel.doubleLine()) {
             int y1 = y + height / 3 - 4;
             int y2 = y + (height * 2) / 3 - 4;
-            boolean line1Tracked = (panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2)
+            boolean line1Tracked = RoadTextFont.usesRegulatoryLetterSpacing(panel.line1Font())
                     && panel.line1Spacing();
-            boolean line2Tracked = (panel.line2Font() == RoadTextFont.L1 || panel.line2Font() == RoadTextFont.L2)
+            boolean line2Tracked = RoadTextFont.usesRegulatoryLetterSpacing(panel.line2Font())
                     && panel.line2Spacing();
             drawCenteredTrackedPreviewText(
                     graphics,
@@ -510,7 +510,7 @@ public final class SignEditorUi {
             drawCenteredPreviewText(graphics, font, shorten(distance1, 6), distanceCenter, y1, textColor, textShadow);
             drawCenteredPreviewText(graphics, font, shorten(distance2, 6), distanceCenter, y2, textColor, textShadow);
         } else {
-            boolean line1Tracked = (panel.line1Font() == RoadTextFont.L1 || panel.line1Font() == RoadTextFont.L2)
+            boolean line1Tracked = RoadTextFont.usesRegulatoryLetterSpacing(panel.line1Font())
                     && panel.line1Spacing();
             int textY = y + height / 2 - 4;
             drawCenteredTrackedPreviewText(
