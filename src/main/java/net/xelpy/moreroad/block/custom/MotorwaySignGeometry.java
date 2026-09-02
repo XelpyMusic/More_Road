@@ -42,8 +42,8 @@ public record MotorwaySignGeometry(
         float width;
         float height;
         switch (preset) {
-            case D31B_EX1 -> { width = 4.20F; height = scaled(width, 4993.0F, 7832.0F); }
-            case D31B_EX2 -> { width = 6.00F; height = scaled(width, 11745.0F, 15397.0F); }
+            case D31B_EX1 -> { width = 4.20F; height = scaled(width, 2349.0F, 7832.0F); }
+            case D31B_EX2 -> { width = 6.00F; height = scaled(width, 4535.0F, 15397.0F); }
             /*
              * Signalé : agrandir cette hauteur avec les registres extensibles
              * (comme pour la boîte de rendu/collision, tenté puis retiré)
@@ -54,13 +54,15 @@ public record MotorwaySignGeometry(
              * haut. On garde donc la hauteur naturelle (1 ville / 2 villes),
              * cohérente avec le sommet réellement fixe du dessin.
              */
-            case D31D -> { width = 5.50F; height = scaled(width, 11429.0F, 12505.0F); }
-            case D31E -> { width = 5.80F; height = scaled(width, 11036.0F, 13403.0F); }
+            case D31D -> { width = 5.50F; height = scaled(width, 3930.0F, 12505.0F); }
+            case D31E -> { width = 5.80F; height = scaled(width, 4005.0F, 13403.0F); }
             case D32A -> { width = 5.20F; height = scaled(width, 3922.0F, 11621.0F); }
-            case D41A -> { width = 5.50F; height = scaled(width, 11270.0F, 12467.0F); }
-            case D41B -> { width = 5.20F; height = scaled(width, 8413.0F, 11536.0F); }
-            case D41C -> { width = 5.50F; height = scaled(width, 11401.0F, 13098.0F); }
+            case D41A -> { width = 5.50F; height = scaled(width, 3894.0F, 12467.0F); }
+            case D41B -> { width = 5.20F; height = scaled(width, 2399.0F, 11536.0F); }
+            case D41C -> { width = 5.50F; height = scaled(width, 2897.0F, 13098.0F); }
             case D44 -> { width = 4.60F; height = scaled(width, 9304.0F, 7267.0F); }
+            case D46A -> { width = 5.20F; height = scaled(width, 760.0F, 1000.0F); }
+            case D47A -> { width = 5.20F; height = scaled(width, 8032.0F, 17924.0F); }
             case D61B -> { width = 6.20F; height = scaled(width, 7879.0F, 15788.0F); }
             case D62A -> { width = 5.60F; height = scaled(width, 10619.0F, 11537.0F); }
             case D62B -> { width = 5.80F; height = scaled(width, 8129.0F, 13203.0F); }
@@ -300,8 +302,9 @@ public record MotorwaySignGeometry(
              * explicite ci-dessus) : il ne passe plus par ce chemin générique.
              */
             case D45, D45_DC -> 4.60F;
-            case D46A, D46B -> 3.60F;
-            case D47A, D47B, D47C -> 4.00F;
+            case D46A -> 5.20F;
+            case D47A -> 5.20F;
+            case D47B, D47C -> 4.00F;
             default -> 0.0F;
         };
     }

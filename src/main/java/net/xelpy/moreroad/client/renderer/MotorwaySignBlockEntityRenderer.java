@@ -188,14 +188,252 @@ public class MotorwaySignBlockEntityRenderer
              * (submitTexturedPanelBody), sinon il ressort comme un plan
              * plat sans épaisseur vu de profil.
              */
+            poseStack.pushPose();
             submitTexturedPanelBody(
                     collector, poseStack, iconLeft, iconRight, iconBottom, iconTop,
-                    BACK_Z, FRONT_Z, light, -30, TEXTURED_BODY_CORNER_RADIUS
+                    BACK_Z, FRONT_Z, light, -30, textureBodyCornerRadius(MotorwaySignPreset.D44)
             );
             drawServiceTexture(
                     collector, poseStack, texture(icon.getTextureFile()),
                     iconLeft, iconRight, iconBottom, iconTop, light
             );
+            poseStack.popPose();
+            drawn++;
+        }
+    }
+
+
+    private static boolean d44UsesLowerDistancePlate(MotorwaySignLineData[] values) {
+        return !safeLine(values, 3, MotorwaySignPreset.D44.getSlot(3)).text().isBlank();
+    }
+
+    private static MotorwaySignPanelData d44CartouchePanel(MotorwaySignPanelData[] customPanels) {
+        if (customPanels == null || customPanels.length == 0 || customPanels[0] == null) {
+            return MotorwaySignPanelData.disabled();
+        }
+        return customPanels[0];
+    }
+
+    /*
+     * Hauteur du sommet du panneau "ÉGUZON" (mode D45, plaque "20 km"
+     * activée) en unités "internes" (avant multiplication par WORLD_SCALE),
+     * calculée avec exactement les mêmes formules que
+     * drawD44WithLowerDistancePlate — dupliquée ici (et non extraite dans
+     * un record commun, pour limiter l'ampleur du changement) afin de
+     * pouvoir positionner la cartouche AVANT la rotation/mise à l'échelle
+     * du poseStack, comme submitD63CCartouches (voir le commentaire de
+     * submitD44Cartouche pour le pourquoi).
+     */
+    private static float d44MainTopInternal(
+            ExactMappedArtwork artwork,
+            MotorwaySignServiceIcon[] services,
+            boolean mountedOnCrossbar
+    ) {
+        float width = artwork.physicalWidth();
+        float height = width * artwork.sourceHeight() / artwork.sourceWidth();
+        float top = mountedOnCrossbar
+                ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
+                : 2.05F + height;
+        float bottom = top - height;
+
+        ExactBody mainBody = artwork.bodies()[1];
+        float mainHeight = height * mainBody.height() / artwork.sourceHeight();
+        float distanceHeight = Math.max(0.68F, height * 1180.0F / artwork.sourceHeight());
+        float gap = Math.max(0.08F, height * 150.0F / artwork.sourceHeight());
+        float iconSize = width * MotorwaySignArtworkCatalog.D44_SERVICE_ICON_SIZE / artwork.sourceWidth();
+
+        int visibleServices = 0;
+        for (MotorwaySignServiceIcon icon : services) {
+            if (icon != null && icon.isVisible()) {
+                visibleServices++;
+            }
+        }
+        int rows = visibleServices > 3 ? 2 : 1;
+        float servicesTop = bottom + rows * iconSize + Math.max(0, rows - 1) * gap;
+        float distanceTop = servicesTop + gap + distanceHeight;
+        float mainBottom = distanceTop + gap;
+        return mainBottom + mainHeight;
+    }
+
+    /*
+     * Le D44/D45 réutilise la cartouche 3D standard des autres panneaux
+     * autoroutiers (submitCartoucheModelScaled, agrandie à
+     * D63C_CARTOUCHE_SCALE — même mécanisme que submitD63CCartouches,
+     * seule référence du mod à utiliser cette taille agrandie).
+     *
+     * Repère : cette fonction doit être appelée depuis submit(), AVANT
+     * poseStack.pushPose()/translate/mulPose(rotation facing)/
+     * scale(WORLD_SCALE) — exactement là où submitD63CCartouches et
+     * submitCustomCartouche (D31d) sont déjà appelées. C'est le repère
+     * "monde" du bloc, non tourné, non mis à l'échelle : mêmes unités que
+     * D61B_PANEL_FORWARD (utilisé tel quel) et que les hauteurs déjà
+     * multipliées par WORLD_SCALE avant d'être passées à
+     * submitCartoucheModelScaled.
+     *
+     * Signalé (deux essais précédents insuffisants) : la cartouche restait
+     * décalée/désorientée tant qu'elle était positionnée depuis
+     * drawD44TopCartouche, appelée depuis drawD44WithLowerDistancePlate /
+     * drawExactMappedArtwork — c'est-à-dire DANS le repère déjà tourné et
+     * mis à l'échelle du panneau principal. submitCartoucheModelScaled
+     * combine calcul de direction ET valeurs déjà à l'échelle WORLD_SCALE ;
+     * appelée depuis ce second repère, la translation qu'elle calcule se
+     * retrouvait elle-même retournée et remise à l'échelle par le poseStack
+     * ambiant — d'où un décalage et une désorientation qu'aucun
+     * ajustement de coefficient ne pouvait corriger, puisque le problème
+     * n'était pas la valeur mais le repère d'appel. La solution n'est donc
+     * pas un nouveau coefficient mais d'appeler cette fonction au même
+     * endroit du code que submitD63CCartouches, avec exactement la même
+     * convention d'unités — seuls le point d'ancrage (le sommet du
+     * panneau "ÉGUZON"/du panneau complet) et l'échelle changent.
+     */
+    private static void submitD44Cartouche(
+            MotorwaySignRenderState state,
+            MotorwaySignPanelData[] customPanels,
+            float anchorTopInternal,
+            boolean mountedOnCrossbar,
+            PoseStack poseStack,
+            SubmitNodeCollector collector
+    ) {
+        MotorwaySignPanelData panel = d44CartouchePanel(customPanels);
+        if (panel == null || !panel.cartoucheType().isVisible()) {
+            return;
+        }
+        float cartoucheBottomInternal = anchorTopInternal + PANEL_GAP;
+        float cartoucheBottom = cartoucheBottomInternal * MotorwaySignGeometry.WORLD_SCALE;
+        float panelTop = anchorTopInternal * MotorwaySignGeometry.WORLD_SCALE;
+        float panelForward = mountedOnCrossbar ? 0.0F : MotorwaySignGeometry.D61B_PANEL_FORWARD;
+        float alignedPanelForward = panelForward - D44_CARTOUCHE_FORWARD_CORRECTION;
+        submitCartoucheModelScaled(
+                state,
+                panel.cartoucheType(),
+                panel.cartoucheText(),
+                cartoucheBottom,
+                panelTop,
+                alignedPanelForward,
+                0.0F,
+                D44_CARTOUCHE_SCALE,
+                poseStack,
+                collector
+        );
+    }
+
+    private static void drawD44WithLowerDistancePlate(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            Font font,
+            MotorwaySignRenderState state,
+            MotorwaySignLineData[] values,
+            MotorwaySignPanelData[] customPanels,
+            float left,
+            float right,
+            float width,
+            float top,
+            float bottom,
+            float height,
+            ExactMappedArtwork artwork,
+            MotorwaySignServiceIcon[] services,
+            int light,
+            boolean mountedOnCrossbar
+    ) {
+        if (!mountedOnCrossbar) {
+            drawExactJunctionSupports(collector, poseStack, width, bottom, artwork.doublePost(), light);
+        } else {
+            drawCrossbarMounts(collector, poseStack, width, bottom, top, light);
+        }
+
+        ExactBody mainBody = artwork.bodies()[1];
+        float mainHeight = height * mainBody.height() / artwork.sourceHeight();
+        float distanceHeight = Math.max(0.68F, height * 1180.0F / artwork.sourceHeight());
+        float gap = Math.max(0.08F, height * 150.0F / artwork.sourceHeight());
+        float iconSize = width * MotorwaySignArtworkCatalog.D44_SERVICE_ICON_SIZE / artwork.sourceWidth();
+        float iconGap = width * 150.0F / artwork.sourceWidth();
+
+        int visibleServices = 0;
+        for (MotorwaySignServiceIcon icon : services) {
+            if (icon != null && icon.isVisible()) {
+                visibleServices++;
+            }
+        }
+        int rows = visibleServices > 3 ? 2 : 1;
+        float servicesBottom = bottom;
+        float servicesTop = servicesBottom + rows * iconSize + Math.max(0, rows - 1) * gap;
+        float distanceBottom = servicesTop + gap;
+        float distanceTop = distanceBottom + distanceHeight;
+        float mainBottom = distanceTop + gap;
+        float mainTop = mainBottom + mainHeight;
+
+        drawPlate(collector, poseStack, left, right, mainBottom, mainTop, MotorwaySignColor.WHITE, light,
+                textureBodyCornerRadius(MotorwaySignPreset.D44));
+        drawArtworkLayerCroppedV(
+                collector, poseStack, artwork.graphics(),
+                left, right, mainBottom, mainTop,
+                mainBody.y() / artwork.sourceHeight(),
+                (mainBody.y() + mainBody.height()) / artwork.sourceHeight(),
+                FRONT_Z + 0.008F, 0xFFFFFFFF, light, -15
+        );
+
+        ExactTextPlacement villagePlacement = findPlacementForSlot(artwork, 2);
+        if (villagePlacement != null) {
+            MotorwaySignLineData village = safeLine(values, 2, MotorwaySignPreset.D44.getSlot(2));
+            float relativeY = (villagePlacement.y() - mainBody.y()) / mainBody.height();
+            float y = mainTop - relativeY * mainHeight;
+            float maxWidth = width * villagePlacement.maximumWidth() / artwork.sourceWidth();
+            float scale = width * villagePlacement.sourceHeight() / artwork.sourceWidth() / font.lineHeight;
+            y -= scale * font.lineHeight * 0.10F;
+            float leftX = left + width * 347.0F / artwork.sourceWidth();
+            drawLeftAlignedText(
+                    collector, poseStack, font,
+                    village.text(),
+                    leftX, y, maxWidth,
+                    village.font(), village.color().getTextArgb(), scale, light
+            );
+        }
+
+        /*
+         * La cartouche "A xx" est désormais positionnée depuis submit(),
+         * avant la rotation/mise à l'échelle du poseStack (voir
+         * submitD44Cartouche) — plus d'appel ici, dans le repère déjà
+         * transformé du panneau.
+         */
+
+        drawPlate(collector, poseStack, left, right, distanceBottom, distanceTop, MotorwaySignColor.WHITE, light,
+                textureBodyCornerRadius(MotorwaySignPreset.D44));
+        MotorwaySignLineData distance = safeLine(values, 3, MotorwaySignPreset.D44.getSlot(3));
+        drawText(
+                collector, poseStack, font,
+                distance.text(),
+                0.0F,
+                (distanceBottom + distanceTop) / 2.0F - distanceHeight * 0.06F,
+                width - 0.40F,
+                distance.font(), MotorwaySignColor.BLACK.getArgb(),
+                distanceHeight * 0.52F / font.lineHeight,
+                light
+        );
+
+        float servicesTotal = iconSize * 3.0F + iconGap * 2.0F;
+        float firstIconLeft = -servicesTotal / 2.0F;
+        int drawn = 0;
+        for (MotorwaySignServiceIcon icon : services) {
+            if (icon == null || !icon.isVisible()) {
+                continue;
+            }
+            int row = drawn / 3;
+            int col = drawn % 3;
+            float rowTop = servicesTop - row * (iconSize + gap);
+            float iconTop = rowTop;
+            float iconBottom = iconTop - iconSize;
+            float iconLeft = firstIconLeft + col * (iconSize + iconGap);
+            float iconRight = iconLeft + iconSize;
+            poseStack.pushPose();
+            submitTexturedPanelBody(
+                    collector, poseStack, iconLeft, iconRight, iconBottom, iconTop,
+                    BACK_Z, FRONT_Z, light, -30, textureBodyCornerRadius(MotorwaySignPreset.D44)
+            );
+            drawServiceTexture(
+                    collector, poseStack, texture(icon.getTextureFile()),
+                    iconLeft, iconRight, iconBottom, iconTop, light
+            );
+            poseStack.popPose();
             drawn++;
         }
     }
@@ -233,10 +471,16 @@ public class MotorwaySignBlockEntityRenderer
      */
     /* Visibilité élargie : réutilisée par GenericDirectionalSignBlockEntityRenderer (même arrondi que le vrai D31b). */
     static final float TEXTURED_BODY_CORNER_RADIUS_D31B = 0.115F;
+    private static final float TEXTURED_BODY_CORNER_RADIUS_D44 = 0.120F;
+    private static final float TEXTURED_BODY_CORNER_RADIUS_D46A = 0.170F;
+    private static final float TEXTURED_BODY_CORNER_RADIUS_D47A = 0.170F;
 
     private static float textureBodyCornerRadius(MotorwaySignPreset preset) {
         return switch (preset) {
             case D31B_EX1, D31B_EX2 -> TEXTURED_BODY_CORNER_RADIUS_D31B;
+            case D44 -> TEXTURED_BODY_CORNER_RADIUS_D44;
+            case D46A -> TEXTURED_BODY_CORNER_RADIUS_D46A;
+            case D47A -> TEXTURED_BODY_CORNER_RADIUS_D47A;
             default -> TEXTURED_BODY_CORNER_RADIUS;
         };
     }
@@ -255,8 +499,8 @@ public class MotorwaySignBlockEntityRenderer
     private static final float D31B_EX2_ROUTE_CARTOUCHE_ENLARGE = 1.20F;
     private static final float D31B_EX2_ROUTE_U_LEFT = 22.0F / 1024.0F;
     private static final float D31B_EX2_ROUTE_U_RIGHT = 240.0F / 1024.0F;
-    private static final float D31B_EX2_ROUTE_V_TOP = 47.0F / 781.0F;
-    private static final float D31B_EX2_ROUTE_V_BOTTOM = 189.0F / 781.0F;
+    private static final float D31B_EX2_ROUTE_V_TOP = 47.0F / 302.0F;
+    private static final float D31B_EX2_ROUTE_V_BOTTOM = 189.0F / 302.0F;
 
     private static boolean isEnlargedRouteCartoucheLayer(MotorwaySignPreset preset, ExactTintedLayer layer) {
         return preset == MotorwaySignPreset.D31B_EX2
@@ -324,6 +568,29 @@ public class MotorwaySignBlockEntityRenderer
      */
     private static final float D63C_CARTOUCHE_FORWARD_CORRECTION =
             (3.0F / 16.0F) * (D63C_CARTOUCHE_SCALE - CartoucheLayout.MODEL_SCALE);
+    /*
+     * Cartouche "A xx" du D44 : signalée un peu trop grande une fois
+     * l'orientation/le centrage corrigés. Échelle dédiée, plus modeste que
+     * celle du D63c, avec sa propre correction de profondeur dérivée de la
+     * même formule que D63C_CARTOUCHE_FORWARD_CORRECTION (proportionnelle à
+     * l'écart d'échelle par rapport à CartoucheLayout.MODEL_SCALE) — pas
+     * une valeur retrouvée par tâtonnement.
+     */
+    private static final float D44_CARTOUCHE_SCALE = 0.96F;
+    private static final float D44_CARTOUCHE_FORWARD_CORRECTION =
+            (3.0F / 16.0F) * (D44_CARTOUCHE_SCALE - CartoucheLayout.MODEL_SCALE);
+    /*
+     * Signalé : les panonceaux CE du D44 avaient été décalés en profondeur
+     * à plusieurs reprises avec cette constante pour tenter de les
+     * recaler sur les plaques du dessus. Vérifié : submitTexturedPanelBody
+     * (panonceaux CE) et drawPlate (registres principal/"20 km") utilisent
+     * tous les deux BACK_Z/FRONT_Z directement, sans aucun décalage
+     * supplémentaire — ils sont donc déjà dans le même plan de profondeur.
+     * Un second poseStack.translate() ici n'aurait fait que les redécaler
+     * au hasard. Constante supprimée (elle valait 0, donc aucun effet
+     * réel) plutôt que laissée comme tentation pour un futur correctif
+     * par tâtonnement.
+     */
     /* Aligne la face des cartouches 3D sur celle d'une plaque de 3/16. */
     private static final float CARTOUCHE_MODEL_FORWARD_OFFSET =
             3.0F / 32.0F - 0.135F;
@@ -553,6 +820,27 @@ public class MotorwaySignBlockEntityRenderer
             );
             d31dExtraShift = -belowD31DStacksShift(Float.MAX_VALUE, earlyGreenStack, earlyLocaleStack);
         }
+        /*
+         * Sommet (unités internes, avant WORLD_SCALE) du panneau juste sous
+         * la cartouche "A xx" du D44 : du panneau "ÉGUZON" en mode D45
+         * (plaque "20 km" active, tête numéro de sortie/distance masquée),
+         * ou du panneau complet sinon. Calculé ici, avant la rotation/mise à
+         * l'échelle du poseStack plus bas, pour permettre à
+         * submitD44Cartouche d'être appelée dans le même repère "monde" que
+         * submitD63CCartouches — voir son commentaire pour le pourquoi.
+         */
+        float d44CartoucheAnchorInternal = 0.0F;
+        ExactMappedArtwork d44Artwork = preset == MotorwaySignPreset.D44
+                ? MotorwaySignArtworkCatalog.exactMappedArtwork(preset)
+                : null;
+        if (d44Artwork != null) {
+            d44CartoucheAnchorInternal = d44UsesLowerDistancePlate(state.lines)
+                    ? d44MainTopInternal(d44Artwork, state.services, state.mountedOnCrossbar)
+                    : (state.mountedOnCrossbar
+                            ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
+                            : 2.05F + d44Artwork.physicalWidth()
+                            * d44Artwork.sourceHeight() / d44Artwork.sourceWidth());
+        }
 
         DEFERRED_TEXT_CONTEXT.set(new DeferredTextContext(
                 state.facing,
@@ -610,6 +898,20 @@ public class MotorwaySignBlockEntityRenderer
                     state,
                     originalTop,
                     state.mountedOnCrossbar ? 0.0F : MotorwaySignGeometry.D61B_PANEL_FORWARD,
+                    poseStack,
+                    collector
+            );
+        } else if (preset == MotorwaySignPreset.D44) {
+            /*
+             * Même repère "monde", non tourné/non mis à l'échelle, que
+             * submitD63CCartouches ci-dessus — voir d44CartoucheAnchorInternal
+             * et le commentaire de submitD44Cartouche.
+             */
+            submitD44Cartouche(
+                    state,
+                    state.customPanels,
+                    d44CartoucheAnchorInternal,
+                    state.mountedOnCrossbar,
                     poseStack,
                     collector
             );
@@ -793,8 +1095,9 @@ public class MotorwaySignBlockEntityRenderer
                 : MotorwaySignArtworkCatalog.exactMappedArtwork(preset);
         if (exactArtwork != null) {
             drawExactMappedArtwork(
-                    collector, poseStack, font, preset, state.lines, state.lightCoords,
-                    exactArtwork, state.services, state.mountedOnCrossbar, mainStackInfo
+                    collector, poseStack, font, state, preset, state.lines, state.customPanels,
+                    state.lightCoords, exactArtwork, state.services,
+                    state.mountedOnCrossbar, mainStackInfo
             );
             poseStack.popPose();
             flushDeferredTexts(state, poseStack, collector);
@@ -1156,8 +1459,10 @@ public class MotorwaySignBlockEntityRenderer
             SubmitNodeCollector collector,
             PoseStack poseStack,
             Font font,
+            MotorwaySignRenderState state,
             MotorwaySignPreset preset,
             MotorwaySignLineData[] values,
+            MotorwaySignPanelData[] customPanels,
             int light,
             ExactMappedArtwork artwork,
             MotorwaySignServiceIcon[] services,
@@ -1173,6 +1478,15 @@ public class MotorwaySignBlockEntityRenderer
                 ? MotorwaySignGeometry.MOUNTED_PANEL_TOP / MotorwaySignGeometry.WORLD_SCALE
                 : 2.05F + height;
         float bottom = top - height;
+
+        if (preset == MotorwaySignPreset.D44 && d44UsesLowerDistancePlate(values)) {
+            drawD44WithLowerDistancePlate(
+                    collector, poseStack, font, state, values, customPanels,
+                    left, right, width, top, bottom, height,
+                    artwork, services, light, mountedOnCrossbar
+            );
+            return;
+        }
 
         boolean shrinkMainStack = mainStackInfo != null && mainStackInfo.shrinks();
         /*
@@ -1258,11 +1572,11 @@ public class MotorwaySignBlockEntityRenderer
         }
 
         int exactFrameTint = 0xFFFFFFFF;
-        if (preset == MotorwaySignPreset.D32A) {
+        if (preset == MotorwaySignPreset.D32A || preset == MotorwaySignPreset.D46A || preset == MotorwaySignPreset.D47A) {
             /*
-             * D32a blanc : listel sombre. D32a bleu : listel blanc.
-             * Le cadre est un masque blanc, teinté avec la même couleur de
-             * contraste que le texte et la flèche.
+             * D32a / D46a : fond blanc = listel sombre ; fond bleu = listel
+             * blanc. Le cadre est un masque blanc, teinté avec la même
+             * couleur de contraste que le texte.
              */
             exactFrameTint = safeLine(values, 0, preset.getSlot(0)).color().getTextArgb();
         }
@@ -1360,12 +1674,14 @@ public class MotorwaySignBlockEntityRenderer
                         FRONT_Z + 0.004F + layerIndex * 0.0005F, layerColor, light, -17 + layerIndex);
             }
         }
-        overlayWhiteExactPanelBodies(
-                collector, poseStack, preset, values, artwork,
-                left, width, top, height, light,
-                shrinkMainStack ? mainStackInfo.body() : null,
-                greenStack, localeStack
-        );
+        if (!usesHeaderOnlyEditableRegisters(preset)) {
+            overlayWhiteExactPanelBodies(
+                    collector, poseStack, preset, values, artwork,
+                    left, width, top, height, light,
+                    shrinkMainStack ? mainStackInfo.body() : null,
+                    greenStack, localeStack
+            );
+        }
         redrawExactRoadCartoucheLayers(
                 collector, poseStack, preset, values, artwork,
                 left, right, bottom, top, light
@@ -1428,6 +1744,10 @@ public class MotorwaySignBlockEntityRenderer
         }
         if (preset == MotorwaySignPreset.D44) {
             drawD44ServiceRow(collector, poseStack, left, width, top, height, artwork, services, light);
+            /*
+             * Cartouche déjà positionnée depuis submit() (voir
+             * submitD44Cartouche) — plus d'appel ici.
+             */
         }
 
         for (ExactTextPlacement placement : artwork.texts()) {
@@ -1467,6 +1787,11 @@ public class MotorwaySignBlockEntityRenderer
                  */
                 y -= scale * font.lineHeight * 0.10F;
             }
+            if ((preset == MotorwaySignPreset.D41B || preset == MotorwaySignPreset.D41C)
+                    && slot.role() == MotorwaySignRole.ROUTE) {
+                /* D41b/D41c : recentrage optique du texte dans le cartouche intégré. */
+                y -= scale * font.lineHeight * 0.14F;
+            }
             if (preset == MotorwaySignPreset.D31E && slot.role() == MotorwaySignRole.ROUTE) {
                 /*
                  * Signalé "D 1" encore trop haut malgré le même recalage que
@@ -1501,18 +1826,19 @@ public class MotorwaySignBlockEntityRenderer
                 );
                 continue;
             }
-            if ((preset == MotorwaySignPreset.D44)
-                    && placement.slotIndex() == 2) {
-                /*
-                 * Nom du village étape : toujours aligné à gauche du registre
-                 * (comme sur le panneau réel), jamais centré — un centrage
-                 * décale le mot différemment selon sa longueur et l'écarte
-                 * de la marge gauche mesurée sur le SVG (id79 : x=347).
-                 */
-                float leftX = sourceX(left, width, 347.0F, artwork.sourceWidth());
-                drawLeftAlignedText(collector, poseStack, font, data.text(),
-                        leftX, y, maximumWidth, data.font(), data.color().getTextArgb(), scale, light);
-                continue;
+            if (preset == MotorwaySignPreset.D44) {
+                if (placement.slotIndex() == 2) {
+                    /*
+                     * Nom du village étape : toujours aligné à gauche du registre
+                     * (comme sur le panneau réel), jamais centré — un centrage
+                     * décale le mot différemment selon sa longueur et l'écarte
+                     * de la marge gauche mesurée sur le SVG (id79 : x=347).
+                     */
+                    float leftX = sourceX(left, width, 347.0F, artwork.sourceWidth());
+                    drawLeftAlignedText(collector, poseStack, font, data.text(),
+                            leftX, y, maximumWidth, data.font(), data.color().getTextArgb(), scale, light);
+                    continue;
+                }
             }
             if (usesD31DStyleStacks(preset) && slot.role() == MotorwaySignRole.DESTINATION) {
                 if ((stackDiffers(greenStack) && slot.panelGroup() == 0)
@@ -1661,8 +1987,19 @@ public class MotorwaySignBlockEntityRenderer
      * villes locales) — d'où ces petits accesseurs par préréglage plutôt
      * que de dupliquer tout le mécanisme pour le D31e.
      */
+    private static boolean usesHeaderOnlyEditableRegisters(MotorwaySignPreset preset) {
+        return preset == MotorwaySignPreset.D31B_EX1
+                || preset == MotorwaySignPreset.D31B_EX2
+                || preset == MotorwaySignPreset.D31D
+                || preset == MotorwaySignPreset.D31E
+                || preset == MotorwaySignPreset.D41A
+                || preset == MotorwaySignPreset.D41B
+                || preset == MotorwaySignPreset.D41C;
+    }
+
     private static boolean usesD31DStyleStacks(MotorwaySignPreset preset) {
-        return preset == MotorwaySignPreset.D31D || preset == MotorwaySignPreset.D31E;
+        /* D31d/D31e utilisent désormais uniquement les registres personnalisables. */
+        return false;
     }
 
     private static int[] greenStackSlots(MotorwaySignPreset preset) {
@@ -3019,7 +3356,8 @@ public class MotorwaySignBlockEntityRenderer
                 keepDistances ? panel.distance3() : "",
                 keepDistances ? panel.distance4() : "",
                 panel.line1Font(), panel.line2Font(), panel.line3Font(), panel.line4Font(),
-                background, cartoucheType, cartoucheText, panel.graphic()
+                background, cartoucheType, cartoucheText,
+                style.allowsCustomGraphic() ? panel.graphic() : MotorwaySignGraphic.NONE
         );
     }
 
@@ -3326,6 +3664,17 @@ public class MotorwaySignBlockEntityRenderer
         );
     }
 
+    /*
+     * Repère "monde" : TOUS les appelants (D61b/D63c/D31d, et désormais
+     * submitD44Cartouche) dessinent leur cartouche AVANT que le poseStack
+     * ne subisse la rotation Axis.YP.rotationDegrees(getFacingRotation(
+     * state.facing)) du bloc (voir plus haut dans submit()). Dans ce
+     * repère non tourné, l'axe "avant" dépend donc réellement de
+     * state.facing — appeler cette fonction depuis un repère déjà tourné
+     * (comme le faisait l'ancien drawD44TopCartouche) referait tourner une
+     * deuxième fois le vecteur avant/latéral, d'où le décalage et la
+     * désorientation observés ; voir le commentaire de submitD44Cartouche.
+     */
     private static void submitCartoucheModelScaled(
             MotorwaySignRenderState state,
             CartoucheType type,
@@ -4196,6 +4545,15 @@ public class MotorwaySignBlockEntityRenderer
             int light
     ) {
         poseStack.pushPose();
+        /*
+         * Les symboles superposés (dont l'idéogramme de sortie du D44)
+         * doivent être AU-DESSUS du calque graphics du SVG. Ils avaient été
+         * ramenés au niveau FACE_Z pendant la correction des textures CE :
+         * le graphics du D44 (FRONT_Z + 0.008) recouvrait alors entièrement
+         * le pictogramme noir, tandis que le numéro 19, rendu comme texte à
+         * TEXT_Z, restait visible. On restaure ici le plan d'overlay dédié,
+         * juste sous le texte mais nettement devant les calques graphiques.
+         */
         poseStack.translate(0.0F, 0.0F, TEXT_Z - 0.001F);
         collector.order(-6).submitCustomGeometry(
                 poseStack,
@@ -4216,11 +4574,41 @@ public class MotorwaySignBlockEntityRenderer
             int light
     ) {
         poseStack.pushPose();
-        poseStack.translate(0.0F, 0.0F, TEXT_Z - 0.001F);
+        /*
+         * Les pictogrammes CE/D44 doivent rester collés à la face du
+         * panneau. Trop avancés, ils dépassent visuellement du corps 3D
+         * dans les vues de biais. On les plaque donc au niveau de la face
+         * au lieu de les laisser flotter au niveau du texte.
+         */
+        poseStack.translate(0.0F, 0.0F, FACE_Z + 0.001F);
+        /*
+         * Signalé : ce quad était un simple rectangle (addFrontQuad) posé
+         * sur un corps 3D arrondi (submitTexturedPanelBody, même rayon que
+         * textureBodyCornerRadius(D44)) — ses coins carrés dépassaient donc
+         * de la silhouette arrondie en vue de biais, exactement le même
+         * défaut déjà rencontré et corrigé sur les listels D31b/D31d (voir
+         * submitRoundedFace : un quad carré dans un contexte arrondi). Même
+         * remède ici : la texture suit désormais le même contour arrondi
+         * (roundedPath) que le corps sous-jacent, avec un mappage UV
+         * proportionnel à l'emprise du panonceau (addPolygonFace), au lieu
+         * d'un rectangle plein qui déborde du modèle.
+         */
+        float radius = Math.min(
+                textureBodyCornerRadius(MotorwaySignPreset.D44),
+                Math.min(right - left, top - bottom) / 2.0F
+        );
+        RoundedPath path = roundedPath(left, right, bottom, top, radius);
         collector.order(-9).submitCustomGeometry(
                 poseStack,
                 RenderTypes.entityCutout(texture),
-                (pose, consumer) -> addFrontQuad(pose, consumer, left, right, bottom, top, 0.0F, 0xFFFFFFFF, light)
+                (pose, consumer) -> addPolygonFace(
+                        pose, consumer,
+                        path.xs(), path.ys(),
+                        left, right, bottom, top,
+                        0.0F, 0xFFFFFFFF, light,
+                        0.0F, 0.0F, 1.0F,
+                        true
+                )
         );
         poseStack.popPose();
     }

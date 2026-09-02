@@ -128,11 +128,14 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                 this.lines[i] = MotorwaySignLineData.empty();
             }
         }
-        this.customMode = this.preset != MotorwaySignPreset.D32A && customMode;
+        this.customMode = this.preset != MotorwaySignPreset.D32A
+                && this.preset != MotorwaySignPreset.D46A
+                && this.preset != MotorwaySignPreset.D47A
+                && customMode;
         this.additivePanels = true;
         for (int index = 0; index < MAX_CUSTOM_PANELS; index++) {
-            if (this.preset == MotorwaySignPreset.D32A) {
-                /* D32a n'a ni registre ajouté ni cartouche : on purge les anciennes données. */
+            if (this.preset == MotorwaySignPreset.D32A || this.preset == MotorwaySignPreset.D46A || this.preset == MotorwaySignPreset.D47A) {
+                /* D32a/D46a/D47a n'ont ni registre ajouté ni cartouche : on purge les anciennes données. */
                 this.customPanels[index] = MotorwaySignPanelData.disabled();
                 continue;
             }
@@ -145,6 +148,10 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                 this.customPanels[index] = MotorwaySignPanelData.disabled();
             }
         }
+        /* Empêche aussi un ancien registre "800 m" déjà ouvert dans le GUI
+         * d'être renvoyé au serveur quand on clique sur Appliquer. */
+        repairD41BGeneratedDistancePanels();
+        repairD41CGeneratedDistancePanels();
         for (int index = 0; index < MotorwaySignServiceIcon.MAX_SLOTS; index++) {
             MotorwaySignServiceIcon icon = services != null && index < services.length
                     ? services[index]
@@ -174,6 +181,21 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                     ? MotorwaySignColor.BLUE
                     : MotorwaySignColor.WHITE;
             return new MotorwaySignLineData(line.text(), RoadTextFont.L4, color);
+        }
+        if (preset == MotorwaySignPreset.D46A && index >= 0 && index < 3) {
+            MotorwaySignColor color = line.color() == MotorwaySignColor.BLUE
+                    ? MotorwaySignColor.BLUE
+                    : MotorwaySignColor.WHITE;
+            return new MotorwaySignLineData(line.text(), RoadTextFont.L4, color);
+        }
+        if (preset == MotorwaySignPreset.D47A && index >= 0 && index < 2) {
+            MotorwaySignColor color = line.color() == MotorwaySignColor.BLUE
+                    ? MotorwaySignColor.BLUE
+                    : MotorwaySignColor.WHITE;
+            return new MotorwaySignLineData(line.text(), RoadTextFont.L4, color);
+        }
+        if (preset == MotorwaySignPreset.D41C && index == 1) {
+            return new MotorwaySignLineData(line.text(), line.font(), MotorwaySignColor.BLUE);
         }
         return line;
     }
@@ -214,6 +236,8 @@ public class MotorwaySignBlockEntity extends BlockEntity {
         }
 
         this.customMode = this.preset != MotorwaySignPreset.D32A
+                && this.preset != MotorwaySignPreset.D46A
+                && this.preset != MotorwaySignPreset.D47A
                 && input.getBooleanOr("custom_mode", false);
         this.additivePanels = input.getBooleanOr("additive_panels", false);
         for (int index = 0; index < MAX_CUSTOM_PANELS; index++) {
@@ -256,10 +280,16 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                             prefix + "graphic", MotorwaySignGraphic.NONE.name()
                     ))
             );
-            this.customPanels[index] = this.preset == MotorwaySignPreset.D32A
+            this.customPanels[index] = (this.preset == MotorwaySignPreset.D32A
+                    || this.preset == MotorwaySignPreset.D46A
+                    || this.preset == MotorwaySignPreset.D47A)
                     ? MotorwaySignPanelData.disabled()
                     : loadedPanel;
         }
+
+        migrateLegacyHeaderOnlyConfigurations();
+        repairD41BGeneratedDistancePanels();
+        repairD41CGeneratedDistancePanels();
 
         MotorwaySignServiceIcon[] serviceDefaults = MotorwaySignServiceIcon.defaults();
         for (int index = 0; index < MotorwaySignServiceIcon.MAX_SLOTS; index++) {
@@ -385,7 +415,7 @@ public class MotorwaySignBlockEntity extends BlockEntity {
             applyPresetDefaults(this.preset);
         }
         if (this.preset == MotorwaySignPreset.D41A
-                && matchesTexts("SORTIE 12", "CHARTRES", "ORLÉANS", "ABLIS", "1500 m")) {
+                && matchesTexts("4", "1000 m")) {
             applyPresetDefaults(this.preset);
         }
         if (this.preset == MotorwaySignPreset.D41B
@@ -393,7 +423,8 @@ public class MotorwaySignBlockEntity extends BlockEntity {
             applyPresetDefaults(this.preset);
         }
         if (this.preset == MotorwaySignPreset.D41C
-                && matchesTexts("A 6", "LYON", "ÉVRY", "1500 m")) {
+                && (matchesTexts("A 67", "CLERMONT-FD", "ST ÉTIENNE", "NEVERS", "1000 m")
+                || matchesTexts("A 6", "LYON", "ÉVRY", "1500 m"))) {
             applyPresetDefaults(this.preset);
         }
         /*
@@ -407,6 +438,335 @@ public class MotorwaySignBlockEntity extends BlockEntity {
                 && matchesTexts("PROCHAINE AIRE", "LIMOURS-JANVRY", "20 km")) {
             applyPresetDefaults(this.preset);
         }
+    }
+
+    /**
+     * Migration vers les variantes « en-tête fixe + registres libres ».
+     * Les anciennes destinations intégrées au SVG sont converties une seule
+     * fois en pancartes personnalisables. Les registres supplémentaires déjà
+     * créés par le joueur sont ensuite conservés tant qu'il reste de la place.
+     */
+    private void migrateLegacyHeaderOnlyConfigurations() {
+        MotorwaySignPanelData[] existing = this.customPanels.clone();
+        int nextPanel = 0;
+        boolean migrated = false;
+
+        switch (this.preset) {
+            case D31B_EX1 -> {
+                if (hasAnyLegacyText(1, 2)) {
+                    clearCustomPanels();
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{1, 2}, MotorwaySignColor.WHITE,
+                            CartoucheType.NONE, "");
+                    migrated = true;
+                }
+            }
+            case D31B_EX2 -> {
+                if (hasAnyLegacyText(1, 2, 3)) {
+                    clearCustomPanels();
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{1, 2, 3}, MotorwaySignColor.BLUE,
+                            CartoucheType.NONE, "");
+                    migrated = true;
+                }
+            }
+            case D31D -> {
+                if (hasAnyLegacyText(1, 2, 3, 4, 5, 6, 7)) {
+                    CartoucheType type = existing.length > 0 && existing[0] != null
+                            ? existing[0].cartoucheType() : CartoucheType.NONE;
+                    String cartoucheText = existing.length > 0 && existing[0] != null
+                            ? existing[0].cartoucheText() : "";
+                    clearCustomPanels();
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{1, 2, 3, 4}, MotorwaySignColor.GREEN,
+                            type, cartoucheText);
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{5, 6, 7}, MotorwaySignColor.WHITE,
+                            CartoucheType.NONE, "");
+                    migrated = true;
+                }
+            }
+            case D31E -> {
+                if (hasAnyLegacyText(1, 2, 3, 4, 5, 6, 7, 8)) {
+                    clearCustomPanels();
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{1, 2, 3, 4}, MotorwaySignColor.GREEN,
+                            CartoucheType.NONE, "");
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{5, 6, 7, 8}, MotorwaySignColor.WHITE,
+                            CartoucheType.NONE, "");
+                    migrated = true;
+                }
+            }
+            case D41A -> {
+                /* Ancien format : destinations 1..3 puis distance en slot 4. */
+                if (hasAnyLegacyText(2, 3, 4)) {
+                    MotorwaySignLineData legacyDistance = this.lines[4];
+                    clearCustomPanels();
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{1, 2},
+                            this.lines[1].color() == MotorwaySignColor.BLUE
+                                    ? MotorwaySignColor.BLUE : MotorwaySignColor.GREEN,
+                            CartoucheType.NONE, "");
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{3}, MotorwaySignColor.WHITE,
+                            CartoucheType.NONE, "");
+                    this.lines[1] = legacyDistance.text().isBlank()
+                            ? MotorwaySignLineData.blankForSlot(this.preset.getSlot(1))
+                            : normalizeLineForPreset(this.preset, 1, legacyDistance);
+                    migrated = true;
+                }
+            }
+            case D41B -> {
+                /*
+                 * Ancien format : slot 1 = destination verte, slot 2 =
+                 * destination locale, slot 3 = distance. Le NOUVEAU format
+                 * utilise déjà le slot 1 pour la distance de l'en-tête.
+                 * Il ne faut donc surtout pas tester le slot 1 pour décider
+                 * qu'une migration est nécessaire : "800 m" serait alors
+                 * reconverti en registre à chaque chargement, ce qui créait
+                 * les pancartes 800 m en cascade signalées en jeu.
+                 */
+                if (hasAnyLegacyText(2, 3)) {
+                    MotorwaySignLineData legacyDistance = this.lines[3];
+                    clearCustomPanels();
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{1}, MotorwaySignColor.GREEN,
+                            CartoucheType.NONE, "");
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{2}, MotorwaySignColor.WHITE,
+                            CartoucheType.NONE, "");
+                    this.lines[1] = legacyDistance.text().isBlank()
+                            ? MotorwaySignLineData.blankForSlot(this.preset.getSlot(1))
+                            : normalizeLineForPreset(this.preset, 1, legacyDistance);
+                    migrated = true;
+                }
+            }
+            case D41C -> {
+                /*
+                 * Ancien format : slots 1..3 = destinations bleues, slot 4 = distance.
+                 * Nouveau format : seul l'en-tête reste dans le panneau principal
+                 * (slot 0 = cartouche route, slot 1 = distance), toutes les villes
+                 * passent dans les registres personnalisables.
+                 */
+                if (hasAnyLegacyText(2, 3, 4)
+                        || (hasAnyLegacyText(1) && !looksLikeDistanceText(this.lines[1].text()))) {
+                    MotorwaySignLineData legacyDistance = this.lines[4];
+                    clearCustomPanels();
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{1, 2}, MotorwaySignColor.BLUE,
+                            CartoucheType.NONE, "");
+                    nextPanel = appendLegacyPanel(nextPanel, new int[]{3}, MotorwaySignColor.BLUE,
+                            CartoucheType.NONE, "");
+                    this.lines[1] = legacyDistance.text().isBlank()
+                            ? MotorwaySignLineData.blankForSlot(this.preset.getSlot(1))
+                            : normalizeLineForPreset(this.preset, 1, legacyDistance);
+                    migrated = true;
+                }
+            }
+            default -> {
+                return;
+            }
+        }
+
+        if (!migrated) {
+            return;
+        }
+
+        this.additivePanels = true;
+        nextPanel = appendExistingPanelContents(existing, nextPanel);
+        int firstClearedSlot = (this.preset == MotorwaySignPreset.D41A || this.preset == MotorwaySignPreset.D41B
+                || this.preset == MotorwaySignPreset.D41C) ? 2 : 1;
+        for (int index = firstClearedSlot; index < MAX_SLOTS; index++) {
+            this.lines[index] = MotorwaySignLineData.empty();
+        }
+    }
+
+    /**
+     * Répare les sauvegardes produites par la première version du D41b
+     * « en-tête + registres libres ». À cause de l'ancienne condition de
+     * migration, la distance de l'en-tête (ex. 800 m) pouvait être recopiée
+     * dans un nouveau registre à chaque chargement, jusqu'à remplir les 4
+     * registres. On supprime uniquement les pancartes dont le SEUL contenu
+     * est exactement la distance de l'en-tête ; toutes les vraies villes et
+     * leur ordre sont conservés.
+     */
+    private void repairD41BGeneratedDistancePanels() {
+        if (this.preset != MotorwaySignPreset.D41B) {
+            return;
+        }
+        String headerDistance = this.lines[1] == null ? "" : this.lines[1].text();
+        if (headerDistance == null || headerDistance.isBlank()) {
+            return;
+        }
+
+        MotorwaySignPanelData[] repaired = new MotorwaySignPanelData[MAX_CUSTOM_PANELS];
+        int target = 0;
+        boolean changed = false;
+        for (MotorwaySignPanelData panel : this.customPanels) {
+            MotorwaySignPanelData safePanel = panel == null
+                    ? MotorwaySignPanelData.disabled()
+                    : panel;
+            if (isDistanceOnlyPanel(safePanel, headerDistance)) {
+                changed = true;
+                continue;
+            }
+            if (target < repaired.length) {
+                repaired[target++] = safePanel;
+            }
+        }
+        while (target < repaired.length) {
+            repaired[target++] = MotorwaySignPanelData.disabled();
+        }
+        if (changed) {
+            System.arraycopy(repaired, 0, this.customPanels, 0, MAX_CUSTOM_PANELS);
+            this.additivePanels = true;
+        }
+    }
+
+    private static boolean isDistanceOnlyPanel(
+            MotorwaySignPanelData panel,
+            String headerDistance
+    ) {
+        if (panel == null || !panel.hasPanelContent()
+                || panel.cartoucheType().isVisible()
+                || panel.graphic() != MotorwaySignGraphic.NONE) {
+            return false;
+        }
+        if (!panel.distance1().isBlank() || !panel.distance2().isBlank()
+                || !panel.distance3().isBlank() || !panel.distance4().isBlank()) {
+            return false;
+        }
+
+        boolean foundText = false;
+        for (int index = 0; index < 4; index++) {
+            String value = panel.line(index);
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+            foundText = true;
+            if (!sameSignText(value, headerDistance)) {
+                return false;
+            }
+        }
+        return foundText;
+    }
+
+    private void repairD41CGeneratedDistancePanels() {
+        if (this.preset != MotorwaySignPreset.D41C) {
+            return;
+        }
+        String headerDistance = this.lines[1] == null ? "" : this.lines[1].text();
+        if (headerDistance == null || headerDistance.isBlank()) {
+            return;
+        }
+
+        MotorwaySignPanelData[] repaired = new MotorwaySignPanelData[MAX_CUSTOM_PANELS];
+        int target = 0;
+        boolean changed = false;
+        for (MotorwaySignPanelData panel : this.customPanels) {
+            MotorwaySignPanelData safePanel = panel == null
+                    ? MotorwaySignPanelData.disabled()
+                    : panel;
+            if (isDistanceOnlyPanel(safePanel, headerDistance)) {
+                changed = true;
+                continue;
+            }
+            if (target < repaired.length) {
+                repaired[target++] = safePanel;
+            }
+        }
+        while (target < repaired.length) {
+            repaired[target++] = MotorwaySignPanelData.disabled();
+        }
+        if (changed) {
+            System.arraycopy(repaired, 0, this.customPanels, 0, MAX_CUSTOM_PANELS);
+            this.additivePanels = true;
+        }
+    }
+
+    private static boolean looksLikeDistanceText(String value) {
+        if (value == null) {
+            return false;
+        }
+        String normalized = value.strip().toLowerCase().replaceAll("\\s+", " ");
+        return normalized.matches("[0-9]+([ ,.][0-9]+)? ?(m|km)");
+    }
+
+    private static boolean sameSignText(String first, String second) {
+        if (first == null || second == null) {
+            return false;
+        }
+        String a = first.strip().replaceAll("\\s+", " ");
+        String b = second.strip().replaceAll("\\s+", " ");
+        return a.equalsIgnoreCase(b);
+    }
+
+    private boolean hasAnyLegacyText(int... slots) {
+        for (int slot : slots) {
+            if (slot >= 0 && slot < MAX_SLOTS
+                    && this.lines[slot] != null
+                    && !this.lines[slot].text().isBlank()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void clearCustomPanels() {
+        for (int index = 0; index < MAX_CUSTOM_PANELS; index++) {
+            this.customPanels[index] = MotorwaySignPanelData.disabled();
+        }
+    }
+
+    private int appendLegacyPanel(
+            int target,
+            int[] slots,
+            MotorwaySignColor background,
+            CartoucheType cartoucheType,
+            String cartoucheText
+    ) {
+        if (target >= MAX_CUSTOM_PANELS) {
+            return target;
+        }
+        String[] texts = {"", "", "", ""};
+        RoadTextFont[] fonts = {RoadTextFont.L1, RoadTextFont.L1, RoadTextFont.L1, RoadTextFont.L1};
+        int count = 0;
+        for (int slot : slots) {
+            if (slot < 0 || slot >= MAX_SLOTS || count >= 4) {
+                continue;
+            }
+            MotorwaySignLineData line = this.lines[slot];
+            if (line == null || line.text().isBlank()) {
+                continue;
+            }
+            texts[count] = line.text();
+            fonts[count] = line.font();
+            count++;
+        }
+        CartoucheType safeCartouche = cartoucheType == null ? CartoucheType.NONE : cartoucheType;
+        if (count == 0 && !safeCartouche.isVisible()) {
+            return target;
+        }
+        this.customPanels[target] = new MotorwaySignPanelData(
+                count > 0, Math.max(1, count),
+                texts[0], texts[1], texts[2], texts[3],
+                "", "", "", "",
+                fonts[0], fonts[1], fonts[2], fonts[3],
+                background, safeCartouche, cartoucheText, MotorwaySignGraphic.NONE
+        );
+        return target + 1;
+    }
+
+    private int appendExistingPanelContents(MotorwaySignPanelData[] existing, int target) {
+        if (existing == null) {
+            return target;
+        }
+        for (MotorwaySignPanelData panel : existing) {
+            if (target >= MAX_CUSTOM_PANELS) {
+                break;
+            }
+            if (panel == null || !panel.hasPanelContent()) {
+                continue;
+            }
+            this.customPanels[target++] = new MotorwaySignPanelData(
+                    true, panel.lineCount(),
+                    panel.line1(), panel.line2(), panel.line3(), panel.line4(),
+                    panel.distance1(), panel.distance2(), panel.distance3(), panel.distance4(),
+                    panel.line1Font(), panel.line2Font(), panel.line3Font(), panel.line4Font(),
+                    panel.background(), CartoucheType.NONE, "", panel.graphic()
+            );
+        }
+        return target;
     }
 
     private boolean matchesTexts(String... expected) {

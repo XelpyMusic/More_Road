@@ -38,25 +38,23 @@ public record MotorwaySignPanelData(
         line4Font = line4Font == null ? RoadTextFont.L1 : line4Font;
         background = background == null ? MotorwaySignColor.BLUE : background;
         /*
-         * La police n'est pas indépendante de la couleur de fond : L1/L4
-         * sont conçues pour un texte sombre sur fond clair, L2 pour un vrai
-         * texte blanc sur fond foncé. Forcé ici, dans le constructeur, pour
-         * couvrir toutes les sources de données (valeurs par défaut,
-         * réseau, anciennes sauvegardes), pas seulement les clics dans le
-         * GUI.
+         * Les registres autoroutiers peuvent être en standard blanc (L2) OU
+         * en italique (L4) sur fond bleu/vert. On ne transforme donc en L2
+         * que l'ancien choix L1 lorsqu'un fond devient foncé ; L4 est
+         * conservée et sera teintée en blanc par le renderer.
          */
         line1Font = background.isLight()
                 ? RoadTextFont.forceForLightBackground(line1Font)
-                : RoadTextFont.forceForDarkBackground(line1Font);
+                : (line1Font == RoadTextFont.L1 ? RoadTextFont.L2 : line1Font);
         line2Font = background.isLight()
                 ? RoadTextFont.forceForLightBackground(line2Font)
-                : RoadTextFont.forceForDarkBackground(line2Font);
+                : (line2Font == RoadTextFont.L1 ? RoadTextFont.L2 : line2Font);
         line3Font = background.isLight()
                 ? RoadTextFont.forceForLightBackground(line3Font)
-                : RoadTextFont.forceForDarkBackground(line3Font);
+                : (line3Font == RoadTextFont.L1 ? RoadTextFont.L2 : line3Font);
         line4Font = background.isLight()
                 ? RoadTextFont.forceForLightBackground(line4Font)
-                : RoadTextFont.forceForDarkBackground(line4Font);
+                : (line4Font == RoadTextFont.L1 ? RoadTextFont.L2 : line4Font);
         cartoucheType = cartoucheType == null ? CartoucheType.NONE : cartoucheType;
         cartoucheText = cartoucheText == null ? "" : cartoucheText;
         graphic = graphic == null ? MotorwaySignGraphic.NONE : graphic;

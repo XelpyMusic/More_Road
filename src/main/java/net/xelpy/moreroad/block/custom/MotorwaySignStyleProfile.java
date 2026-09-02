@@ -55,7 +55,7 @@ public record MotorwaySignStyleProfile(
              * Signalé trop collé au bord gauche sur l'ex.2 (villes) comparé
              * à l'ex.1, qui a la même marge que le vrai panneau visé.
              */
-            case D31B_EX1, D31B_EX2 -> 0.13F;
+            case D31B_EX1, D31B_EX2, D31D, D31E, D41A, D41B, D41C -> 0.13F;
             case D63C -> 0.34F;
             default -> 0.32F;
         };
@@ -70,6 +70,8 @@ public record MotorwaySignStyleProfile(
              * valeur par défaut.
              */
             case D31B_EX1, D31B_EX2 -> -0.075F;
+            /* D41b : les caractères ressortaient encore trop haut dans les registres ajoutés. */
+            case D41B, D41C -> -0.095F;
             default -> -0.055F;
         };
 
@@ -81,7 +83,12 @@ public record MotorwaySignStyleProfile(
                 distanceGap,
                 opticalYOffset,
                 safePreset != MotorwaySignPreset.D31B_EX1
-                        && safePreset != MotorwaySignPreset.D31B_EX2,
+                        && safePreset != MotorwaySignPreset.D31B_EX2
+                        && safePreset != MotorwaySignPreset.D31D
+                        && safePreset != MotorwaySignPreset.D31E
+                        && safePreset != MotorwaySignPreset.D41A
+                        && safePreset != MotorwaySignPreset.D41B
+                        && safePreset != MotorwaySignPreset.D41C,
                 /*
                  * Signalé : le D31e porte déjà sa propre cartouche de
                  * numéro de route (registre du haut, dessin d'origine),
@@ -92,11 +99,18 @@ public record MotorwaySignStyleProfile(
                 safePreset != MotorwaySignPreset.D31B_EX1
                         && safePreset != MotorwaySignPreset.D31B_EX2
                         && safePreset != MotorwaySignPreset.D31E
-                        && safePreset != MotorwaySignPreset.D32A,
+                        && safePreset != MotorwaySignPreset.D32A
+                        && safePreset != MotorwaySignPreset.D46A
+                        && safePreset != MotorwaySignPreset.D47A
+                        && safePreset != MotorwaySignPreset.D41A
+                        && safePreset != MotorwaySignPreset.D41B
+                        && safePreset != MotorwaySignPreset.D41C,
                 safePreset == MotorwaySignPreset.D61B,
-                safePreset == MotorwaySignPreset.D31B_EX2 || safePreset == MotorwaySignPreset.D31B_EX1,
+                false,
                 safePreset != MotorwaySignPreset.D44
-                        && safePreset != MotorwaySignPreset.D32A,
+                        && safePreset != MotorwaySignPreset.D32A
+                        && safePreset != MotorwaySignPreset.D46A
+                        && safePreset != MotorwaySignPreset.D47A,
                 /*
                  * Signalé : "Symbole" (choix d'une flèche/pictogramme) par
                  * registre ne sert à rien sur le D31d ni le D31e — leur
@@ -108,7 +122,12 @@ public record MotorwaySignStyleProfile(
                         && safePreset != MotorwaySignPreset.D31B_EX2
                         && safePreset != MotorwaySignPreset.D31D
                         && safePreset != MotorwaySignPreset.D31E
-                        && safePreset != MotorwaySignPreset.D32A,
+                        && safePreset != MotorwaySignPreset.D32A
+                        && safePreset != MotorwaySignPreset.D46A
+                        && safePreset != MotorwaySignPreset.D47A
+                        && safePreset != MotorwaySignPreset.D41A
+                        && safePreset != MotorwaySignPreset.D41B
+                        && safePreset != MotorwaySignPreset.D41C,
                 safePreset != MotorwaySignPreset.D44
         );
     }
@@ -127,6 +146,7 @@ public record MotorwaySignStyleProfile(
             case D31D -> 0.054F;
             case D31E -> 0.062F;
             case D32A -> 0.048F;
+            case D46A, D47A -> 0.054F;
             case D41A -> 0.054F;
             case D41B -> 0.058F;
             case D41C -> 0.056F;
@@ -165,7 +185,9 @@ public record MotorwaySignStyleProfile(
          * de rendu entre les deux malgré la même formule.
          */
         if (preset == MotorwaySignPreset.D31B_EX1 || preset == MotorwaySignPreset.D31B_EX2
-                || preset == MotorwaySignPreset.D31D || preset == MotorwaySignPreset.D31E) {
+                || preset == MotorwaySignPreset.D31D || preset == MotorwaySignPreset.D31E
+                || preset == MotorwaySignPreset.D41A || preset == MotorwaySignPreset.D41B
+                || preset == MotorwaySignPreset.D41C) {
             /*
              * Encore un peu juste même après avoir suivi la proportion du
              * texte (ci-dessus) : léger supplément au-delà du strict

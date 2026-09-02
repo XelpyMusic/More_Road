@@ -11,19 +11,15 @@ public record MotorwaySignLineData(
         font = font == null ? RoadTextFont.L1 : font;
         color = color == null ? MotorwaySignColor.BLUE : color;
         /*
-         * La police n'est pas indépendante de la couleur de fond : L1/L4
-         * dessinent un texte sombre prévu pour un fond clair, L2 dessine un
-         * vrai texte blanc prévu pour un fond foncé (bleu, vert, rouge,
-         * noir, marron, bleu métropolitain...). Forcé ici, dans le
-         * constructeur, pour couvrir TOUTES les sources de données (valeurs
-         * par défaut des préréglages, GUI, réseau, anciennes sauvegardes) —
-         * pas seulement les changements de couleur faits à la main dans le
-         * GUI, qui laissaient les couleurs par défaut des préréglages avec
-         * une police jamais corrigée.
+         * Sur les panneaux autoroutiers, L4 doit rester un vrai choix de
+         * style même sur fond bleu/vert : le renderer teinte ses glyphes en
+         * blanc. Seule L1 (standard sombre) doit donc devenir L2 sur fond
+         * foncé. C'est important pour les distances en italique (ex. D41c)
+         * et pour les villes des registres personnalisables.
          */
         font = color.isLight()
                 ? RoadTextFont.forceForLightBackground(font)
-                : RoadTextFont.forceForDarkBackground(font);
+                : (font == RoadTextFont.L1 ? RoadTextFont.L2 : font);
     }
 
     public static MotorwaySignLineData fromSlot(MotorwaySignSlot slot) {

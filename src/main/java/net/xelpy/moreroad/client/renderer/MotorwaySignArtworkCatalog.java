@@ -76,6 +76,8 @@ public final class MotorwaySignArtworkCatalog {
             case D41B -> D41B_ARTWORK;
             case D41C -> D41C_ARTWORK;
             case D44 -> D44_ARTWORK;
+            case D46A -> D46A_ARTWORK;
+            case D47A -> D47A_ARTWORK;
             case D61B -> D61B_ARTWORK;
             case D62A -> D62A_ARTWORK;
             case D62B -> D62B_ARTWORK;
@@ -421,119 +423,54 @@ public final class MotorwaySignArtworkCatalog {
     );
 
     static final ExactMappedArtwork D31B_EX1_ARTWORK = new ExactMappedArtwork(
-            7832.0F, 4993.0F, 4.20F, artwork("d31b_ex1_frame.png"), artwork("d31b_ex1_graphics.png"),
+            7832.0F, 2349.0F, 4.20F, artwork("d31b_ex1_frame.png"), artwork("d31b_ex1_graphics.png"),
             new ExactTintedLayer[]{layer("d31b_ex1_route.png", 0)},
             new ExactTextPlacement[]{
-                    /*
-                     * D31b ex.1 :
-                     * - numéro de route recentré dans le cadre jaune du SVG ;
-                     * - destinations descendues et légèrement réduites pour
-                     *   rester entièrement dans le panneau inférieur, même
-                     *   avec des noms un peu plus longs.
-                     */
-                    /* D31b ex.1 : conserver le centrage initial du numéro de route. */
-                    text(0, 1778.3F, 952.0F, 2500.0F, 620.0F),
-                    /*
-                     * Destinations davantage alignées à gauche et légèrement
-                     * agrandies pour retrouver une taille proche de la lame
-                     * "TOULOUSE / AGEN". Léger surplus d'espace par rapport à
-                     * l'origine (775 d'écart) sans aller jusqu'aux panneaux
-                     * réels (lignes quasi collées, ex. "D 922 / ST SAUVES /
-                     * LAQUEUILLE") : un premier essai plus large était allé
-                     * trop loin dans l'autre sens.
-                     */
-                    text(1, 3700.0F, 3440.0F, 7300.0F, 600.0F),
-                    text(2, 3550.0F, 4435.0F, 7000.0F, 600.0F)
+                    text(0, 1778.3F, 952.0F, 2500.0F, 620.0F)
             },
             new ExactBody[]{
-                    body(0.0F, 0.0F, 7832.0F, 2349.0F),
-                    body(0.0F, 2644.0F, 7832.0F, 2349.0F)
+                    body(0.0F, 0.0F, 7832.0F, 2349.0F)
             }, true
     );
 
     static final ExactMappedArtwork D31B_EX2_ARTWORK = new ExactMappedArtwork(
-            15397.0F, 11745.0F, 6.00F, artwork("d31b_ex2_frame.png"), artwork("d31b_ex2_graphics.png"),
+            15397.0F, 4535.0F, 6.00F, artwork("d31b_ex2_frame.png"), artwork("d31b_ex2_graphics.png"),
             new ExactTintedLayer[]{
                     fixedLayer("d31b_ex2_panel_top.png", MotorwaySignColor.WHITE),
-                    layer("d31b_ex2_route.png", 0), layer("d31b_ex2_panel_bottom.png", 1)
+                    layer("d31b_ex2_route.png", 0)
             },
             new ExactTextPlacement[]{
-                    /* D31b ex.2 : route recentrée dans le cartouche rouge. */
-                    text(0, 1963.0F, 1842.0F, 2550.0F, 969.0F),
-                    /*
-                     * Les destinations doivent partir du même bord gauche,
-                     * comme sur le SVG, au lieu d'être centrées dans chaque
-                     * panneau.
-                     */
-                    text(1, 7693.5F, 6660.0F, 13800.0F, 1450.0F),
-                    text(2, 7693.5F, 8690.0F, 13800.0F, 1450.0F),
-                    text(3, 7693.5F, 10500.0F, 13800.0F, 1450.0F)
+                    text(0, 1963.0F, 1842.0F, 2550.0F, 969.0F)
             },
             new ExactBody[]{
-                    body(0.0F, 0.0F, 15397.0F, 4535.0F),
-                    body(0.0F, 4885.0F, 15397.0F, 6860.0F)
+                    body(0.0F, 0.0F, 15397.0F, 4535.0F)
             }, true
     );
 
     static final ExactMappedArtwork D31D_ARTWORK = new ExactMappedArtwork(
-            12505.0F, 11429.0F, 5.50F, artwork("d31d_frame.png"), artwork("d31d_graphics.png"),
+            12505.0F, 3930.0F, 5.50F, artwork("d31d_frame.png"), artwork("d31d_graphics.png"),
             new ExactTintedLayer[]{
-                    fixedLayer("d31d_panel_middle.png", MotorwaySignColor.WHITE),
-                    layer("d31d_panel_top.png", 1), layer("d31d_panel_bottom.png", 5)
+                    fixedLayer("d31d_panel_middle.png", MotorwaySignColor.WHITE)
             },
             new ExactTextPlacement[]{
-                    /*
-                     * Signalé : "19" un peu trop haut dans son cartouche, et
-                     * l'ensemble du panneau (registres 1 à 3) un peu trop
-                     * haut par rapport à la photo de référence — léger
-                     * décalage vers le bas de tous les registres.
-                     * L'écart entre les deux destinations du bas (registre 3)
-                     * était aussi trop large : resserré (1750 -> 1250).
-                     *
-                     * Le premier essai (1965 -> 2300) est allé trop loin :
-                     * le "19" ressortait alors trop bas par rapport à
-                     * l'ovale fixe qui l'entoure (image du cadre, non lié à
-                     * ce placement de texte) — décalage réduit à +85 au lieu
-                     * de +335 pour recentrer le texte dans cet ovale.
-                     *
-                     * Le resserrement à 1250 est ensuite allé trop loin dans
-                     * l'autre sens (les deux noms de villes du bas trop
-                     * collés l'un à l'autre) : réécarté à 1450, entre les
-                     * deux valeurs déjà essayées.
-                     */
-                    /*
-                     * D31d : cartouche de sortie agrandi de 10 % dans
-                     * d31d_graphics.png. Le pictogramme + numéro suivent la
-                     * même proportion afin de conserver l'équilibre du vrai
-                     * cartouche autoroutier.
-                     */
-                    text(0, 3088.0F, 2050.0F, 4600.0F, 1210.0F),
-                    text(1, 6252.0F, 5916.0F, 11200.0F, 1360.0F),
-                    text(5, 6252.0F, 9000.0F, 11200.0F, 1100.0F),
-                    text(6, 6252.0F, 10450.0F, 8000.0F, 1100.0F)
+                    text(0, 3088.0F, 2050.0F, 4600.0F, 1210.0F)
             },
             new ExactBody[]{
-                    body(0.0F, 0.0F, 12505.0F, 3930.0F),
-                    body(3.0F, 4256.0F, 12500.0F, 2921.0F),
-                    body(0.0F, 7500.0F, 12505.0F, 3929.0F)
+                    body(0.0F, 0.0F, 12505.0F, 3930.0F)
             }, true
     );
 
     static final ExactMappedArtwork D31E_ARTWORK = new ExactMappedArtwork(
-            13403.0F, 11036.0F, 5.80F, artwork("d31e_frame.png"), artwork("d31e_graphics.png"),
+            13403.0F, 4005.0F, 5.80F, artwork("d31e_frame.png"), artwork("d31e_graphics.png"),
             new ExactTintedLayer[]{
                     fixedLayer("d31e_panel_top.png", MotorwaySignColor.WHITE),
-                    layer("d31e_route.png", 0), layer("d31e_panel_middle.png", 1), layer("d31e_panel_bottom.png", 5)
+                    layer("d31e_route.png", 0)
             },
             new ExactTextPlacement[]{
-                    text(0, 2684.5F, 1469.0F, 3700.0F, 1062.0F),
-                    text(1, 6701.5F, 6300.0F, 12100.0F, 1484.0F),
-                    text(5, 6701.5F, 9800.0F, 12100.0F, 1100.0F)
+                    text(0, 2684.5F, 1469.0F, 3700.0F, 1062.0F)
             },
             new ExactBody[]{
-                    body(0.0F, 0.0F, 13403.0F, 4005.0F),
-                    body(0.0F, 4366.0F, 13403.0F, 3905.0F),
-                    body(0.0F, 8631.0F, 13403.0F, 2405.0F)
+                    body(0.0F, 0.0F, 13403.0F, 4005.0F)
             }, true
     );
 
@@ -541,68 +478,86 @@ public final class MotorwaySignArtworkCatalog {
             11621.0F, 3922.0F, 5.20F, artwork("d32a_frame.png"), artwork("d32a_graphics.png"),
             new ExactTintedLayer[]{layer("d32a_panel.png", 0)},
             new ExactTextPlacement[]{
-                    text(0, 3725.0F, 1225.0F, 6350.0F, 835.0F),
-                    text(1, 3725.0F, 2810.0F, 6700.0F, 1075.0F)
+                    text(0, 3750.0F, 1205.0F, 6600.0F, 1175.0F),
+                    text(1, 3750.0F, 2825.0F, 7000.0F, 1175.0F)
             },
             new ExactBody[]{body(0.0F, 0.0F, 11621.0F, 3922.0F)}, true
     );
 
     static final ExactMappedArtwork D41A_ARTWORK = new ExactMappedArtwork(
-            12467.0F, 11270.0F, 5.50F, artwork("d41a_frame.png"), artwork("d41a_graphics.png"),
+            12467.0F, 3894.0F, 5.50F, artwork("d41a_frame.png"), artwork("d41a_graphics.png"),
             new ExactTintedLayer[]{
-                    fixedLayer("d41a_panel_top.png", MotorwaySignColor.WHITE),
-                    layer("d41a_panel_middle.png", 1), layer("d41a_panel_bottom.png", 3)
+                    fixedLayer("d41a_panel_top.png", MotorwaySignColor.WHITE)
             },
             new ExactTextPlacement[]{
                     text(0, 3060.5F, 1947.0F, 4100.0F, 1100.0F),
-                    text(4, 9500.0F, 1947.0F, 3000.0F, 1000.0F),
-                    text(1, 6233.5F, 5450.0F, 11200.0F, 1100.0F),
-                    text(2, 6233.5F, 7200.0F, 11200.0F, 1100.0F),
-                    text(3, 6233.5F, 10050.0F, 11200.0F, 1100.0F)
+                    text(1, 9450.0F, 1947.0F, 3400.0F, 1140.0F)
             },
             new ExactBody[]{
-                    body(0.0F, 0.0F, 12467.0F, 3894.0F),
-                    body(0.0F, 4255.0F, 12467.0F, 4260.0F),
-                    body(0.0F, 8872.0F, 12467.0F, 2398.0F)
+                    body(0.0F, 0.0F, 12467.0F, 3894.0F)
             }, true
     );
 
     static final ExactMappedArtwork D41B_ARTWORK = new ExactMappedArtwork(
-            11536.0F, 8413.0F, 5.20F, artwork("d41b_frame.png"), null,
+            11536.0F, 2399.0F, 5.20F, artwork("d41b_frame.png"), null,
             new ExactTintedLayer[]{
-                    fixedLayer("d41b_panel_top.png", MotorwaySignColor.WHITE), layer("d41b_route.png", 0),
-                    layer("d41b_panel_middle.png", 1), layer("d41b_panel_bottom.png", 2)
+                    fixedLayer("d41b_panel_top.png", MotorwaySignColor.WHITE),
+                    layer("d41b_route.png", 0)
             },
             new ExactTextPlacement[]{
                     text(0, 2685.5F, 1198.5F, 3600.0F, 1000.0F),
-                    text(3, 8800.0F, 1198.5F, 2400.0F, 900.0F),
-                    text(1, 5768.0F, 4200.0F, 10400.0F, 1200.0F),
-                    text(2, 5768.0F, 7200.0F, 10400.0F, 1100.0F)
+                    text(1, 8750.0F, 1198.5F, 3300.0F, 1260.0F)
             },
             new ExactBody[]{
-                    body(0.0F, 0.0F, 11536.0F, 2399.0F),
-                    body(0.0F, 2758.0F, 11536.0F, 2897.0F),
-                    body(0.0F, 6014.0F, 11536.0F, 2399.0F)
+                    body(0.0F, 0.0F, 11536.0F, 2399.0F)
+            }, true
+    );
+
+    static final ExactMappedArtwork D46A_ARTWORK = new ExactMappedArtwork(
+            1000.0F, 760.0F, 5.20F, artwork("d46a_frame.png"), null,
+            new ExactTintedLayer[]{
+                    layer("d46a_panel_top.png", 0),
+                    layer("d46a_panel_bottom.png", 2)
+            },
+            new ExactTextPlacement[]{
+                    text(0, 500.0F, 182.0F, 860.0F, 128.0F),
+                    text(1, 500.0F, 322.0F, 860.0F, 128.0F),
+                    text(2, 500.0F, 594.0F, 820.0F, 110.0F)
+            },
+            new ExactBody[]{
+                    body(42.0F, 52.0F, 916.0F, 366.0F),
+                    body(42.0F, 477.0F, 916.0F, 201.0F)
+            }, true
+    );
+
+    static final ExactMappedArtwork D47A_ARTWORK = new ExactMappedArtwork(
+            1000.0F, 760.0F, 5.20F, artwork("d47a_frame.png"), null,
+            new ExactTintedLayer[]{
+                    layer("d47a_panel_top.png", 0),
+                    layer("d47a_panel_bottom.png", 1)
+            },
+            new ExactTextPlacement[]{
+                    text(0, 500.0F, 205.0F, 820.0F, 112.0F),
+                    text(1, 500.0F, 593.0F, 620.0F, 92.0F)
+            },
+            new ExactBody[]{
+                    body(42.0F, 52.0F, 916.0F, 366.0F),
+                    body(42.0F, 477.0F, 916.0F, 201.0F)
             }, true
     );
 
     static final ExactMappedArtwork D41C_ARTWORK = new ExactMappedArtwork(
-            13098.0F, 11401.0F, 5.50F, artwork("d41c_frame.png"), null,
+            13098.0F, 2897.0F, 5.50F, artwork("d41c_frame.png"), null,
             new ExactTintedLayer[]{
-                    layer("d41c_panel_top.png", 1), layer("d41c_route.png", 0),
-                    layer("d41c_panel_middle.png", 1), layer("d41c_panel_bottom.png", 3)
+                    fixedLayer("d41c_panel_top.png", MotorwaySignColor.BLUE),
+                    layer("d41c_route.png", 0)
             },
             new ExactTextPlacement[]{
-                    text(0, 2429.5F, 1451.0F, 3000.0F, 1050.0F),
-                    text(4, 10800.0F, 1451.0F, 3000.0F, 1000.0F),
-                    text(1, 6549.0F, 4750.0F, 11800.0F, 1200.0F),
-                    text(2, 6549.0F, 6800.0F, 11800.0F, 1200.0F),
-                    text(3, 3800.0F, 10000.0F, 7000.0F, 1200.0F)
+                    text(0, 2429.5F, 1451.0F, 3000.0F, 1100.0F),
+                    text(1, 10650.0F, 1451.0F, 3600.0F, 1300.0F)
             },
             new ExactBody[]{
-                    body(0.0F, 0.0F, 13098.0F, 2897.0F),
-                    body(0.0F, 3259.0F, 13098.0F, 4890.0F),
-                    body(0.0F, 8504.0F, 13098.0F, 2897.0F)
+                    body(0.0F, 0.0F, 13098.0F, 2897.0F)
             }, true
     );
 

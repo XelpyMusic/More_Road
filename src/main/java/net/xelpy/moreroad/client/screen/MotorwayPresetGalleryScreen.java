@@ -152,7 +152,7 @@ public final class MotorwayPresetGalleryScreen extends Screen {
         List<Integer> visibleIndices = new ArrayList<>();
         MotorwaySignPreset[] presets = MotorwaySignPreset.values();
         for (int i = 0; i < presets.length; i++) {
-            if (this.category.accepts(presets[i])) {
+            if (isVisibleInGallery(presets[i]) && this.category.accepts(presets[i])) {
                 visibleIndices.add(i);
             }
         }
@@ -418,6 +418,11 @@ public final class MotorwayPresetGalleryScreen extends Screen {
         int startX = x + (width - fitWidth) / 2;
         int startY = y + (height - fitHeight) / 2;
         graphics.blit(textureId, startX, startY, startX + fitWidth, startY + fitHeight, 0.0F, 1.0F, 0.0F, 1.0F);
+    }
+
+    private static boolean isVisibleInGallery(MotorwaySignPreset preset) {
+        return preset != MotorwaySignPreset.D45
+                && preset != MotorwaySignPreset.D45_DC;
     }
 
     private static Identifier galleryTextureId(MotorwaySignPreset preset) {

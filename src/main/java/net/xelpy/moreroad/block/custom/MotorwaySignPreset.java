@@ -15,14 +15,9 @@ public enum MotorwaySignPreset {
     FREEFORM("freeform", "Panneau libre", MotorwaySignGraphic.NONE, MotorwaySignSupport.POLE),
 
     D31B_EX1("d31b_ex1", "D31b — exemple 1", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
-            route("Numéro de route", "D 922", MotorwaySignColor.YELLOW),
-            line("Destination 1", "ST SAUVEUR", MotorwaySignColor.WHITE, 0),
-            line("Destination 2", "PRÉCY", MotorwaySignColor.WHITE, 0)),
+            route("Numéro de route", "D 922", MotorwaySignColor.YELLOW)),
     D31B_EX2("d31b_ex2", "D31b — exemple 2", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
-            route("Numéro de route", "A 13", MotorwaySignColor.RED),
-            line("Destination 1", "ROUEN", MotorwaySignColor.BLUE, 0),
-            line("Destination 2", "ST QUENTIN EN YNES", MotorwaySignColor.BLUE, 0),
-            line("Destination 3", "VERSAILLES", MotorwaySignColor.BLUE, 0)),
+            route("Numéro de route", "A 13", MotorwaySignColor.RED)),
     /*
      * Signalé : le registre vert (destination principale) doit pouvoir
      * accueillir jusqu'à 4 villes (comme sur les vrais panneaux, ex.
@@ -33,14 +28,7 @@ public enum MotorwaySignPreset {
      * apparaître au bon endroit dans l'éditeur.
      */
     D31D("d31d", "D31d", MotorwaySignGraphic.EXIT, MotorwaySignSupport.POLE,
-            route("Numéro de sortie", "19", MotorwaySignColor.WHITE),
-            line("Destination verte", "CLERMONT-FD", MotorwaySignColor.GREEN, 0),
-            line("Destination verte 2", "", MotorwaySignColor.GREEN, 0),
-            line("Destination verte 3", "", MotorwaySignColor.GREEN, 0),
-            line("Destination verte 4", "", MotorwaySignColor.GREEN, 0),
-            line("Destination locale 1", "CHAMALIÈRES", MotorwaySignColor.WHITE, 1),
-            line("Destination locale 2", "ROYAT", MotorwaySignColor.WHITE, 1),
-            line("Destination locale 3", "", MotorwaySignColor.WHITE, 1)),
+            route("Numéro de sortie", "19", MotorwaySignColor.WHITE)),
     /*
      * Signalé : comme le D31d, les deux registres (vert et "destination
      * locale") doivent tous les deux pouvoir accueillir de 1 à 4 villes —
@@ -48,15 +36,7 @@ public enum MotorwaySignPreset {
      * base. Le panneau s'agrandit ou se réduit d'autant à chacun.
      */
     D31E("d31e", "D31e", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
-            route("Numéro de route", "N 144", MotorwaySignColor.RED),
-            line("Destination verte", "MONTLUÇON", MotorwaySignColor.GREEN, 0),
-            line("Destination verte 2", "", MotorwaySignColor.GREEN, 0),
-            line("Destination verte 3", "", MotorwaySignColor.GREEN, 0),
-            line("Destination verte 4", "", MotorwaySignColor.GREEN, 0),
-            line("Destination locale", "ST ÉLOI LES MINES", MotorwaySignColor.WHITE, 1),
-            line("Destination locale 2", "", MotorwaySignColor.WHITE, 1),
-            line("Destination locale 3", "", MotorwaySignColor.WHITE, 1),
-            line("Destination locale 4", "", MotorwaySignColor.WHITE, 1)),
+            route("Numéro de route", "N 144", MotorwaySignColor.RED)),
     /*
      * D32a : un seul modèle pour les deux variantes réglementaires de fond.
      * La typographie est toujours L4 (italique), comme sur les panneaux
@@ -67,23 +47,35 @@ public enum MotorwaySignPreset {
             italic("Ligne 1", "AIRE DE", MotorwaySignColor.WHITE, 0),
             italic("Ligne 2", "LIMOURS-JANVRY", MotorwaySignColor.WHITE, 0)),
 
+    /*
+     * D41a : l'en-tête (pastille de sortie + distance) reste le dessin
+     * réglementaire fixe, tandis que les registres en dessous sont désormais
+     * entièrement gérés par les « Registre 1..4 » du système générique.
+     * Chaque pancarte ajoutée peut donc contenir de 1 à 4 villes, être
+     * verte/bleue/blanche, et disparaître complètement si elle n'a plus de
+     * contenu.
+     */
     D41A("d41a", "D41a", MotorwaySignGraphic.EXIT, MotorwaySignSupport.POLE,
             route("Numéro de sortie", "4", MotorwaySignColor.WHITE),
-            line("Destination 1", "ROCHEFORT", MotorwaySignColor.GREEN, 0),
-            line("Destination 2", "LA ROCHELLE", MotorwaySignColor.GREEN, 0),
-            line("Destination locale", "SURGÈRES", MotorwaySignColor.WHITE, 1),
             distance("Distance", "1000 m")),
+    /*
+     * D41b : même principe que le D41a refait. L'en-tête reste fixe avec le
+     * cartouche de route intégré et la distance ; toutes les destinations
+     * sont ajoutées ensuite via les registres personnalisables (1 à 4 villes
+     * par pancarte, hauteur adaptative, disparition si vide).
+     */
     D41B("d41b", "D41b", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
             route("Numéro de route", "D 941", MotorwaySignColor.YELLOW),
-            line("Destination verte", "GUÉRET", MotorwaySignColor.GREEN, 0),
-            line("Destination locale", "AUBUSSON", MotorwaySignColor.WHITE, 1),
-            distance("Distance", "300 m")),
+            distanceItalic("Distance", "800 m")),
+    /*
+     * D41c : même logique que D41a/D41b version refaite.
+     * L'en-tête reste fixe avec cartouche de route intégré + distance,
+     * le fond du haut est toujours bleu, et toutes les destinations sont
+     * ensuite gérées via les registres personnalisables.
+     */
     D41C("d41c", "D41c", MotorwaySignGraphic.DIAGONAL_RIGHT, MotorwaySignSupport.POLE,
             route("Numéro de route", "A 67", MotorwaySignColor.RED),
-            line("Destination 1", "CLERMONT-FD", MotorwaySignColor.BLUE, 0),
-            line("Destination 2", "ST ÉTIENNE", MotorwaySignColor.BLUE, 0),
-            line("Destination 3", "NEVERS", MotorwaySignColor.BLUE, 1),
-            distance("Distance", "1000 m")),
+            distanceItalic("Distance", "1000 m")),
 
     /*
      * D44 : présignalisation de village étape (registre sortie + distance,
@@ -101,7 +93,8 @@ public enum MotorwaySignPreset {
              */
             route("Numéro de sortie", "20", MotorwaySignColor.WHITE),
             distance("Distance", "500 m"),
-            line("Nom du village étape", "ÉGUZON", MotorwaySignColor.WHITE, 0)),
+            line("Nom du village étape", "ÉGUZON", MotorwaySignColor.WHITE, 0),
+            distanceItalicBlack("Pancarte distance (optionnelle)", "")),
     D45("d45", "D45", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
             line("Nom de l'aire", "AIRE DE LIMOURS", MotorwaySignColor.WHITE, 0),
             info("Services", "SERVICES", MotorwaySignColor.WHITE, 0),
@@ -110,15 +103,27 @@ public enum MotorwaySignPreset {
             italic("Nom de l'aire", "AIRE DE LIMOURS", MotorwaySignColor.WHITE, 0),
             italic("Services", "SERVICES", MotorwaySignColor.WHITE, 0),
             distance("Distance", "2000 m")),
-    D46A("d46a", "D46a", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
-            line("Nom de l'aire", "AIRE DE LIMOURS", MotorwaySignColor.WHITE, 0),
-            distance("Distance", "1000 m")),
-    D46B("d46b", "D46b", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
-            line("Nom de l'aire", "AIRE DE LIMOURS", MotorwaySignColor.BLUE, 0),
-            distance("Distance", "1000 m")),
-    D47A("d47a", "D47a", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
-            line("Information", "PROCHAINE STATION", MotorwaySignColor.BLUE, 0),
-            distance("Distance", "40 km")),
+    /*
+     * D46a : un seul modèle pour les deux variantes de fond (blanc ou bleu),
+     * avec deux pancartes séparées comme sur le visuel de référence :
+     * - pancarte haute : nom de l'aire sur 2 lignes en L4
+     * - pancarte basse : distance en L4
+     *
+     * L'ancien D46b (version bleue) est fusionné ici ; voir la migration
+     * dans fromSerializedName().
+     */
+    D46A("d46a", "D46a", MotorwaySignGraphic.NONE, MotorwaySignSupport.POLE,
+            italic("Ligne 1", "AIRE DE", MotorwaySignColor.WHITE, 0),
+            italic("Ligne 2", "LIMOURS", MotorwaySignColor.WHITE, 0),
+            distanceItalic("Distance", "2000 m")),
+    /*
+     * D47a : même logique que le D46a (2 plaques séparées, blanc ou bleu),
+     * mais avec une seule ligne de texte sur la plaque haute et une distance
+     * sur la plaque basse. Pas de pictogramme de services sur ce modèle.
+     */
+    D47A("d47a", "D47a", MotorwaySignGraphic.NONE, MotorwaySignSupport.POLE,
+            italic("Information", "section à péage", MotorwaySignColor.BLUE, 0),
+            distanceItalic("Distance", "1500 m")),
     D47B("d47b", "D47b", MotorwaySignGraphic.SERVICES, MotorwaySignSupport.POLE,
             line("Information", "PROCHAIN RESTAURANT", MotorwaySignColor.BLUE, 0),
             distance("Distance", "30 km")),
@@ -396,6 +401,9 @@ public enum MotorwaySignPreset {
             if ("d32a_dc".equals(value) || "d32b".equals(value)) {
                 return D32A;
             }
+            if ("d46b".equals(value)) {
+                return D46A;
+            }
             for (MotorwaySignPreset preset : values()) {
                 if (preset.serializedName.equals(value)) {
                     return preset;
@@ -423,6 +431,14 @@ public enum MotorwaySignPreset {
 
     private static MotorwaySignSlot distance(String label, String text) {
         return new MotorwaySignSlot(label, text, RoadTextFont.L1, MotorwaySignColor.WHITE, -1, MotorwaySignRole.DISTANCE);
+    }
+
+    private static MotorwaySignSlot distanceItalic(String label, String text) {
+        return new MotorwaySignSlot(label, text, RoadTextFont.L4, MotorwaySignColor.WHITE, -1, MotorwaySignRole.DISTANCE);
+    }
+
+    private static MotorwaySignSlot distanceItalicBlack(String label, String text) {
+        return new MotorwaySignSlot(label, text, RoadTextFont.L4, MotorwaySignColor.BLACK, -1, MotorwaySignRole.DISTANCE);
     }
 
     private static MotorwaySignSlot distance(String label, String text, MotorwaySignColor color) {
